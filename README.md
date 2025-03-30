@@ -1,2 +1,72 @@
 # Sonarr-Hunter
 Assists Sonarr to check for missing TV Shows
+
+<img width="781" alt="image" src="https://github.com/user-attachments/assets/d098a275-de72-4fa3-96a8-7a1d4603b2e1" />
+
+# Sonarr Missing Episode Search Tool
+
+## Overview
+
+This script continually searches your Sonarr library for shows with missing episodes and automatically triggers searches for those missing episodes. It's designed to run continuously while being gentle on your indexers, helping you gradually complete your TV show collection.
+
+## Features
+
+- 🔄 **Continuous Operation**: Runs indefinitely until manually stopped
+- 🎲 **Random Selection**: By default, selects shows randomly to distribute searches across your library
+- ⏱️ **Throttled Searches**: Includes configurable delays to prevent overloading indexers
+- 📊 **Status Reporting**: Provides clear feedback about what it's doing and which shows it's searching for
+- 🛡️ **Error Handling**: Gracefully handles connection issues and API failures
+
+## How It Works
+
+1. **Initialization**: Connects to your Sonarr instance and retrieves a list of all shows
+2. **Selection Process**: Randomly selects shows from your library (or sequentially if configured)
+3. **Detection**: Checks if the selected show has missing episodes by comparing episode counts
+4. **Search Trigger**: For shows with missing episodes, it instructs Sonarr to search for those episodes
+5. **Throttling**: After finding and processing a show with missing episodes, it pauses for a configurable amount of time
+6. **Cycling**: After processing the configured number of shows, it starts a new cycle, refreshing the show data
+
+## Configuration Options
+
+At the top of the script, you'll find these configurable options:
+
+```bash
+API_KEY="your_api_key_here"        # Your Sonarr API key
+SONARR_URL="http://your.sonarr.ip:port"  # URL to your Sonarr instance
+MAX_SHOWS=1                         # Shows to process before restarting cycle
+SLEEP_DURATION=30                   # Seconds to wait after finding missing episodes
+RANDOM_SELECTION=true               # true for random selection, false for sequential
+```
+
+## Use Cases
+
+- **Library Completion**: Gradually fill in missing episodes of TV shows
+- **New Show Setup**: Automatically find episodes for newly added shows
+- **Background Service**: Run it in the background to continuously maintain your library
+
+## How to Run
+
+1. Save the script to a file (e.g., `sonarr-search.sh`)
+2. Make it executable: `chmod +x sonarr-search.sh`
+3. Run it: `./sonarr-search.sh`
+
+For continuous background operation:
+- Use `screen` or `tmux`: `screen -S sonarr-search ./sonarr-search.sh`
+- Or create a systemd service to run it automatically on startup
+
+## Tips
+
+- **First-Time Use**: Start with default settings to ensure it works with your setup
+- **Adjusting Speed**: Lower the `SLEEP_DURATION` to search more frequently (be careful with indexer limits)
+- **Multiple Shows**: Increase `MAX_SHOWS` if you want to search for more shows per cycle
+- **System Resources**: The script uses minimal resources and can run continuously on even low-powered systems
+
+## Troubleshooting
+
+- **API Key Issues**: Check that your API key is correct in Sonarr settings
+- **Connection Problems**: Ensure the Sonarr URL is accessible from where you're running the script
+- **High Resource Usage**: If you notice high CPU usage, ensure jq is installed properly
+
+---
+
+This script helps automate the tedious process of finding missing episodes in your TV collection, running quietly in the background while respecting your indexers' rate limits.
