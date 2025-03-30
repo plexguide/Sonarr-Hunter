@@ -1,4 +1,4 @@
-# Sonarr Hunter - Force Sonarr to Check for Missing Eposides
+# Sonarr Hunter - Force Sonarr to Hunt Missing Eposides
 
 <h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2>
 
