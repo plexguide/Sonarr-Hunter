@@ -3,8 +3,7 @@
 <h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2>
 
 **NOTE**  
-This utilizes Sonarr API Version - `5`.<br>
-**The Script:** [sonarr-hunter.sh](sonarr-hunter.sh) 
+This utilizes Sonarr API Version - `5`. The Script: [sonarr-hunter.sh](sonarr-hunter.sh) 
 
 **Change Log:**
 - **v1**: Original code written
