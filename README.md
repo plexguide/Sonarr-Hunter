@@ -7,7 +7,7 @@ This utilizes Sonarr API Version `5`.
 **The Script:** [sonarr-hunter.sh](sonarr-hunter.sh) 
 
 **Change Log:**
-- **v1** Original code written
+- **v1**: Original code written
 
 <img width="781" alt="image" src="https://github.com/user-attachments/assets/d098a275-de72-4fa3-96a8-7a1d4603b2e1" />
 
