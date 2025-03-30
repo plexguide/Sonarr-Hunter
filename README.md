@@ -41,7 +41,7 @@ At the top of the script, you'll find these configurable options:
 API_KEY="your_api_key_here"        # Your Sonarr API key
 SONARR_URL="http://your.sonarr.ip:port"  # URL to your Sonarr instance
 MAX_SHOWS=1                         # Shows to process before restarting cycle
-SLEEP_DURATION=30                   # Seconds to wait after finding missing episodes
+SLEEP_DURATION=900                   # Seconds to wait after finding missing episodes
 RANDOM_SELECTION=true               # true for random selection, false for sequential
 ```
 
