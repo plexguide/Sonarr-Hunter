@@ -12,7 +12,7 @@ This utilizes Sonarr API Version - `5`. The Script: [sonarr-hunter.sh](sonarr-hu
 
 ### Other Project Guide (Just FYI)
 
-* Sister Version (Radarr): https://github.com/plexguide/Raddar-Hunter<br>
+* Sister Version (Radarr): [https://github.com/plexguide/Raddar-Hunter](https://github.com/plexguide/Radarr-Hunter)<br>
 * Visit: https://github.com/plexguide/Unraid_Intel-ARC_Deployment - Converts videos to AV1 Format (I've saved 325TB encoding to AV1)
 * For other scripts great scripts, visit https://plexguide.com
 
