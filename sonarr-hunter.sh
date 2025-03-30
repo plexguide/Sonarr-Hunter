@@ -7,7 +7,7 @@ SONARR_URL="http://10.0.0.10:8989"
 # How many shows to process before restarting the search cycle
 MAX_SHOWS=1
 # Sleep duration in seconds after finding a show with missing episodes
-SLEEP_DURATION=30
+SLEEP_DURATION=600
 # Set to true to pick shows randomly, false to go in order
 RANDOM_SELECTION=true
 
