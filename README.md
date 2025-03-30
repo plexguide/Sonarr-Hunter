@@ -61,12 +61,12 @@ RANDOM_SELECTION=true               # true for random selection, false for seque
 
 ## How to Run (Non-Unraid Users)
 
-1. Save the script to a file (e.g., `sonarr-search.sh`)
-2. Make it executable: `chmod +x sonarr-search.sh`
-3. Run it: `./sonarr-search.sh`
+1. Save the script to a file (e.g., `sonarr-hunter.sh`)
+2. Make it executable: `chmod +x sonarr-hunter.sh`
+3. Run it: `./sonarr-hunter.sh`
 
 For continuous background operation:
-- Use `screen` or `tmux`: `screen -S sonarr-search ./sonarr-search.sh`
+- Use `screen` or `tmux`: `screen -S sonarr-hunter ./sonarr-hunter.sh`
 - Or create a systemd service to run it automatically on startup
 
 ## Tips
