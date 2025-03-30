@@ -6,8 +6,8 @@ API_KEY="a03c86b6292c4bd48cd5e3b84e5a4702"
 SONARR_URL="http://10.0.0.10:8989"
 # How many shows to process before restarting the search cycle
 MAX_SHOWS=1
-# Sleep duration in seconds after finding a show with missing episodes
-SLEEP_DURATION=600
+# Sleep duration in seconds after finding a show with missing episodes (900=15min, 600=10min)
+SLEEP_DURATION=900
 # Set to true to pick shows randomly, false to go in order
 RANDOM_SELECTION=true
 
