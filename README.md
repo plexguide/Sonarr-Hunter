@@ -1,5 +1,13 @@
-# Sonarr-Hunter
-Assists Sonarr to check for missing TV Shows
+# Sonarr Hunter - Forces Sonarr to Check for Missing Shows
+
+<h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2>
+
+**NOTE**  
+This utilizes Sonarr API Version `5`.
+**The Script:** [sonarr-hunter.sh](sonarr-hunter.sh) 
+
+**Change Log:**
+- **v1** Original code written
 
 <img width="781" alt="image" src="https://github.com/user-attachments/assets/d098a275-de72-4fa3-96a8-7a1d4603b2e1" />
 
@@ -47,10 +55,10 @@ RANDOM_SELECTION=true               # true for random selection, false for seque
 ## How to Run (Unraid Users)
 
 1. Install the plugin called `UserScripts`
-2. Copy and paste the following json - 
+2. Copy and paste the following script file as new script - [sonarr-hunter.sh](sonarr-hunter.sh) 
+3. Ensure to set it to  `Run in the background` if your array is already running and set the schedule to  `At Startup Array`
 
 <img width="1337" alt="image" src="https://github.com/user-attachments/assets/dbaf9864-1db9-42a5-bd0b-60b6310f9694" />
-
 
 ## How to Run (Non-Unraid Users)
 
