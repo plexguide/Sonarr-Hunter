@@ -44,7 +44,15 @@ RANDOM_SELECTION=true               # true for random selection, false for seque
 - **New Show Setup**: Automatically find episodes for newly added shows
 - **Background Service**: Run it in the background to continuously maintain your library
 
-## How to Run
+## How to Run (Unraid Users)
+
+1. Install the plugin called `UserScripts`
+2. Copy and paste the following json - 
+
+<img width="1337" alt="image" src="https://github.com/user-attachments/assets/dbaf9864-1db9-42a5-bd0b-60b6310f9694" />
+
+
+## How to Run (Non-Unraid Users)
 
 1. Save the script to a file (e.g., `sonarr-search.sh`)
 2. Make it executable: `chmod +x sonarr-search.sh`
