@@ -10,6 +10,10 @@ This utilizes Sonarr API Version - `5`. The Script: [sonarr-hunter.sh](sonarr-hu
 
 <img width="781" alt="image" src="https://github.com/user-attachments/assets/d098a275-de72-4fa3-96a8-7a1d4603b2e1" />
 
+### Another Project Guide (Just FYI)
+
+Visit: https://github.com/plexguide/Unraid_Intel-ARC_Deployment to convert your videos to AV1 Format (I've saved 325TB encoding to AV1)
+
 # Sonarr Missing Episode Search Tool
 
 ## Overview
