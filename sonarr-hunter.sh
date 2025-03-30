@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# PlexGuide.com - Admin9705
 # ---------------------------
 # Configuration
 # ---------------------------
