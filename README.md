@@ -19,7 +19,8 @@ docker run -d --name sonarr-hunter \
 
 **Change Log:**
 - **v1**: Original code written
-- **v2**: Searches for random shows that are missing at least one episode ONLY and conducts a refresh check like Radarr Hunter (basically ignores shows that are full)
+- **v2**: Optimized search
+- **v3**: Variable names changed for docker optimization
 
 <img width="900" alt="image" src="https://github.com/user-attachments/assets/f9adbd85-cda1-4f46-a4e0-5c775681baed" />
 
