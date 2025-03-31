@@ -9,12 +9,12 @@ To run via Docker:
 
 ```bash
 docker run -d --name sonarr-hunter \
-  -e SONARR_URL="http://yoursonarr:8989" \
-  -e SONARR_API_KEY="your_real_api_key" \
+  -e API_KEY="your-api-key" \
+  -e API_URL="http://your-sonarr-address:8989" \
   -e MAX_SHOWS="1" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
-  admin9705/sonarr-hunter
+  admin9705/sonarr-hunter:latest
 ```
 
 **Change Log:**
