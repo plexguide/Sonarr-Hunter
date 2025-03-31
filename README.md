@@ -7,7 +7,7 @@ This utilizes Sonarr API Version - `5`. The Script: [sonarr-hunter.sh](sonarr-hu
 
 **Change Log:**
 - **v1**: Original code written
-- **v2**: Searches for random shows that are missing at least one episode ONLY and conducts a refresh check like Radarr Hunter
+- **v2**: Searches for random shows that are missing at least one episode ONLY and conducts a refresh check like Radarr Hunter (basically ignores shows that are full)
 
 <img width="900" alt="image" src="https://github.com/user-attachments/assets/f9adbd85-cda1-4f46-a4e0-5c775681baed" />
 
