@@ -5,7 +5,7 @@
 **NOTE**  
 This utilizes Sonarr API Version - `5`. The Script: [sonarr-hunter.sh](sonarr-hunter.sh) 
 
-To run via Docker (this will be improved later)
+To run via Docker (this will be improved later)<br> 
 `docker run -it --rm \
   -e SONARR_URL="http://yoursonarr:8989" \
   -e SONARR_API_KEY="your_real_api_key" \
