@@ -13,7 +13,7 @@ docker run -it --rm \
   -e SONARR_API_KEY="your_real_api_key" \
   -e MAX_SHOWS="1" \
   -e SLEEP_DURATION="900" \
-  -e RANDOM_SELECTION="true” \
+  -e RANDOM_SELECTION="true" \
   admin9705/sonarr-hunter
 ```
 
