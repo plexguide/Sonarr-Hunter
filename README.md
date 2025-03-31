@@ -8,7 +8,7 @@ This utilizes Sonarr API Version - `5`. The Script: [sonarr-hunter.sh](sonarr-hu
 To run via Docker (this will be improved later) 
 
 ```bash
-docker run -d --name sonnar-hunter \
+docker run -d --name sonarr-hunter \
   -e SONARR_URL="http://yoursonarr:8989" \
   -e SONARR_API_KEY="your_real_api_key" \
   -e MAX_SHOWS="1" \
