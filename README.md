@@ -2,8 +2,6 @@
 
 <h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2>
 
-<img width="273" alt="image" src="https://github.com/user-attachments/assets/88e591fa-a2fb-4111-aa7c-acb10093bb05" />
-
 **NOTE**  
 This utilizes Sonarr API Version - `5`. The Script: [sonarr-hunter.sh](sonarr-hunter.sh) 
 
@@ -18,6 +16,8 @@ docker run -d --name sonarr-hunter \
   -e RANDOM_SELECTION="true" \
   admin9705/sonarr-hunter:latest
 ```
+
+<img width="273" alt="image" src="https://github.com/user-attachments/assets/88e591fa-a2fb-4111-aa7c-acb10093bb05" />
 
 **Change Log:**
 - **v1**: Original code written
