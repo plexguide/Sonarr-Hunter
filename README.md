@@ -5,6 +5,15 @@
 **NOTE**  
 This utilizes Sonarr API Version - `5`. The Script: [sonarr-hunter.sh](sonarr-hunter.sh) 
 
+To run via Docker (this will be improved later)
+`docker run -it --rm \
+  -e SONARR_URL="http://yoursonarr:8989" \
+  -e SONARR_API_KEY="your_real_api_key" \
+  -e MAX_SHOWS="1" \
+  -e SLEEP_DURATION="900" \
+  -e RANDOM_SELECTION="true” \
+  admin9705/sonarr-hunter`
+
 **Change Log:**
 - **v1**: Original code written
 - **v2**: Searches for random shows that are missing at least one episode ONLY and conducts a refresh check like Radarr Hunter (basically ignores shows that are full)
