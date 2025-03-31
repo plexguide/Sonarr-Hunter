@@ -17,6 +17,9 @@ docker run -d --name sonarr-hunter \
   admin9705/sonarr-hunter:latest
 ```
 
+<img width="273" alt="image" src="https://github.com/user-attachments/assets/88e591fa-a2fb-4111-aa7c-acb10093bb05" />
+
+
 **Change Log:**
 - **v1**: Original code written
 - **v2**: Optimized search
