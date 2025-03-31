@@ -11,7 +11,7 @@ ENV SONARR_URL="http://localhost:8989" \
     SLEEP_DURATION="900" \
     RANDOM_SELECTION="true"
 
-# Copy your sonarr-hunter.sh script into the container
+# Copy the sonarr-hunter.sh script into the container
 COPY sonarr-hunter.sh /usr/local/bin/sonarr-hunter.sh
 
 # Make the script executable
