@@ -4,9 +4,8 @@
 # Configuration
 # ---------------------------
 # Use environment variables if provided; otherwise, fall back to defaults.
-
-API_KEY=${SONARR_API_KEY:-"a03c86b6292c4bd48cd5e3b84e5a4702"}
-SONARR_URL=${SONARR_URL:-"http://10.0.0.10:8989"}
+API_KEY=${API_KEY:-"your-api-key"}
+API_URL=${API_URL:-"http://your-address:8989"}
 
 # How many shows to process before restarting the search cycle
 MAX_SHOWS=${MAX_SHOWS:-1}
@@ -26,7 +25,7 @@ while true; do
   # Get all shows first
   SHOWS_JSON=$(curl -s \
     -H "X-Api-Key: $API_KEY" \
-    "$SONARR_URL/api/v3/series")
+    "$API_URL/api/v3/series")
 
   # If the above command fails or returns nothing, wait and retry
   if [ -z "$SHOWS_JSON" ]; then
@@ -72,13 +71,11 @@ while true; do
       # Keep generating random indices until we find one we haven't checked yet
       while true; do
         INDEX=$((RANDOM % TOTAL_INCOMPLETE))
-        # Check if this index has already been processed
         if [[ ! " ${ALREADY_CHECKED[*]} " =~ " ${INDEX} " ]]; then
           break
         fi
       done
     else
-      # Find the first index that hasn't been checked yet
       for ((i=0; i<TOTAL_INCOMPLETE; i++)); do
         if [[ ! " ${ALREADY_CHECKED[*]} " =~ " ${i} " ]]; then
           INDEX=$i
@@ -109,7 +106,7 @@ while true; do
       -H "X-Api-Key: $API_KEY" \
       -H "Content-Type: application/json" \
       -d "{\"name\":\"RefreshSeries\",\"seriesId\":$SHOW_ID}" \
-      "$SONARR_URL/api/v3/command")
+      "$API_URL/api/v3/command")
     
     # Check if the refresh command succeeded
     REFRESH_ID=$(echo "$REFRESH_COMMAND" | jq '.id // empty')
@@ -129,7 +126,7 @@ while true; do
         -H "X-Api-Key: $API_KEY" \
         -H "Content-Type: application/json" \
         -d "{\"name\":\"MissingEpisodeSearch\",\"seriesId\":$SHOW_ID}" \
-        "$SONARR_URL/api/v3/command")
+        "$API_URL/api/v3/command")
       
       # Verify the response from Sonarr
       SEARCH_ID=$(echo "$SEARCH_COMMAND" | jq '.id // empty')
@@ -143,7 +140,7 @@ while true; do
         # Check the status of the command
         COMMAND_STATUS=$(curl -s \
           -H "X-Api-Key: $API_KEY" \
-          "$SONARR_URL/api/v3/command/$SEARCH_ID" | jq -r '.status')
+          "$API_URL/api/v3/command/$SEARCH_ID" | jq -r '.status')
         
         echo "Command status: $COMMAND_STATUS"
         SHOWS_PROCESSED=$((SHOWS_PROCESSED + 1))
@@ -161,7 +158,7 @@ while true; do
           -H "X-Api-Key: $API_KEY" \
           -H "Content-Type: application/json" \
           -d "{\"name\":\"EpisodeSearch\",\"seriesId\":$SHOW_ID}" \
-          "$SONARR_URL/api/v3/command")
+          "$API_URL/api/v3/command")
         
         SEARCH_ID2=$(echo "$SEARCH_COMMAND2" | jq '.id // empty')
         if [ -n "$SEARCH_ID2" ]; then
