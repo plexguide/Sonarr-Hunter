@@ -77,7 +77,7 @@ RANDOM_SELECTION=true               # true for random selection, false for seque
 2. Copy and paste the following script file as new script - [sonarr-hunter.sh](sonarr-hunter.sh) 
 3. Ensure to set it to  `Run in the background` if your array is already running and set the schedule to  `At Startup Array`
 
-<img width="1337" alt="image" src="https://github.com/user-attachments/assets/dbaf9864-1db9-42a5-bd0b-60b6310f9694" />
+<img width="985" alt="image" src="https://github.com/user-attachments/assets/baff4b5c-67d3-4f1e-94b7-a31d9998331d" />
 
 ## How to Run (Non-Unraid Users)
 
