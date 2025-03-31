@@ -1,5 +1,6 @@
 # Sonarr Hunter - Force Sonarr to Hunt Missing Episodes
-<img width="273" alt="image" src="https://github.com/user-attachments/assets/88e591fa-a2fb-4111-aa7c-acb10093bb05" /><h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2>
+
+<h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2>
 
 **NOTE**  
 This utilizes Sonarr API Version - `5`. The Script: [sonarr-hunter.sh](sonarr-hunter.sh) 
