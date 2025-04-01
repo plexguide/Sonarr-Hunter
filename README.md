@@ -22,6 +22,7 @@ docker run -d --name sonarr-hunter \
 - **v1**: Original code written
 - **v2**: Optimized search
 - **v3**: Variable names changed for docker optimization
+- **v4**: Added montored only tag
 
 <img width="985" alt="image" src="https://github.com/user-attachments/assets/34264f2e-928d-44e5-adb7-0dbd08fadfd0" />
 
