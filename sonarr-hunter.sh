@@ -3,26 +3,30 @@
 # ---------------------------
 # Configuration
 # ---------------------------
-# Use environment variables if provided; otherwise, fall back to defaults.
+# Environment variables (with fallback defaults)
 API_KEY=${API_KEY:-"your-api-key"}
-API_URL=${API_URL:-"http://your-address:8989"}
+API_URL=${API_URL:-"http://your-sonarr-address:8989"}
 
 # How many shows to process before restarting the search cycle
 MAX_SHOWS=${MAX_SHOWS:-1}
 
-# Sleep duration in seconds after finding a show with missing episodes
-# (900=15min, 600=10min, etc.)
+# Sleep duration in seconds after processing a show with missing episodes
 SLEEP_DURATION=${SLEEP_DURATION:-900}
 
 # Set to true to pick shows randomly, false to go in order
 RANDOM_SELECTION=${RANDOM_SELECTION:-true}
 
+# If MONITORED_ONLY is set to true, only missing episodes from monitored series are processed.
+# Otherwise, all missing episodes are considered (even if series is unmonitored).
+MONITORED_ONLY=${MONITORED_ONLY:-false}
+
 # ---------------------------
 # Main infinite loop
 # ---------------------------
 while true; do
-  echo "Retrieving missing episodes data from Sonarr..."
-  # Get all shows first
+  echo "Retrieving series data from Sonarr..."
+  
+  # Get all shows
   SHOWS_JSON=$(curl -s \
     -H "X-Api-Key: $API_KEY" \
     "$API_URL/api/v3/series")
@@ -34,20 +38,30 @@ while true; do
     continue
   fi
 
-  # Filter to only get shows with missing episodes
-  INCOMPLETE_SHOWS_JSON=$(echo "$SHOWS_JSON" | jq '[.[] | select(has("statistics") and .statistics.episodeCount > .statistics.episodeFileCount)]')
+  # ---------------------------
+  # Filter shows with missing episodes
+  # ---------------------------
+  # If MONITORED_ONLY=true, include a check for ".monitored == true"
+  # Otherwise, filter only by missing episodes
+  if [ "$MONITORED_ONLY" = "true" ]; then
+    echo "MONITORED_ONLY is true: searching only monitored shows..."
+    INCOMPLETE_SHOWS_JSON=$(echo "$SHOWS_JSON" | jq '[.[] | select(.monitored == true and has("statistics") and .statistics.episodeCount > .statistics.episodeFileCount)]')
+  else
+    echo "MONITORED_ONLY is false: searching all shows with missing episodes..."
+    INCOMPLETE_SHOWS_JSON=$(echo "$SHOWS_JSON" | jq '[.[] | select(has("statistics") and .statistics.episodeCount > .statistics.episodeFileCount)]')
+  fi
   
   # Count how many incomplete shows are in the list
   TOTAL_INCOMPLETE=$(echo "$INCOMPLETE_SHOWS_JSON" | jq 'length')
   if [ "$TOTAL_INCOMPLETE" -eq 0 ]; then
-    echo "No shows with missing episodes found in Sonarr. Waiting 60 seconds before checking again..."
+    echo "No shows with missing episodes found under these conditions. Waiting 60 seconds before checking again..."
     sleep 60
     continue
   fi
   echo "Found $TOTAL_INCOMPLETE show(s) with missing episodes."
 
   echo "Using ${RANDOM_SELECTION:+random}${RANDOM_SELECTION:-sequential} selection."
-  echo "Will process up to ${MAX_SHOWS:-all} shows with ${SLEEP_DURATION}s pause between each."
+  echo "Will process up to $MAX_SHOWS show(s) with ${SLEEP_DURATION}s pause after each processed show."
 
   SHOWS_PROCESSED=0
   ALREADY_CHECKED=()
@@ -67,15 +81,17 @@ while true; do
     fi
 
     # Select next show index based on selection method
-    if [ "$RANDOM_SELECTION" = true ] && [ "$TOTAL_INCOMPLETE" -gt 1 ]; then
+    if [ "$RANDOM_SELECTION" = "true" ] && [ "$TOTAL_INCOMPLETE" -gt 1 ]; then
       # Keep generating random indices until we find one we haven't checked yet
       while true; do
         INDEX=$((RANDOM % TOTAL_INCOMPLETE))
+        # Check if this index has already been processed
         if [[ ! " ${ALREADY_CHECKED[*]} " =~ " ${INDEX} " ]]; then
           break
         fi
       done
     else
+      # Find the first index that hasn't been checked yet
       for ((i=0; i<TOTAL_INCOMPLETE; i++)); do
         if [[ ! " ${ALREADY_CHECKED[*]} " =~ " ${i} " ]]; then
           INDEX=$i
@@ -98,7 +114,7 @@ while true; do
     echo "Selected show \"$SHOW_TITLE\" with $MISSING missing episode(s)..."
     
     # ---------------------------
-    # Step 1: Refresh the series to make sure Sonarr has latest information
+    # Step 1: Refresh the series to ensure Sonarr has the latest info
     # ---------------------------
     echo "1. Refreshing series information for \"$SHOW_TITLE\" (ID: $SHOW_ID)..."
     
@@ -113,8 +129,8 @@ while true; do
     if [ -n "$REFRESH_ID" ]; then
       echo "Refresh command accepted (ID: $REFRESH_ID)."
       
-      # Wait for the refresh to complete
-      echo "Waiting for refresh to complete..."
+      # Wait briefly for the refresh to complete
+      echo "Waiting 5 seconds for refresh to complete..."
       sleep 5
       
       # ---------------------------
@@ -145,7 +161,7 @@ while true; do
         echo "Command status: $COMMAND_STATUS"
         SHOWS_PROCESSED=$((SHOWS_PROCESSED + 1))
         
-        # Sleep after processing a show with missing episodes
+        # Sleep after processing a show
         echo "Show with missing episodes processed. Sleeping for $SLEEP_DURATION seconds to avoid overloading indexers..."
         sleep "$SLEEP_DURATION"
       else
@@ -183,7 +199,7 @@ while true; do
 
   echo "Done. Processed $SHOWS_PROCESSED shows with missing episodes in this cycle."
   
-  # If we didn't find any shows to process in this cycle, wait a bit before starting a new cycle
+  # If we didn't process any shows this cycle, wait a bit before starting a new cycle
   if [ "$SHOWS_PROCESSED" -eq 0 ]; then
     echo "No shows with missing episodes processed this cycle. Waiting 60 seconds before starting a new cycle..."
     sleep 60
