@@ -11,6 +11,7 @@ To run via Docker:
 docker run -d --name sonarr-hunter \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
+  -e MONITORED_ONLY="true" \
   -e MAX_SHOWS="1" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
@@ -60,6 +61,7 @@ At the top of the script, you'll find these configurable options:
 ```bash
 API_KEY="your_api_key_here"        # Your Sonarr API key
 SONARR_URL="http://your.sonarr.ip:port"  # URL to your Sonarr instance
+MONITORED_ONLY=true                # senting to false will download any eposide regardless of status
 MAX_SHOWS=1                         # Shows to process before restarting cycle
 SLEEP_DURATION=900                   # Seconds to wait after finding missing episodes
 RANDOM_SELECTION=true               # true for random selection, false for sequential
