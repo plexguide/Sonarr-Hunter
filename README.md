@@ -107,6 +107,11 @@ Then run:
 docker-compose up -d sonarr-hunter
 ```
 
+To check on the status of the program, you should see new files downloading or you can type:
+```bash
+docker logs sonarr-hunter
+```
+
 ### Unraid Users
 
 1. Install the plugin called `UserScripts`
