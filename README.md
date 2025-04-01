@@ -99,12 +99,6 @@ services:
       - MAX_SHOWS=1
       - SLEEP_DURATION=900
       - RANDOM_SELECTION=true
-    networks:
-      - your-network-name
-
-networks:
-  your-network-name:
-    external: true
 ```
 
 Then run:
