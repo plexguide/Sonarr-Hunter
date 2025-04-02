@@ -82,6 +82,10 @@ STATE_RESET_INTERVAL_SECONDS=$(( STATE_RESET_INTERVAL_HOURS * 3600 ))
 # ---------------------------
 # Helper: Sonarr API Calls
 # ---------------------------
+
+debug_log "API KEY: $API_KEY"
+debug_log "API URL $API_URL"
+
 get_series() {
   curl -s -H "X-Api-Key: $API_KEY" "$API_URL/api/v3/series"
 }
