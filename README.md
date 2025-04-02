@@ -102,7 +102,7 @@ The following environment variables can be configured:
 | `MAX_UPGRADES`               | Maximum upgrade episodes to process per cycle                         | 5          |
 | `SLEEP_DURATION`             | Seconds to wait after completing a cycle (900 = 15 minutes)           | 900        |
 | `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                 | true       |
-| `STATE_RESET_INTERVAL_HOURS` | Hours after which the processed state files are reset                 | 168        |
+| `STATE_RESET_INTERVAL_HOURS` | Hours after which the processed state files are reset (168 = 1 week)  | 168        |
 | `DEBUG_MODE`                 | Enable detailed debug logging (`true` or `false`)                     | false      |
 
 ### Detailed Configuration Explanation
