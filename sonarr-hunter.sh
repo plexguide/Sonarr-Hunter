@@ -11,7 +11,7 @@ API_URL=${API_URL:-"http://your-sonarr-address:8989"}
 MAX_MISSING=${MAX_MISSING:-1}
 
 # Maximum number of upgrade episodes to process per cycle
-MAX_UPGRADES=${MAX_UPGRADES:-10}
+MAX_UPGRADES=${MAX_UPGRADES:-5}
 
 # Sleep duration in seconds after completing one full cycle (default 15 minutes)
 SLEEP_DURATION=${SLEEP_DURATION:-900}
