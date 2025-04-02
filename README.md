@@ -102,7 +102,7 @@ The following environment variables can be configured:
 | `MAX_UPGRADES`               | Maximum upgrade episodes to process per cycle                         | 5          |
 | `SLEEP_DURATION`             | Seconds to wait after completing a cycle (900 = 15 minutes)           | 900        |
 | `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                 | true       |
-| `STATE_RESET_INTERVAL_HOURS` | Hours after which the processed state files are reset                 | 24         |
+| `STATE_RESET_INTERVAL_HOURS` | Hours after which the processed state files are reset                 | 168        |
 | `DEBUG_MODE`                 | Enable detailed debug logging (`true` or `false`)                     | false      |
 
 ### Detailed Configuration Explanation
@@ -131,7 +131,7 @@ The following environment variables can be configured:
   - The script records the IDs of missing shows and upgrade episodes that have been processed.  
   - When the age of these records exceeds the number of hours set by this variable, the records are cleared automatically.  
   - This reset allows the script to re-check items that were previously processed, so if there are changes (such as improved quality or new episodes), they can be processed again.  
-  - In simple terms: if you set this to 24, then every 24 hours the script will start fresh and re-check everything, ensuring nothing is permanently skipped.
+  - In simple terms: if you set this to 168, then every 168 hours the script will start fresh and re-check everything, ensuring nothing is permanently skipped.
 
 - **DEBUG_MODE**
   - When set to `true`, the script will output detailed debugging information about API responses and internal operations.
@@ -156,7 +156,7 @@ docker run -d --name sonarr-hunter \
   -e MAX_UPGRADES="5" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
-  -e STATE_RESET_INTERVAL_HOURS="24" \
+  -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
   admin9705/sonarr-hunter:latest
 ```
@@ -186,7 +186,7 @@ services:
       MAX_UPGRADES: "5"
       SLEEP_DURATION: "900"
       RANDOM_SELECTION: "true"
-      STATE_RESET_INTERVAL_HOURS: "24"
+      STATE_RESET_INTERVAL_HOURS: "168"
       DEBUG_MODE: "false"
 ```
 
@@ -241,7 +241,7 @@ Environment="MAX_MISSING=1"
 Environment="MAX_UPGRADES=5"
 Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
-Environment="STATE_RESET_INTERVAL_HOURS=24"
+Environment="STATE_RESET_INTERVAL_HOURS=168"
 Environment="DEBUG_MODE=false"
 ExecStart=/usr/local/bin/sonarr-hunter.sh
 Restart=on-failure
