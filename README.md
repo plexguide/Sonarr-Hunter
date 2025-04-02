@@ -147,7 +147,7 @@ docker run -d --name sonarr-hunter \
   -e MONITORED_ONLY="true" \
   -e SEARCH_TYPE="both" \
   -e MAX_MISSING="1" \
-  -e MAX_UPGRADES="10" \
+  -e MAX_UPGRADES="5" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="24" \
