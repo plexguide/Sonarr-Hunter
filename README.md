@@ -70,35 +70,26 @@ The following environment variables can be configured:
 | `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                 | true       |
 | `STATE_RESET_INTERVAL_HOURS` | Hours after which the processed state files are reset                 | 24         |
 
-SEARCH_TYPE
+### EXTRA ENVIORNMNETAL NOTES
 
-    Determines which type of search the script performs.
+- **SEARCH_TYPE**  
+  - Determines which type of search the script performs.  
+  - Options:  
+    - `"missing"`: Only processes missing shows (episodes that haven’t been downloaded yet).  
+    - `"upgrade"`: Only processes episodes that need quality upgrades (do not meet the quality cutoff).  
+    - `"both"`: First processes missing shows and then processes upgrade episodes in one cycle.
 
-    Options:
+- **MAX_MISSING**  
+  - Sets the maximum number of missing shows to process in each cycle.  
+  - Once this limit is reached, the script stops processing further missing shows until the next cycle.
 
-        "missing": Only processes missing shows (episodes that haven’t been downloaded yet).
+- **MAX_UPGRADES**  
+  - Sets the maximum number of upgrade episodes to process in each cycle.  
+  - When this limit is reached, the upgrade portion of the cycle stops and the script waits for the next cycle.
 
-        "upgrade": Only processes episodes that need quality upgrades (do not meet the quality cutoff).
-
-        "both": First processes missing shows and then processes upgrade episodes in one cycle.
-
-MAX_MISSING
-
-    Sets the maximum number of missing shows to process in each cycle.
-
-    Once this limit is reached, the script stops processing further missing shows until the next cycle.
-
-MAX_UPGRADES
-
-    Sets the maximum number of upgrade episodes to process in each cycle.
-
-    When this limit is reached, the upgrade portion of the cycle stops and the script waits for the next cycle.
-
-STATE_RESET_INTERVAL_HOURS
-
-    Specifies the number of hours after which the persistent state files (tracking processed missing shows and upgrade episodes) are automatically reset.
-
-    This reset allows the script to recheck items that were previously processed, in case new data or changes occur.
+- **STATE_RESET_INTERVAL_HOURS**  
+  - Specifies the number of hours after which the persistent state files (tracking processed missing shows and upgrade episodes) are automatically reset.  
+  - This reset allows the script to recheck items that were previously processed, in case new data or changes occur.
 
 ---
 
