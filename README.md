@@ -4,13 +4,23 @@
 
 <table>
   <tr>
-    <td width="50%"><img src="https://github.com/user-attachments/assets/6a9dd459-db84-42bc-9392-27491d2ae1c8" width="100%"/></td>
-    <td width="50%"><img src="https://github.com/user-attachments/assets/db502745-adb2-47e5-95e5-51d2ea54aa59" width="100%"/></td>
+    <td width="50%">
+      <img src="https://github.com/user-attachments/assets/6a9dd459-db84-42bc-9392-27491d2ae1c8" width="100%"/>
+      <p align="center"><em>Missing Episodes Demo</em></p>
+    </td>
+    <td width="50%">
+      <img src="https://github.com/user-attachments/assets/db502745-adb2-47e5-95e5-51d2ea54aa59" width="100%"/>
+      <p align="center"><em>Quality Upgrade Demo</em></p>
+    </td>
   </tr>
   <tr>
-    <td colspan="2"><img src="https://github.com/user-attachments/assets/3e95f6d5-4a96-4bb8-a5b9-1d7b871ff94a" width="100%"/></td>
+    <td colspan="2">
+      <img src="https://github.com/user-attachments/assets/3e95f6d5-4a96-4bb8-a5b9-1d7b871ff94a" width="100%"/>
+      <p align="center"><em>State Management System</em></p>
+    </td>
   </tr>
 </table>
+
 
 <table>
   <tr>
@@ -72,6 +82,16 @@ This script continually searches your Sonarr library for shows with missing epis
    - Tracks which shows and episodes have been processed
    - Automatically resets this tracking after a configurable time period
 5. **Repeat Cycle**: Waits for a configurable period before starting the next cycle
+
+<table>
+  <tr>
+    <td width="50%"><img src="https://github.com/user-attachments/assets/6a9dd459-db84-42bc-9392-27491d2ae1c8" width="100%"/></td>
+    <td width="50%"><img src="https://github.com/user-attachments/assets/db502745-adb2-47e5-95e5-51d2ea54aa59" width="100%"/></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="https://github.com/user-attachments/assets/3e95f6d5-4a96-4bb8-a5b9-1d7b871ff94a" width="100%"/></td>
+  </tr>
+</table>
 
 ## Configuration Options
 
