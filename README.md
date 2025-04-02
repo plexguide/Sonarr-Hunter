@@ -54,14 +54,25 @@ This script continually searches your Sonarr library for shows with missing epis
 
 The following environment variables can be configured:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `API_KEY` | Your Sonarr API key | Required |
-| `API_URL` | URL to your Sonarr instance | Required |
-| `MONITORED_ONLY` | Only process monitored shows/episodes | true |
-| `MAX_SHOWS` | Shows to process before restarting cycle | 1 |
-| `SLEEP_DURATION` | Seconds to wait after processing a show (900=15min) | 900 |
-| `RANDOM_SELECTION` | Use random selection (`true`) or sequential (`false`) | true |
+# Environment Variables
+
+The following environment variables can be configured:
+
+| Variable                     | Description                                                           | Default    |
+|------------------------------|-----------------------------------------------------------------------|------------|
+| `API_KEY`                    | Your Sonarr API key                                                   | Required   |
+| `API_URL`                    | URL to your Sonarr instance                                           | Required   |
+| `MONITORED_ONLY`             | Only process monitored shows/episodes                                 | true       |
+| `SEARCH_TYPE`                | Which search to perform: `"missing"`, `"upgrade"`, or `"both"`         | both       |
+| `MAX_MISSING`                | Maximum missing shows to process per cycle                            | 1          |
+| `MAX_UPGRADES`               | Maximum upgrade episodes to process per cycle                         | 10         |
+| `SLEEP_DURATION`             | Seconds to wait after completing a cycle (900 = 15 minutes)           | 900        |
+| `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                 | true       |
+| `STATE_RESET_INTERVAL_HOURS` | Hours after which the processed state files are reset                 | 24         |
+
+---
+
+This updated table now includes the new variables (`SEARCH_TYPE`, `MAX_MISSING`, `MAX_UPGRADES`, and `STATE_RESET_INTERVAL_HOURS`) and reflects the configuration options used in the latest version of the script.
 
 ## Installation Methods
 
