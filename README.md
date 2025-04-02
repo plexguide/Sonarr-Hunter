@@ -88,8 +88,11 @@ The following environment variables can be configured:
   - When this limit is reached, the upgrade portion of the cycle stops and the script waits for the next cycle.
 
 - **STATE_RESET_INTERVAL_HOURS**  
-  - Specifies the number of hours after which the persistent state files (tracking processed missing shows and upgrade episodes) are automatically reset.  
-  - This reset allows the script to recheck items that were previously processed, in case new data or changes occur.
+  - Controls how often the script "forgets" which items it has already processed.  
+  - The script records the IDs of missing shows and upgrade episodes that have been processed.  
+  - When the age of these records exceeds the number of hours set by this variable, the records are cleared automatically.  
+  - This reset allows the script to re-check items that were previously processed, so if there are changes (such as improved quality or new episodes), they can be processed again.  
+  - In simple terms: if you set this to 24, then every 24 hours the script will start fresh and re-check everything, ensuring nothing is permanently skipped.
 
 ---
 
@@ -173,9 +176,12 @@ User=your-username
 Environment="API_KEY=your-api-key"
 Environment="API_URL=http://localhost:8989"
 Environment="MONITORED_ONLY=true"
-Environment="MAX_SHOWS=1"
+Environment="SEARCH_TYPE=both"
+Environment="MAX_MISSING=1"
+Environment="MAX_UPGRADES=10"
 Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
+Environment="STATE_RESET_INTERVAL_HOURS=24"
 ExecStart=/usr/local/bin/sonarr-hunter.sh
 Restart=on-failure
 RestartSec=10
