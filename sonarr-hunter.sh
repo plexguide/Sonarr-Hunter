@@ -16,8 +16,8 @@ MAX_UPGRADES=${MAX_UPGRADES:-5}
 # Sleep duration in seconds after completing one full cycle (default 15 minutes)
 SLEEP_DURATION=${SLEEP_DURATION:-900}
 
-# New variable: Reset processed state file after this many hours (default 24 hours)
-STATE_RESET_INTERVAL_HOURS=${STATE_RESET_INTERVAL_HOURS:-24}
+# New variable: Reset processed state file after this many hours (default 168 hours)
+STATE_RESET_INTERVAL_HOURS=${STATE_RESET_INTERVAL_HOURS:-168}
 
 # ---------------------------
 # Miscellaneous Configuration
