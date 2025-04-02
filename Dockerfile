@@ -16,7 +16,7 @@ ENV API_KEY="your-api-key" \
     SLEEP_DURATION="900" \
     RANDOM_SELECTION="true" \
     MONITORED_ONLY="true" \
-    STATE_RESET_INTERVAL_HOURS="24" \
+    STATE_RESET_INTERVAL_HOURS="168" \
     DEBUG_MODE="false"
 
 # Create state directory
