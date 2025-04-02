@@ -75,9 +75,12 @@ docker run -d --name sonarr-hunter \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e MONITORED_ONLY="true" \
-  -e MAX_SHOWS="1" \
+  -e SEARCH_TYPE="both" \
+  -e MAX_MISSING="1" \
+  -e MAX_UPGRADES="10" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
+  -e STATE_RESET_INTERVAL_HOURS="24" \
   admin9705/sonarr-hunter:latest
 ```
 
@@ -86,19 +89,22 @@ docker run -d --name sonarr-hunter \
 For those who prefer Docker Compose, add this to your `docker-compose.yml` file:
 
 ```yaml
-version: '3'
+version: "3.8"
 services:
   sonarr-hunter:
-    container_name: sonarr-hunter
     image: admin9705/sonarr-hunter:latest
+    container_name: sonarr-hunter
     restart: always
     environment:
-      - API_KEY=your-api-key
-      - API_URL=http://sonarr:8989
-      - MONITORED_ONLY=true
-      - MAX_SHOWS=1
-      - SLEEP_DURATION=900
-      - RANDOM_SELECTION=true
+      API_KEY: "your-api-key"
+      API_URL: "http://your-sonarr-address:8989"
+      MONITORED_ONLY: "true"
+      SEARCH_TYPE: "both"
+      MAX_MISSING: "1"
+      MAX_UPGRADES: "10"
+      SLEEP_DURATION: "900"
+      RANDOM_SELECTION: "true"
+      STATE_RESET_INTERVAL_HOURS: "24"
 ```
 
 Then run:
