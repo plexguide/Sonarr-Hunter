@@ -213,11 +213,43 @@ process_cutoff_upgrades() {
     local cutoff_json
     cutoff_json=$(get_cutoff_unmet "$page")
 
-    # Check total records
+    # Check if we got a valid JSON response
+    if ! echo "$cutoff_json" | jq empty 2>/dev/null; then
+      echo "ERROR: Invalid JSON response from cutoff endpoint. Stopping upgrade search."
+      results_found=false
+      break
+    fi
+
+    # Check if 'records' field exists
+    if ! echo "$cutoff_json" | jq 'has("records")' | grep -q "true"; then
+      echo "WARNING: No 'records' field in response. Stopping upgrade search."
+      results_found=false
+      break
+    fi
+
+    # Check total records with proper error handling
     local records
-    records=$(echo "$cutoff_json" | jq '.records // 0')
+    records=$(echo "$cutoff_json" | jq '.records')
+    if [ -z "$records" ] || [ "$records" = "null" ]; then
+      echo "No records field in response. Stopping upgrade search."
+      results_found=false
+      break
+    fi
+
+    # Make sure records is a number
+    if ! [[ "$records" =~ ^[0-9]+$ ]]; then
+      records=0
+    fi
+
     if [ "$records" -eq 0 ]; then
-      echo "No more cutoff-unmet episodes found. Done searching for upgrades."
+      echo "No cutoff-unmet episodes found. Done searching for upgrades."
+      results_found=false
+      break
+    fi
+
+    # Check if 'episodes' field exists
+    if ! echo "$cutoff_json" | jq 'has("episodes")' | grep -q "true"; then
+      echo "WARNING: No 'episodes' field in response. Stopping upgrade search."
       results_found=false
       break
     fi
@@ -225,18 +257,43 @@ process_cutoff_upgrades() {
     # Episodes array
     local episodes
     episodes=$(echo "$cutoff_json" | jq '.episodes')
+    
+    # Safely check for empty array
+    if [ "$episodes" = "[]" ] || [ "$episodes" = "null" ]; then
+      echo "No episodes on page $page. This could be the last page."
+      
+      # If we're beyond page 1 and got an empty response, assume we've reached the end
+      if [ "$page" -gt 1 ]; then
+        echo "Reached end of results. Stopping upgrade search."
+        results_found=false
+        break
+      else
+        # Empty first page means no results at all
+        echo "No upgradable episodes found."
+        results_found=false
+        break
+      fi
+    fi
+
     local total_eps
-    total_eps=$(echo "$episodes" | jq 'length')
+    total_eps=$(echo "$episodes" | jq '. | length')
+    # Make sure total_eps is a number
+    if ! [[ "$total_eps" =~ ^[0-9]+$ ]]; then
+      total_eps=0
+    fi
+
     echo "Found $total_eps episodes on page $page out of $records total records..."
 
     if [ "$total_eps" -eq 0 ]; then
       # No episodes on this page, move on
-      if [ "$((page * 200))" -ge "$records" ]; then
-        # We are at or beyond the last page
+      page=$((page + 1))
+      
+      # Safeguard: don't go beyond a reasonable number of pages
+      if [ "$page" -gt 20 ]; then
+        echo "Reached 20 pages, stopping search to prevent excessive API calls."
         results_found=false
-      else
-        page=$((page + 1))
       fi
+      
       continue
     fi
 
@@ -334,12 +391,18 @@ process_cutoff_upgrades() {
 
     # Done this page
     if $results_found; then
-      # Check if we reached total records
-      if [ "$((page * 200))" -ge "$records" ]; then
+      # Only increment page if we haven't reached the end
+      if [ "$((page * 200))" -lt "$records" ]; then
+        page=$((page + 1))
+      else
         echo "We appear to have processed all pages for cutoff-unmet."
         results_found=false
-      else
-        page=$((page + 1))
+      fi
+      
+      # Safeguard: don't go beyond a reasonable number of pages
+      if [ "$page" -gt 20 ]; then
+        echo "Reached 20 pages, stopping search to prevent excessive API calls."
+        results_found=false
       fi
     fi
   done
