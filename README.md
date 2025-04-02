@@ -29,6 +29,12 @@
 
 This script continually searches your Sonarr library for shows with missing episodes and episodes that need quality upgrades. It automatically triggers searches for both missing episodes and episodes below your quality cutoff. It's designed to run continuously while being gentle on your indexers, helping you gradually complete your TV show collection with the best available quality.
 
+## PayPal Donations – Building My Daughter’s Future
+
+My 12-year-old daughter loves singing, dancing, and exploring STEM. She’s an A-B honor roll student with big dreams for the future. Any donation you make will go directly toward her college fund, helping her turn those dreams into reality. Thank you for your support!
+
+[![Donate with PayPal button](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/donate?hosted_button_id=58AYJ68VVMGSC)
+
 ## Related Projects
 
 * [Radarr Hunter](https://github.com/plexguide/Radarr-Hunter) - Sister version for movies
