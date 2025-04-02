@@ -1,5 +1,5 @@
-# Sonarr Hunter<br>
-Force Sonarr to Hunt Missing Shows & Upgrade Episode Qualities
+# Sonarr Hunter - Force Sonarr to Hunt Missing Shows & Upgrade Episode Qualities
+
 
 <h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2>
 
