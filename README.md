@@ -72,8 +72,6 @@ The following environment variables can be configured:
 
 ---
 
-This updated table now includes the new variables (`SEARCH_TYPE`, `MAX_MISSING`, `MAX_UPGRADES`, and `STATE_RESET_INTERVAL_HOURS`) and reflects the configuration options used in the latest version of the script.
-
 ## Installation Methods
 
 ### Docker Run
