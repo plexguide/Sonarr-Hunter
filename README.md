@@ -155,6 +155,11 @@ docker run -d --name sonarr-hunter \
   admin9705/sonarr-hunter:latest
 ```
 
+To check on the status of the program, you should see new files downloading or you can type:
+```bash
+docker logs sonarr-hunter
+```
+
 ### Docker Compose
 
 For those who prefer Docker Compose, add this to your `docker-compose.yml` file:
