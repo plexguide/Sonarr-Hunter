@@ -93,7 +93,7 @@ The following environment variables can be configured:
 | `MONITORED_ONLY`             | Only process monitored shows/episodes                                 | true       |
 | `SEARCH_TYPE`                | Which search to perform: `"missing"`, `"upgrade"`, or `"both"`        | both       |
 | `MAX_MISSING`                | Maximum missing shows to process per cycle                            | 1          |
-| `MAX_UPGRADES`               | Maximum upgrade episodes to process per cycle                         | 10         |
+| `MAX_UPGRADES`               | Maximum upgrade episodes to process per cycle                         | 5          |
 | `SLEEP_DURATION`             | Seconds to wait after completing a cycle (900 = 15 minutes)           | 900        |
 | `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                 | true       |
 | `STATE_RESET_INTERVAL_HOURS` | Hours after which the processed state files are reset                 | 24         |
@@ -177,7 +177,7 @@ services:
       MONITORED_ONLY: "true"
       SEARCH_TYPE: "both"
       MAX_MISSING: "1"
-      MAX_UPGRADES: "10"
+      MAX_UPGRADES: "5"
       SLEEP_DURATION: "900"
       RANDOM_SELECTION: "true"
       STATE_RESET_INTERVAL_HOURS: "24"
@@ -202,6 +202,15 @@ docker logs sonarr-hunter
 3. Ensure to set it to `Run in the background` if your array is already running and set the schedule to `At Startup Array`
 4. Update the variables at the top of the script to match your configuration
 
+<table>
+  <tr>
+    <td colspan="2">
+      <img src="https://github.com/user-attachments/assets/dbaf9864-1db9-42a5-bd0b-60b6310f9694" width="100%"/>
+      <p align="center"><em>User Scripts - Unraid</em></p>
+    </td>
+  </tr>
+</table>
+
 ### SystemD Service
 
 For a more permanent installation on Linux systems using SystemD:
@@ -223,7 +232,7 @@ Environment="API_URL=http://localhost:8989"
 Environment="MONITORED_ONLY=true"
 Environment="SEARCH_TYPE=both"
 Environment="MAX_MISSING=1"
-Environment="MAX_UPGRADES=10"
+Environment="MAX_UPGRADES=5"
 Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
 Environment="STATE_RESET_INTERVAL_HOURS=24"
