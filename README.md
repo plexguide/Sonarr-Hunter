@@ -8,7 +8,7 @@
   </tr>
 </table>
 
-**NOTE**: This utilizes Sonarr API Version - `5`. The Script: [huntarr.sh](huntarr.sh)
+**NOTE**: This utilizes Sonarr API Version - `3`. The Script: [huntarr.sh](huntarr.sh)
 
 ## Table of Contents
 - [Overview](#overview)
