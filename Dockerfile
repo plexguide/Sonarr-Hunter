@@ -17,15 +17,15 @@ ENV API_KEY="your-api-key" \
     STATE_RESET_INTERVAL_HOURS="168" \
     DEBUG_MODE="false"
 # Create state directory
-RUN mkdir -p /tmp/hunter-4-sonarr-state
+RUN mkdir -p /tmp/huntarr-state
 # Copy the script into the container
-COPY hunter-4-sonarr.sh /usr/local/bin/hunter-4-sonarr.sh
+COPY huntarr.sh /usr/local/bin/huntarr.sh
 # Make the script executable
-RUN chmod +x /usr/local/bin/hunter-4-sonarr.sh
+RUN chmod +x /usr/local/bin/huntarr.sh
 # Set the default command to run the script
-ENTRYPOINT ["/usr/local/bin/hunter-4-sonarr.sh"]
+ENTRYPOINT ["/usr/local/bin/huntarr.sh"]
 # Add labels for better container management
 LABEL maintainer="PlexGuide" \
-      description="Hunter-4-Sonarr - Automates finding missing episodes and quality upgrades" \
+      description="Huntarr - Automates finding missing episodes and quality upgrades" \
       version="5.0" \
-      url="https://github.com/plexguide/Hunter-4-Sonarr"
+      url="https://github.com/plexguide/Huntarr-Sonarr"
