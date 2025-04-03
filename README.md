@@ -164,7 +164,7 @@ docker run -d --name huntarr \
 
 To check on the status of the program, you should see new files downloading or you can type:
 ```bash
-docker logs huntarr
+docker logs huntarr-sonarr
 ```
 
 ### Docker Compose
@@ -174,7 +174,7 @@ For those who prefer Docker Compose, add this to your `docker-compose.yml` file:
 ```yaml
 version: "3.8"
 services:
-  huntarr:
+  huntarr-sonarr:
     image: huntarr/4sonarr:latest
     container_name: huntarr
     restart: always
