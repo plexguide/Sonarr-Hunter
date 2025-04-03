@@ -1,4 +1,4 @@
-# Huntarr (Sonarr Edition) - Force Sonarr to Hunt Missing Shows & Upgrade Episode Qualities
+# Huntarr 4 [Sonarr Edition] - Force Sonarr to Hunt Missing Shows & Upgrade Episode Qualities
 
 <h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2>
 
