@@ -1,4 +1,4 @@
-# Huntarr-Sonarr - Force Sonarr to Hunt Missing Shows & Upgrade Episode Qualities
+# Huntarr (Sonarr Edition) - Force Sonarr to Hunt Missing Shows & Upgrade Episode Qualities
 
 <h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2>
 
@@ -8,7 +8,7 @@
   </tr>
 </table>
 
-**NOTE**: This utilizes Sonarr API Version - `5`. The Script: [huntarr-sonarr.sh](huntarr-sonarr.sh)
+**NOTE**: This utilizes Sonarr API Version - `5`. The Script: [huntarr.sh](huntarr.sh)
 
 ## Table of Contents
 - [Overview](#overview)
@@ -31,8 +31,8 @@ This script continually searches your Sonarr library for shows with missing epis
 
 ## Related Projects
 
-* [Huntarr-Radarr](https://github.com/plexguide/Radarr-Hunter) - Sister version for movies
-* [Huntarr-Lidarr](https://github.com/plexguide/Lidarr-Hunter) - Sister version for music
+* [Huntarr Radarr](https://github.com/plexguide/Radarr-Hunter) - Sister version for movies
+* [Huntarr Lidarr](https://github.com/plexguide/Lidarr-Hunter) - Sister version for music
 * [Unraid Intel ARC Deployment](https://github.com/plexguide/Unraid_Intel-ARC_Deployment) - Convert videos to AV1 Format (I've saved 325TB encoding to AV1)
 * Visit [PlexGuide](https://plexguide.com) for more great scripts
 
@@ -144,10 +144,10 @@ The following environment variables can be configured:
 
 ### Docker Run
 
-The simplest way to run Huntarr-Sonarr is via Docker:
+The simplest way to run Huntarr is via Docker:
 
 ```bash
-docker run -d --name huntarr-sonarr \
+docker run -d --name huntarr \
   --restart always \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
@@ -159,12 +159,12 @@ docker run -d --name huntarr-sonarr \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
-  admin9705/huntarr-sonarr:latest
+  admin9705/huntarr:latest
 ```
 
 To check on the status of the program, you should see new files downloading or you can type:
 ```bash
-docker logs huntarr-sonarr
+docker logs huntarr
 ```
 
 ### Docker Compose
@@ -174,9 +174,9 @@ For those who prefer Docker Compose, add this to your `docker-compose.yml` file:
 ```yaml
 version: "3.8"
 services:
-  huntarr-sonarr:
-    image: admin9705/huntarr-sonarr:latest
-    container_name: huntarr-sonarr
+  huntarr:
+    image: admin9705/huntarr:latest
+    container_name: huntarr
     restart: always
     environment:
       API_KEY: "your-api-key"
@@ -194,7 +194,7 @@ services:
 Then run:
 
 ```bash
-docker-compose up -d huntarr-sonarr
+docker-compose up -d huntarr
 ```
 
 To check on the status of the program, you should see new files downloading or you can type:
@@ -205,7 +205,7 @@ docker logs huntarr-sonarr
 ### Unraid Users
 
 1. Install the plugin called `UserScripts`
-2. Copy and paste the following script file as a new script - [huntarr-sonarr.sh](huntarr-sonarr.sh) 
+2. Copy and paste the following script file as a new script - [huntarr.sh](huntarr.sh) 
 3. Ensure to set it to `Run in the background` if your array is already running and set the schedule to `At Startup Array`
 4. Update the variables at the top of the script to match your configuration
 
@@ -222,13 +222,13 @@ docker logs huntarr-sonarr
 
 For a more permanent installation on Linux systems using SystemD:
 
-1. Save the script to `/usr/local/bin/huntarr-sonarr.sh`
-2. Make it executable: `chmod +x /usr/local/bin/huntarr-sonarr.sh`
-3. Create a systemd service file at `/etc/systemd/system/huntarr-sonarr.service`:
+1. Save the script to `/usr/local/bin/huntarr.sh`
+2. Make it executable: `chmod +x /usr/local/bin/huntarr.sh`
+3. Create a systemd service file at `/etc/systemd/system/huntarr.service`:
 
 ```ini
 [Unit]
-Description=Huntarr-Sonarr Service
+Description=Huntarr Service
 After=network.target sonarr.service
 
 [Service]
@@ -244,7 +244,7 @@ Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
 Environment="STATE_RESET_INTERVAL_HOURS=168"
 Environment="DEBUG_MODE=false"
-ExecStart=/usr/local/bin/huntarr-sonarr.sh
+ExecStart=/usr/local/bin/huntarr.sh
 Restart=on-failure
 RestartSec=10
 
@@ -255,8 +255,8 @@ WantedBy=multi-user.target
 4. Enable and start the service:
 
 ```bash
-sudo systemctl enable huntarr-sonarr
-sudo systemctl start huntarr-sonarr
+sudo systemctl enable huntarr
+sudo systemctl start huntarr
 ```
 
 ## Use Cases
@@ -298,7 +298,7 @@ sudo systemctl start huntarr-sonarr
 - **v7**: Implemented configurable state reset timer
 - **v8**: Added debug mode and improved error handling
 - **v9**: Enhanced random selection mode for better distribution
-- **v10**: Renamed from "Sonarr Hunter" to "Huntarr-Sonarr"
+- **v10**: Renamed from "Sonarr Hunter" to "Huntarr"
 
 ---
 
