@@ -92,18 +92,18 @@ My 12-year-old daughter loves singing, dancing, and exploring STEM. She's an A-B
 
 The following environment variables can be configured:
 
-| Variable                     | Description                                                           | Default    |
-|------------------------------|-----------------------------------------------------------------------|------------|
-| `API_KEY`                    | Your Sonarr API key                                                   | Required   |
-| `API_URL`                    | URL to your Sonarr instance                                           | Required   |
-| `MONITORED_ONLY`             | Only process monitored shows/episodes                                 | true       |
-| `SEARCH_TYPE`                | Which search to perform: `"missing"`, `"upgrade"`, or `"both"`        | both       |
-| `MAX_MISSING`                | Maximum missing shows to process per cycle                            | 1          |
-| `MAX_UPGRADES`               | Maximum upgrade episodes to process per cycle                         | 5          |
-| `SLEEP_DURATION`             | Seconds to wait after completing a cycle (900 = 15 minutes)           | 900        |
-| `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                 | true       |
-| `STATE_RESET_INTERVAL_HOURS` | Hours after which the processed state files are reset (168 = 1 week)  | 168        |
-| `DEBUG_MODE`                 | Enable detailed debug logging (`true` or `false`)                     | false      |
+| Variable                     | Description                                                              | Default    |
+|------------------------------|-----------------------------------------------------------------------|---------------|
+| `API_KEY`                    | Your Sonarr API key                                                      | Required   |
+| `API_URL`                    | URL to your Sonarr instance                                              | Required   |
+| `MONITORED_ONLY`             | Only process monitored shows/episodes                                    | true       |
+| `SEARCH_TYPE`                | Which search to perform: `"missing"`, `"upgrade"`, or `"both"`           | both       |
+| `MAX_MISSING`                | Maximum missing shows to process per cycle                               | 1          |
+| `MAX_UPGRADES`               | Maximum upgrade episodes to process per cycle                            | 5          |
+| `SLEEP_DURATION`             | Seconds to wait after completing a cycle (900 = 15 minutes)              | 900        |
+| `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                    | true       |
+| `STATE_RESET_INTERVAL_HOURS` | Hours which the processed state files reset (168=1 week, 0=never reset)  | 168        |
+| `DEBUG_MODE`                 | Enable detailed debug logging (`true` or `false`)                        | false      |
 
 ### Detailed Configuration Explanation
 
@@ -131,7 +131,8 @@ The following environment variables can be configured:
   - The script records the IDs of missing shows and upgrade episodes that have been processed.  
   - When the age of these records exceeds the number of hours set by this variable, the records are cleared automatically.  
   - This reset allows the script to re-check items that were previously processed, so if there are changes (such as improved quality or new episodes), they can be processed again.  
-  - In simple terms: if you set this to 168, then every 168 hours the script will start fresh and re-check everything, ensuring nothing is permanently skipped.
+  - Setting this to `0` will disable the reset functionality entirely - processed items will be remembered indefinitely.
+  - Default is 168 hours (one week) - meaning the script will start fresh and re-check everything weekly.
 
 - **DEBUG_MODE**
   - When set to `true`, the script will output detailed debugging information about API responses and internal operations.
