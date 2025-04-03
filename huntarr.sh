@@ -5,12 +5,12 @@
 # ---------------------------
 
 API_KEY=${API_KEY:-"your-api-key"}
-API_URL=${API_URL:-"http://your-sonarr-address:8989"}
+API_URL=${API_URL:-"http://your-radarr-address:7878"}
 
-# Maximum number of missing shows to process per cycle
+# Maximum number of missing movies to process per cycle
 MAX_MISSING=${MAX_MISSING:-1}
 
-# Maximum number of upgrade episodes to process per cycle
+# Maximum number of upgrade movies to process per cycle
 MAX_UPGRADES=${MAX_UPGRADES:-5}
 
 # Sleep duration in seconds after completing one full cycle (default 15 minutes)
@@ -26,13 +26,13 @@ STATE_RESET_INTERVAL_HOURS=${STATE_RESET_INTERVAL_HOURS:-168}
 # Set to true to pick items randomly, false to go in order
 RANDOM_SELECTION=${RANDOM_SELECTION:-true}
 
-# If MONITORED_ONLY is "true", only process missing or upgrade episodes from monitored shows
+# If MONITORED_ONLY is "true", only process missing or upgrade movies from monitored movies
 MONITORED_ONLY=${MONITORED_ONLY:-true}
 
 # SEARCH_TYPE controls what we search for:
-# - "missing" => Only find shows with missing episodes
-# - "upgrade" => Only find episodes that don't meet quality cutoff
-# - "both"    => Do missing shows first, then upgrade episodes
+# - "missing" => Only find movies that are missing
+# - "upgrade" => Only find movies that don't meet quality cutoff
+# - "both"    => Do missing movies first, then upgrade movies
 SEARCH_TYPE=${SEARCH_TYPE:-"both"}
 
 # Enable debug mode to see API responses
@@ -41,9 +41,9 @@ DEBUG_MODE=${DEBUG_MODE:-false}
 # ---------------------------
 # State Tracking Setup
 # ---------------------------
-# These state files persist IDs for processed missing shows and upgrade episodes.
+# These state files persist IDs for processed missing movies and upgrade movies.
 # They will be automatically cleared if older than the reset interval.
-STATE_DIR="/tmp/huntarr-state"
+STATE_DIR="/tmp/huntarr-radarr-state"
 mkdir -p "$STATE_DIR"
 PROCESSED_MISSING_FILE="$STATE_DIR/processed_missing_ids.txt"
 PROCESSED_UPGRADE_FILE="$STATE_DIR/processed_upgrade_ids.txt"
@@ -94,150 +94,127 @@ else
 fi
 
 # ---------------------------
-# Helper: Sonarr API Calls
+# Helper: Radarr API Calls
 # ---------------------------
 
 debug_log "API KEY: $API_KEY"
 debug_log "API URL $API_URL"
 
-get_series() {
-  curl -s -H "X-Api-Key: $API_KEY" "$API_URL/api/v3/series"
+get_movies() {
+  curl -s -H "X-Api-Key: $API_KEY" "$API_URL/api/v3/movie"
 }
 
-refresh_series() {
-  local series_id="$1"
+refresh_movie() {
+  local movie_id="$1"
   curl -s -X POST \
        -H "X-Api-Key: $API_KEY" \
        -H "Content-Type: application/json" \
-       -d "{\"name\":\"RefreshSeries\",\"seriesId\":$series_id}" \
+       -d "{\"name\":\"RefreshMovie\",\"movieIds\":[$movie_id]}" \
        "$API_URL/api/v3/command"
 }
 
-missing_episode_search() {
-  local series_id="$1"
+missing_movie_search() {
+  local movie_id="$1"
   curl -s -X POST \
        -H "X-Api-Key: $API_KEY" \
        -H "Content-Type: application/json" \
-       -d "{\"name\":\"MissingEpisodeSearch\",\"seriesId\":$series_id}" \
+       -d "{\"name\":\"MoviesSearch\",\"movieIds\":[$movie_id]}" \
        "$API_URL/api/v3/command"
 }
 
-episode_search_series() {
-  local series_id="$1"
+rescan_movie() {
+  local movie_id="$1"
   curl -s -X POST \
        -H "X-Api-Key: $API_KEY" \
        -H "Content-Type: application/json" \
-       -d "{\"name\":\"EpisodeSearch\",\"seriesId\":$series_id}" \
-       "$API_URL/api/v3/command"
-}
-
-episode_search_episodes() {
-  local episode_ids="$1"
-  curl -s -X POST \
-       -H "X-Api-Key: $API_KEY" \
-       -H "Content-Type: application/json" \
-       -d "{\"name\":\"EpisodeSearch\",\"episodeIds\":$episode_ids}" \
+       -d "{\"name\":\"RescanMovie\",\"movieIds\":[$movie_id]}" \
        "$API_URL/api/v3/command"
 }
 
 get_cutoff_unmet() {
   local page="${1:-1}"
   curl -s -H "X-Api-Key: $API_KEY" \
-       "$API_URL/api/v3/wanted/cutoff?sortKey=airDateUtc&sortDirection=descending&includeSeriesInformation=true&page=$page&pageSize=200"
+       "$API_URL/api/v3/movie/movie" | \
+       jq '[.[] | select(.qualityCutoffNotMet == true)]'
 }
 
-get_cutoff_unmet_total_pages() {
+get_cutoff_unmet_count() {
   local response
-  response=$(curl -s -H "X-Api-Key: $API_KEY" "$API_URL/api/v3/wanted/cutoff?page=1&pageSize=1")
-  if echo "$response" | jq -e '.totalRecords' > /dev/null 2>&1; then
-    local total_records
-    total_records=$(echo "$response" | jq '.totalRecords')
-    if [ -z "$total_records" ] || [ "$total_records" = "null" ] || ! [[ "$total_records" =~ ^[0-9]+$ ]]; then
-      echo "1"
-    else
-      local total_pages
-      total_pages=$(( (total_records + 199) / 200 ))
-      [ "$total_pages" -lt 1 ] && echo "1" || echo "$total_pages"
-    fi
-  else
-    echo "1"
-  fi
+  response=$(curl -s -H "X-Api-Key: $API_KEY" "$API_URL/api/v3/movie" | \
+              jq '[.[] | select(.qualityCutoffNotMet == true)] | length')
+  echo "$response"
 }
 
 # ---------------------------
-# 1) Missing Episodes Logic (Persistent)
+# 1) Missing Movies Logic (Persistent)
 # ---------------------------
-process_missing_episodes() {
-  echo "=== Checking for Missing Episodes ==="
-  local shows_json
-  shows_json=$(get_series)
-  debug_log "Raw series API response first 100 chars:" "$(echo "$shows_json" | head -c 100)"
-  if [ -z "$shows_json" ]; then
-    echo "ERROR: Unable to retrieve series data from Sonarr. Retrying in 60s..."
+process_missing_movies() {
+  echo "=== Checking for Missing Movies ==="
+  local movies_json
+  movies_json=$(get_movies)
+  debug_log "Raw movies API response first 100 chars:" "$(echo "$movies_json" | head -c 100)"
+  if [ -z "$movies_json" ]; then
+    echo "ERROR: Unable to retrieve movie data from Radarr. Retrying in 60s..."
     sleep 60
     return
   fi
 
-  local incomplete_json
+  local missing_json
   if [ "$MONITORED_ONLY" = "true" ]; then
-    echo "MONITORED_ONLY=true => only monitored shows with missing episodes."
-    incomplete_json=$(echo "$shows_json" | jq '[.[] | select(.monitored == true and has("statistics") and .statistics.episodeCount > .statistics.episodeFileCount)]')
+    echo "MONITORED_ONLY=true => only monitored movies without files."
+    missing_json=$(echo "$movies_json" | jq '[.[] | select(.monitored == true and .hasFile == false)]')
   else
-    echo "MONITORED_ONLY=false => all shows with missing episodes."
-    incomplete_json=$(echo "$shows_json" | jq '[.[] | select(has("statistics") and .statistics.episodeCount > .statistics.episodeFileCount)]')
+    echo "MONITORED_ONLY=false => all movies without files."
+    missing_json=$(echo "$movies_json" | jq '[.[] | select(.hasFile == false)]')
   fi
 
-  local total_incomplete
-  total_incomplete=$(echo "$incomplete_json" | jq 'length')
-  debug_log "Total incomplete shows: $total_incomplete"
-  debug_log "First incomplete show (if any):" "$(echo "$incomplete_json" | jq '.[0]')"
-  if [ "$total_incomplete" -eq 0 ]; then
-    echo "No shows with missing episodes found."
+  local total_missing
+  total_missing=$(echo "$missing_json" | jq 'length')
+  debug_log "Total missing movies: $total_missing"
+  debug_log "First missing movie (if any):" "$(echo "$missing_json" | jq '.[0]')"
+  if [ "$total_missing" -eq 0 ]; then
+    echo "No missing movies found."
     return
   fi
 
   local processed_missing_ids
   mapfile -t processed_missing_ids < "$PROCESSED_MISSING_FILE"
 
-  echo "Found $total_incomplete show(s) with missing episodes."
-  local shows_processed=0
+  echo "Found $total_missing movie(s) with missing files."
+  local movies_processed=0
   local indices
   if [ "$RANDOM_SELECTION" = "true" ]; then
-    indices=($(seq 0 $((total_incomplete - 1)) | shuf))
+    indices=($(seq 0 $((total_missing - 1)) | shuf))
   else
-    indices=($(seq 0 $((total_incomplete - 1))))
+    indices=($(seq 0 $((total_missing - 1))))
   fi
 
   for index in "${indices[@]}"; do
-    if [ "$MAX_MISSING" -gt 0 ] && [ "$shows_processed" -ge "$MAX_MISSING" ]; then
+    if [ "$MAX_MISSING" -gt 0 ] && [ "$movies_processed" -ge "$MAX_MISSING" ]; then
       break
     fi
 
-    local show
-    show=$(echo "$incomplete_json" | jq ".[$index]")
-    local show_id
-    show_id=$(echo "$show" | jq '.id')
-    if echo "${processed_missing_ids[@]}" | grep -qw "$show_id"; then
+    local movie
+    movie=$(echo "$missing_json" | jq ".[$index]")
+    local movie_id
+    movie_id=$(echo "$movie" | jq '.id')
+    if echo "${processed_missing_ids[@]}" | grep -qw "$movie_id"; then
       continue
     fi
 
-    local show_title
-    show_title=$(echo "$show" | jq -r '.title')
-    local ep_count
-    ep_count=$(echo "$show" | jq '.statistics.episodeCount')
-    local ep_file_count
-    ep_file_count=$(echo "$show" | jq '.statistics.episodeFileCount')
-    local missing
-    missing=$((ep_count - ep_file_count))
+    local movie_title
+    movie_title=$(echo "$movie" | jq -r '.title')
+    local movie_year
+    movie_year=$(echo "$movie" | jq -r '.year')
 
-    echo "Processing missing episodes for \"$show_title\" ($missing missing)."
-    echo " - Refreshing series (ID: $show_id)..."
+    echo "Processing missing movie \"$movie_title ($movie_year)\" (ID: $movie_id)."
+    echo " - Refreshing movie..."
     local refresh_cmd
-    refresh_cmd=$(refresh_series "$show_id")
+    refresh_cmd=$(refresh_movie "$movie_id")
     local refresh_id
     refresh_id=$(echo "$refresh_cmd" | jq '.id // empty')
     if [ -z "$refresh_id" ]; then
-      echo "WARNING: Refresh command failed for $show_title. Skipping."
+      echo "WARNING: Refresh command failed for $movie_title. Skipping."
       sleep 10
       continue
     fi
@@ -245,25 +222,31 @@ process_missing_episodes() {
     echo "Refresh command accepted (ID: $refresh_id). Waiting 5s..."
     sleep 5
 
-    echo " - MissingEpisodeSearch for \"$show_title\"..."
+    echo " - Searching for \"$movie_title\"..."
     local search_cmd
-    search_cmd=$(missing_episode_search "$show_id")
+    search_cmd=$(missing_movie_search "$movie_id")
     local search_id
     search_id=$(echo "$search_cmd" | jq '.id // empty')
     if [ -n "$search_id" ]; then
       echo "Search command accepted (ID: $search_id)."
     else
-      echo "WARNING: MissingEpisodeSearch failed. Attempting fallback EpisodeSearch..."
-      local fallback_cmd
-      fallback_cmd=$(episode_search_series "$show_id")
-      local fallback_id
-      fallback_id=$(echo "$fallback_cmd" | jq '.id // empty')
-      [ -n "$fallback_id" ] && echo "Fallback EpisodeSearch accepted (ID: $fallback_id)."
+      echo "WARNING: Movie search failed."
     fi
 
-    echo "$show_id" >> "$PROCESSED_MISSING_FILE"
-    shows_processed=$((shows_processed + 1))
-    echo "Processed $shows_processed/$MAX_MISSING missing shows this cycle."
+    echo " - Rescanning movie folder..."
+    local rescan_cmd
+    rescan_cmd=$(rescan_movie "$movie_id")
+    local rescan_id
+    rescan_id=$(echo "$rescan_cmd" | jq '.id // empty')
+    if [ -n "$rescan_id" ]; then
+      echo "Rescan command accepted (ID: $rescan_id)."
+    else
+      echo "WARNING: Rescan command not available or failed."
+    fi
+
+    echo "$movie_id" >> "$PROCESSED_MISSING_FILE"
+    movies_processed=$((movies_processed + 1))
+    echo "Processed $movies_processed/$MAX_MISSING missing movies this cycle."
   done
 }
 
@@ -272,186 +255,101 @@ process_missing_episodes() {
 # ---------------------------
 process_cutoff_upgrades() {
   echo "=== Checking for Quality Upgrades (Cutoff Unmet) ==="
-  local total_pages
-  total_pages=$(get_cutoff_unmet_total_pages)
-  if [ "$total_pages" -eq 0 ]; then
-    echo "No episodes found that need quality upgrades."
+  
+  local cutoff_json
+  cutoff_json=$(get_cutoff_unmet)
+  if [ -z "$cutoff_json" ]; then
+    echo "ERROR: Unable to retrieve cutoff unmet data from Radarr. Retrying in 60s..."
+    sleep 60
+    return
+  fi
+  
+  local total_upgrades
+  total_upgrades=$(echo "$cutoff_json" | jq 'length')
+  
+  if [ "$total_upgrades" -eq 0 ]; then
+    echo "No movies found that need quality upgrades."
     return
   fi
 
-  echo "Found $total_pages total pages of episodes that need quality upgrades."
-  local episodes_processed=0
-  local processed_episode_ids
-  mapfile -t processed_episode_ids < "$PROCESSED_UPGRADE_FILE"
+  echo "Found $total_upgrades movies that need quality upgrades."
+  local movies_processed=0
+  local processed_movie_ids
+  mapfile -t processed_movie_ids < "$PROCESSED_UPGRADE_FILE"
 
-  while [ "$episodes_processed" -lt "$MAX_UPGRADES" ] || [ "$MAX_UPGRADES" -eq 0 ]; do
-    local page
-    if [ "$RANDOM_SELECTION" = "true" ] && [ "$total_pages" -gt 1 ]; then
-      page=$((RANDOM % total_pages + 1))
-    else
-      page=1
-    fi
+  local indices
+  if [ "$RANDOM_SELECTION" = "true" ]; then
+    indices=($(seq 0 $((total_upgrades - 1)) | shuf))
+  else
+    indices=($(seq 0 $((total_upgrades - 1))))
+  fi
 
-    echo "Retrieving cutoff-unmet episodes (page=$page of $total_pages)..."
-    local cutoff_json
-    cutoff_json=$(get_cutoff_unmet "$page")
-    if ! echo "$cutoff_json" | jq empty 2>/dev/null; then
-      echo "ERROR: Invalid JSON response on page $page. Trying another page."
-      if [ "$RANDOM_SELECTION" = "false" ]; then
-        page=$((page + 1))
-        [ "$page" -gt "$total_pages" ] && break
-      fi
-      continue
-    fi
-
-    local episodes
-    if echo "$cutoff_json" | jq -e '.records' >/dev/null 2>&1; then
-      episodes=$(echo "$cutoff_json" | jq '.records')
-    else
-      echo "WARNING: 'records' field missing on page $page."
-      if [ "$RANDOM_SELECTION" = "false" ]; then
-        page=$((page + 1))
-        [ "$page" -gt "$total_pages" ] && break
-      fi
-      continue
-    fi
-
-    local total_eps
-    total_eps=$(echo "$episodes" | jq '. | length')
-    if [ -z "$total_eps" ] || [ "$total_eps" = "null" ] || ! [[ "$total_eps" =~ ^[0-9]+$ ]]; then
-      echo "Invalid episode count on page $page."
-      if [ "$RANDOM_SELECTION" = "false" ]; then
-        page=$((page + 1))
-        [ "$page" -gt "$total_pages" ] && break
-      fi
-      continue
-    fi
-
-    if [ "$total_eps" -eq 0 ]; then
-      echo "No episodes found on page $page."
-      if [ "$RANDOM_SELECTION" = "false" ]; then
-        page=$((page + 1))
-        [ "$page" -gt "$total_pages" ] && break
-      fi
-      continue
-    fi
-
-    echo "Found $total_eps episodes on page $page that need quality upgrades."
-    local -a page_indices
-    if [ "$RANDOM_SELECTION" = "true" ]; then
-      for ((i=0; i<total_eps; i++)); do
-        page_indices[$i]=$i
-      done
-      for ((i=total_eps-1; i>0; i--)); do
-        j=$((RANDOM % (i+1)))
-        temp=${page_indices[$i]}
-        page_indices[$i]=${page_indices[$j]}
-        page_indices[$j]=$temp
-      done
-    else
-      for ((i=0; i<total_eps; i++)); do
-        page_indices[$i]=$i
-      done
-    fi
-
-    for index in "${page_indices[@]}"; do
-      if [ "$MAX_UPGRADES" -gt 0 ] && [ "$episodes_processed" -ge "$MAX_UPGRADES" ]; then
-        break
-      fi
-
-      local episode
-      episode=$(echo "$episodes" | jq ".[$index]")
-      local episode_id
-      episode_id=$(echo "$episode" | jq '.id')
-      if echo "${processed_episode_ids[@]}" | grep -qw "$episode_id"; then
-        echo "Episode ID $episode_id already processed. Skipping."
-        continue
-      fi
-
-      local series_id
-      series_id=$(echo "$episode" | jq '.seriesId')
-      local season_num
-      season_num=$(echo "$episode" | jq '.seasonNumber')
-      local ep_num
-      ep_num=$(echo "$episode" | jq '.episodeNumber')
-      local title
-      title=$(echo "$episode" | jq -r '.title')
-
-      local series_title
-      if echo "$episode" | jq -e '.seriesTitle' >/dev/null 2>&1; then
-        series_title=$(echo "$episode" | jq -r '.seriesTitle')
-      else
-        local series_json
-        series_json=$(curl -s -H "X-Api-Key: $API_KEY" "$API_URL/api/v3/series/$series_id")
-        series_title=$(echo "$series_json" | jq -r '.title')
-      fi
-
-      echo "Processing upgrade for \"$series_title\" - S${season_num}E${ep_num} - \"$title\" (Episode ID: $episode_id)"
-      if [ "$MONITORED_ONLY" = "true" ]; then
-        local ep_monitored
-        ep_monitored=$(echo "$episode" | jq '.monitored')
-        local series_monitored
-        if echo "$episode" | jq -e '.series.monitored' >/dev/null 2>&1; then
-          series_monitored=$(echo "$episode" | jq '.series.monitored')
-        else
-          local series_json
-          series_json=$(curl -s -H "X-Api-Key: $API_KEY" "$API_URL/api/v3/series/$series_id")
-          series_monitored=$(echo "$series_json" | jq '.monitored')
-        fi
-        if [ "$ep_monitored" != "true" ] || [ "$series_monitored" != "true" ]; then
-          echo "Skipping unmonitored episode or series."
-          continue
-        fi
-      fi
-
-      echo " - Refreshing series information..."
-      local refresh_cmd
-      refresh_cmd=$(refresh_series "$series_id")
-      local refresh_id
-      refresh_id=$(echo "$refresh_cmd" | jq '.id // empty')
-      if [ -z "$refresh_id" ]; then
-        echo "WARNING: Refresh command failed. Skipping this episode."
-        sleep 10
-        continue
-      fi
-      echo "Refresh command accepted (ID: $refresh_id). Waiting 5s..."
-      sleep 5
-
-      echo " - Searching for quality upgrade..."
-      local search_cmd
-      search_cmd=$(episode_search_episodes "[$episode_id]")
-      local search_id
-      search_id=$(echo "$search_cmd" | jq '.id // empty')
-      if [ -n "$search_id" ]; then
-        echo "Search command accepted (ID: $search_id)."
-        echo "$episode_id" >> "$PROCESSED_UPGRADE_FILE"
-        processed_episode_ids+=("$episode_id")
-        episodes_processed=$((episodes_processed + 1))
-        echo "Processed $episodes_processed/$MAX_UPGRADES upgrade episodes this cycle."
-      else
-        echo "WARNING: Search command failed for episode ID $episode_id."
-        sleep 10
-      fi
-    done
-
-    if [ "$MAX_UPGRADES" -gt 0 ] && [ "$episodes_processed" -ge "$MAX_UPGRADES" ]; then
-      echo "Reached MAX_UPGRADES=$MAX_UPGRADES for this cycle."
+  for index in "${indices[@]}"; do
+    if [ "$MAX_UPGRADES" -gt 0 ] && [ "$movies_processed" -ge "$MAX_UPGRADES" ]; then
       break
     fi
 
-    if [ "$RANDOM_SELECTION" = "false" ]; then
-      page=$((page + 1))
-      [ "$page" -gt "$total_pages" ] && break
+    local movie
+    movie=$(echo "$cutoff_json" | jq ".[$index]")
+    local movie_id
+    movie_id=$(echo "$movie" | jq '.id')
+    
+    if echo "${processed_movie_ids[@]}" | grep -qw "$movie_id"; then
+      continue
+    fi
+
+    local movie_title
+    movie_title=$(echo "$movie" | jq -r '.title')
+    local movie_year
+    movie_year=$(echo "$movie" | jq -r '.year')
+    local quality_profile
+    quality_profile=$(echo "$movie" | jq -r '.qualityProfileId')
+
+    if [ "$MONITORED_ONLY" = "true" ]; then
+      local movie_monitored
+      movie_monitored=$(echo "$movie" | jq '.monitored')
+      if [ "$movie_monitored" != "true" ]; then
+        echo "Skipping unmonitored movie: $movie_title ($movie_year)"
+        continue
+      fi
+    fi
+
+    echo "Processing quality upgrade for \"$movie_title ($movie_year)\" (ID: $movie_id)"
+    echo " - Refreshing movie information..."
+    local refresh_cmd
+    refresh_cmd=$(refresh_movie "$movie_id")
+    local refresh_id
+    refresh_id=$(echo "$refresh_cmd" | jq '.id // empty')
+    if [ -z "$refresh_id" ]; then
+      echo "WARNING: Refresh command failed. Skipping this movie."
+      sleep 10
+      continue
+    fi
+    echo "Refresh command accepted (ID: $refresh_id). Waiting 5s..."
+    sleep 5
+
+    echo " - Searching for quality upgrade..."
+    local search_cmd
+    search_cmd=$(missing_movie_search "$movie_id")
+    local search_id
+    search_id=$(echo "$search_cmd" | jq '.id // empty')
+    if [ -n "$search_id" ]; then
+      echo "Search command accepted (ID: $search_id)."
+      echo "$movie_id" >> "$PROCESSED_UPGRADE_FILE"
+      processed_movie_ids+=("$movie_id")
+      movies_processed=$((movies_processed + 1))
+      echo "Processed $movies_processed/$MAX_UPGRADES upgrade movies this cycle."
     else
-      echo "Completed processing page $page in random mode. Continuing..."
+      echo "WARNING: Search command failed for movie ID $movie_id."
+      sleep 10
     fi
   done
 
-  echo "Completed processing $episodes_processed upgrade episodes for this cycle."
+  echo "Completed processing $movies_processed upgrade movies for this cycle."
   local processed_count
   processed_count=$(wc -l < "$PROCESSED_UPGRADE_FILE")
   if [ "$processed_count" -gt 1000 ]; then
-    echo "Processed upgrade episodes list is getting large. Truncating to last 500 entries."
+    echo "Processed upgrade movies list is getting large. Truncating to last 500 entries."
     tail -n 500 "$PROCESSED_UPGRADE_FILE" > "${PROCESSED_UPGRADE_FILE}.tmp"
     mv "${PROCESSED_UPGRADE_FILE}.tmp" "$PROCESSED_UPGRADE_FILE"
   fi
@@ -463,13 +361,13 @@ process_cutoff_upgrades() {
 while true; do
   case "$SEARCH_TYPE" in
     missing)
-      process_missing_episodes
+      process_missing_movies
       ;;
     upgrade)
       process_cutoff_upgrades
       ;;
     both)
-      process_missing_episodes
+      process_missing_movies
       process_cutoff_upgrades
       ;;
     *)
