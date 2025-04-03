@@ -100,6 +100,12 @@ fi
 debug_log "API KEY: $API_KEY"
 debug_log "API URL $API_URL"
 
+
+get_status() {
+  curl -s -H "X-Api-Key: $API_KEY" "$API_URL/ping"
+}
+
+
 get_series() {
   curl -s -H "X-Api-Key: $API_KEY" "$API_URL/api/v3/series"
 }
@@ -170,6 +176,16 @@ get_cutoff_unmet_total_pages() {
 process_missing_episodes() {
   echo "=== Checking for Missing Episodes ==="
   local shows_json
+  local status
+
+  status=&(get_status)
+
+  if [ -z "$status" ]; then
+    echo "ERROR: no response from server $status"
+    sleep 60
+    return
+  fi
+  
   shows_json=$(get_series)
   debug_log "Raw series API response first 100 chars:" "$(echo "$shows_json" | head -c 100)"
   if [ -z "$shows_json" ]; then
