@@ -194,7 +194,7 @@ services:
 Then run:
 
 ```bash
-docker-compose up -d huntarr
+docker-compose up -d huntarr-sonarr
 ```
 
 To check on the status of the program, you should see new files downloading or you can type:
