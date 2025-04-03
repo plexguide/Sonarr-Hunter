@@ -32,8 +32,8 @@ jobs:
           context: .
           push: true
           tags: |
-            admin9705/sonarr-hunter:latest
-            admin9705/sonarr-hunter:${{ github.sha }}
+            admin9705/hunter-4-sonarr:latest
+            admin9705/hunter-4-sonarr:${{ github.sha }}
 
       # 4b) Build & Push if on 'dev' branch
       - name: Build and Push (dev)
@@ -43,5 +43,5 @@ jobs:
           context: .
           push: true
           tags: |
-            admin9705/sonarr-hunter:dev
-            admin9705/sonarr-hunter:${{ github.sha }}
+            admin9705/hunter-4-sonarr:dev
+            admin9705/hunter-4-sonarr:${{ github.sha }}
