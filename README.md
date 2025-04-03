@@ -146,7 +146,7 @@ The following environment variables can be configured:
 The simplest way to run Hunter-4-Sonarr is via Docker:
 
 ```bash
-docker run -d --name h4s \
+docker run -d --name hunter-4-sonarr \
   --restart always \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
@@ -163,7 +163,7 @@ docker run -d --name h4s \
 
 To check on the status of the program, you should see new files downloading or you can type:
 ```bash
-docker logs h4s
+docker logs hunter-4-sonarr
 ```
 
 ### Docker Compose
@@ -175,7 +175,7 @@ version: "3.8"
 services:
   hunter-4-sonarr:
     image: admin9705/hunter-4-sonarr:latest
-    container_name: h4s
+    container_name: hunter-4-sonarr
     restart: always
     environment:
       API_KEY: "your-api-key"
@@ -198,7 +198,7 @@ docker-compose up -d hunter-4-sonarr
 
 To check on the status of the program, you should see new files downloading or you can type:
 ```bash
-docker logs h4s
+docker logs hunter-4-sonarr
 ```
 
 ### Unraid Users
@@ -281,7 +281,7 @@ sudo systemctl start hunter-4-sonarr
 - **API Key Issues**: Check that your API key is correct in Sonarr settings
 - **Connection Problems**: Ensure the Sonarr URL is accessible from where you're running the script
 - **Command Failures**: If search commands fail, try using the Sonarr UI to verify what commands are available in your version
-- **Logs**: Check the container logs with `docker logs h4s` if running in Docker
+- **Logs**: Check the container logs with `docker logs hunter-4-sonarr` if running in Docker
 - **Debug Mode**: Enable `DEBUG_MODE=true` to see detailed API responses and process flow
 - **State Files**: The script stores state in `/tmp/hunter-4-sonarr-state/` - if something seems stuck, you can try deleting these files
 
