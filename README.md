@@ -31,7 +31,7 @@ This script continually searches your Sonarr library for shows with missing epis
 
 ## Related Projects
 
-*  - Sister version for movies
+* [Huntarr Radarr](https://github.com/plexguide/Radarr-Hunter) - Sister version for movies
 * [Huntarr Lidarr](https://github.com/plexguide/Lidarr-Hunter) - Sister version for music
 * [Unraid Intel ARC Deployment](https://github.com/plexguide/Unraid_Intel-ARC_Deployment) - Convert videos to AV1 Format (I've saved 325TB encoding to AV1)
 * Visit [PlexGuide](https://plexguide.com) for more great scripts
