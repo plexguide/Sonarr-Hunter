@@ -476,5 +476,6 @@ while true; do
   remaining_minutes=$(( remaining_seconds / 60 ))
   echo "Cycle complete. Waiting $SLEEP_DURATION seconds before next cycle..."
   echo "State reset will occur in approximately $remaining_minutes minutes."
+  echo "Like the tool? Donate toward my daughter's college fund via donate.plex.one and make her day!"
   sleep "$SLEEP_DURATION"
 done
