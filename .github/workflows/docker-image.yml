@@ -43,5 +43,5 @@ jobs:
           context: .
           push: true
           tags: |
-            admin9705/hunter-4-sonarr:dev
-            admin9705/hunter-4-sonarr:${{ github.sha }}
+            huntarr/4sonarr:dev
+            huntarr/4sonarr:${{ github.sha }}
