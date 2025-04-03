@@ -17,6 +17,7 @@ MAX_UPGRADES=${MAX_UPGRADES:-5}
 SLEEP_DURATION=${SLEEP_DURATION:-900}
 
 # New variable: Reset processed state file after this many hours (default 168 hours)
+# Note: Set to 0 to disable automatic reset (never forget processed items)
 STATE_RESET_INTERVAL_HOURS=${STATE_RESET_INTERVAL_HOURS:-168}
 
 # ---------------------------
@@ -42,7 +43,7 @@ DEBUG_MODE=${DEBUG_MODE:-false}
 # ---------------------------
 # These state files persist IDs for processed missing shows and upgrade episodes.
 # They will be automatically cleared if older than the reset interval.
-STATE_DIR="/tmp/sonarr-hunter-state"
+STATE_DIR="/tmp/hunter-4-sonarr-state"
 mkdir -p "$STATE_DIR"
 PROCESSED_MISSING_FILE="$STATE_DIR/processed_missing_ids.txt"
 PROCESSED_UPGRADE_FILE="$STATE_DIR/processed_upgrade_ids.txt"
@@ -52,13 +53,20 @@ touch "$PROCESSED_MISSING_FILE" "$PROCESSED_UPGRADE_FILE"
 # State Reset Check
 # ---------------------------
 # Check and reset state files if they are older than the configured reset interval.
-current_time=$(date +%s)
-missing_age=$(( current_time - $(stat -c %Y "$PROCESSED_MISSING_FILE") ))
-upgrade_age=$(( current_time - $(stat -c %Y "$PROCESSED_UPGRADE_FILE") ))
-if [ "$missing_age" -ge "$(( STATE_RESET_INTERVAL_HOURS * 3600 ))" ] || [ "$upgrade_age" -ge "$(( STATE_RESET_INTERVAL_HOURS * 3600 ))" ]; then
-    echo "Resetting processed state files (older than ${STATE_RESET_INTERVAL_HOURS} hours)."
-    > "$PROCESSED_MISSING_FILE"
-    > "$PROCESSED_UPGRADE_FILE"
+# Skip this check if STATE_RESET_INTERVAL_HOURS is set to 0 (disabled)
+if [ "$STATE_RESET_INTERVAL_HOURS" -gt 0 ]; then
+    current_time=$(date +%s)
+    missing_age=$(( current_time - $(stat -c %Y "$PROCESSED_MISSING_FILE") ))
+    upgrade_age=$(( current_time - $(stat -c %Y "$PROCESSED_UPGRADE_FILE") ))
+    reset_interval_seconds=$(( STATE_RESET_INTERVAL_HOURS * 3600 ))
+    
+    if [ "$missing_age" -ge "$reset_interval_seconds" ] || [ "$upgrade_age" -ge "$reset_interval_seconds" ]; then
+        echo "Resetting processed state files (older than ${STATE_RESET_INTERVAL_HOURS} hours)."
+        > "$PROCESSED_MISSING_FILE"
+        > "$PROCESSED_UPGRADE_FILE"
+    fi
+else
+    echo "State reset is disabled (STATE_RESET_INTERVAL_HOURS=0). Processed items will be remembered indefinitely."
 fi
 
 # ---------------------------
@@ -77,7 +85,13 @@ debug_log() {
 # Internal Calculation (Do Not Modify)
 # ---------------------------
 # Convert hours to seconds for internal use.
-STATE_RESET_INTERVAL_SECONDS=$(( STATE_RESET_INTERVAL_HOURS * 3600 ))
+# If STATE_RESET_INTERVAL_HOURS is 0, set a very large number effectively disabling resets
+if [ "$STATE_RESET_INTERVAL_HOURS" -gt 0 ]; then
+    STATE_RESET_INTERVAL_SECONDS=$(( STATE_RESET_INTERVAL_HOURS * 3600 ))
+else
+    # Set to a very large value (100 years in seconds) when disabled
+    STATE_RESET_INTERVAL_SECONDS=3155760000
+fi
 
 # ---------------------------
 # Helper: Sonarr API Calls
@@ -464,18 +478,25 @@ while true; do
   esac
 
   # Calculate minutes remaining until the state files are reset
-  current_time=$(date +%s)
-  # Find the minimum remaining time among the two state files
-  missing_remaining=$(( STATE_RESET_INTERVAL_SECONDS - ( current_time - $(stat -c %Y "$PROCESSED_MISSING_FILE") ) ))
-  upgrade_remaining=$(( STATE_RESET_INTERVAL_SECONDS - ( current_time - $(stat -c %Y "$PROCESSED_UPGRADE_FILE") ) ))
-  if [ "$missing_remaining" -gt "$upgrade_remaining" ]; then
-    remaining_seconds=$upgrade_remaining
+  # Skip this if reset is disabled (STATE_RESET_INTERVAL_HOURS=0)
+  if [ "$STATE_RESET_INTERVAL_HOURS" -gt 0 ]; then
+    current_time=$(date +%s)
+    # Find the minimum remaining time among the two state files
+    missing_remaining=$(( STATE_RESET_INTERVAL_SECONDS - ( current_time - $(stat -c %Y "$PROCESSED_MISSING_FILE") ) ))
+    upgrade_remaining=$(( STATE_RESET_INTERVAL_SECONDS - ( current_time - $(stat -c %Y "$PROCESSED_UPGRADE_FILE") ) ))
+    if [ "$missing_remaining" -gt "$upgrade_remaining" ]; then
+      remaining_seconds=$upgrade_remaining
+    else
+      remaining_seconds=$missing_remaining
+    fi
+    remaining_minutes=$(( remaining_seconds / 60 ))
+    echo "Cycle complete. Waiting $SLEEP_DURATION seconds before next cycle..."
+    echo "State reset will occur in approximately $remaining_minutes minutes."
   else
-    remaining_seconds=$missing_remaining
+    echo "Cycle complete. Waiting $SLEEP_DURATION seconds before next cycle..."
+    echo "State reset is disabled. Processed items will be remembered indefinitely."
   fi
-  remaining_minutes=$(( remaining_seconds / 60 ))
-  echo "Cycle complete. Waiting $SLEEP_DURATION seconds before next cycle..."
-  echo "State reset will occur in approximately $remaining_minutes minutes."
+  
   echo "Like the tool? Donate toward my daughter's college fund via donate.plex.one and make her day!"
   sleep "$SLEEP_DURATION"
 done
