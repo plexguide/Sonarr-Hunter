@@ -159,7 +159,7 @@ docker run -d --name huntarr \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
-  admin9705/huntarr:latest
+  huntarr/4sonarr:latest
 ```
 
 To check on the status of the program, you should see new files downloading or you can type:
@@ -175,7 +175,7 @@ For those who prefer Docker Compose, add this to your `docker-compose.yml` file:
 version: "3.8"
 services:
   huntarr:
-    image: admin9705/huntarr:latest
+    image: huntarr/4sonarr:latest
     container_name: huntarr
     restart: always
     environment:
