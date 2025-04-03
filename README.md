@@ -1,4 +1,4 @@
-# Huntarr 4 [Sonarr Edition] - Force Sonarr to Hunt Missing Shows & Upgrade Episode Qualities
+# Huntarr [Sonarr Edition] - Force Sonarr to Hunt Missing Shows & Upgrade Episode Qualities
 
 <h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2>
 
@@ -31,8 +31,8 @@ This script continually searches your Sonarr library for shows with missing epis
 
 ## Related Projects
 
-* [Huntarr Radarr](https://github.com/plexguide/Radarr-Hunter) - Sister version for movies
-* [Huntarr Lidarr](https://github.com/plexguide/Lidarr-Hunter) - Sister version for music
+* [Huntarr - Radarr Edition](https://github.com/plexguide/Radarr-Hunter) - Sister version for movies
+* [Huntarr - Lidarr Edition](https://github.com/plexguide/Lidarr-Hunter) - Sister version for music
 * [Unraid Intel ARC Deployment](https://github.com/plexguide/Unraid_Intel-ARC_Deployment) - Convert videos to AV1 Format (I've saved 325TB encoding to AV1)
 * Visit [PlexGuide](https://plexguide.com) for more great scripts
 
