@@ -147,7 +147,7 @@ The following environment variables can be configured:
 The simplest way to run Huntarr is via Docker:
 
 ```bash
-docker run -d --name huntarr \
+docker run -d --name huntarr-sonarr \
   --restart always \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
