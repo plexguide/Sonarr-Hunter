@@ -43,7 +43,7 @@ DEBUG_MODE=${DEBUG_MODE:-false}
 # ---------------------------
 # These state files persist IDs for processed missing shows and upgrade episodes.
 # They will be automatically cleared if older than the reset interval.
-STATE_DIR="/tmp/hunter-4-sonarr-state"
+STATE_DIR="/tmp/huntarr-state"
 mkdir -p "$STATE_DIR"
 PROCESSED_MISSING_FILE="$STATE_DIR/processed_missing_ids.txt"
 PROCESSED_UPGRADE_FILE="$STATE_DIR/processed_upgrade_ids.txt"
