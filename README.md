@@ -308,4 +308,4 @@ This script helps automate the tedious process of finding missing episodes and q
 
 Thanks to 
 
-[IntensiveCareCub((https://www.reddit.com/user/IntensiveCareCub/)) for the Hunter to Huntarr idea!
+[IntensiveCareCub](https://www.reddit.com/user/IntensiveCareCub/)) for the Hunter to Huntarr idea!
