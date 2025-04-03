@@ -176,7 +176,7 @@ version: "3.8"
 services:
   huntarr-sonarr:
     image: huntarr/4sonarr:latest
-    container_name: huntarr
+    container_name: huntarr-sonarr
     restart: always
     environment:
       API_KEY: "your-api-key"
