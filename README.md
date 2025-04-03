@@ -8,7 +8,7 @@
   </tr>
 </table>
 
-**NOTE**: This utilizes Sonarr API Version - `5`. The Script: [sonarr-hunter.sh](sonarr-hunter.sh)
+**NOTE**: This utilizes Sonarr API Version - `5`. The Script: [hunter-4-sonarr.sh](hunter-4-sonarr.sh)
 
 ## Table of Contents
 - [Overview](#overview)
@@ -31,14 +31,14 @@ This script continually searches your Sonarr library for shows with missing epis
 
 ## Related Projects
 
-* [Radarr Hunter](https://github.com/plexguide/Radarr-Hunter) - Sister version for movies
-* [Lidarr Hunter](https://github.com/plexguide/Lidarr-Hunter) - Sister version for music
+* [Hunter-4-Radarr](https://github.com/plexguide/Radarr-Hunter) - Sister version for movies
+* [Hunter-4-Lidarr](https://github.com/plexguide/Lidarr-Hunter) - Sister version for music
 * [Unraid Intel ARC Deployment](https://github.com/plexguide/Unraid_Intel-ARC_Deployment) - Convert videos to AV1 Format (I've saved 325TB encoding to AV1)
 * Visit [PlexGuide](https://plexguide.com) for more great scripts
 
-## PayPal Donations – Building My Daughter’s Future
+## PayPal Donations – Building My Daughter's Future
 
-My 12-year-old daughter loves singing, dancing, and exploring STEM. She’s an A-B honor roll student with big dreams for the future. Any donation you make will go directly toward her college fund, helping her turn those dreams into reality. Thank you for your support!
+My 12-year-old daughter loves singing, dancing, and exploring STEM. She's an A-B honor roll student with big dreams for the future. Any donation you make will go directly toward her college fund, helping her turn those dreams into reality. Thank you for your support!
 
 [![Donate with PayPal button](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/donate?hosted_button_id=58AYJ68VVMGSC)
 
@@ -143,10 +143,10 @@ The following environment variables can be configured:
 
 ### Docker Run
 
-The simplest way to run Sonarr Hunter is via Docker:
+The simplest way to run Hunter-4-Sonarr is via Docker:
 
 ```bash
-docker run -d --name sonarr-hunter \
+docker run -d --name hunter-4-sonarr \
   --restart always \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
@@ -158,12 +158,12 @@ docker run -d --name sonarr-hunter \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
-  admin9705/sonarr-hunter:latest
+  admin9705/hunter-4-sonarr:latest
 ```
 
 To check on the status of the program, you should see new files downloading or you can type:
 ```bash
-docker logs sonarr-hunter
+docker logs hunter-4-sonarr
 ```
 
 ### Docker Compose
@@ -173,9 +173,9 @@ For those who prefer Docker Compose, add this to your `docker-compose.yml` file:
 ```yaml
 version: "3.8"
 services:
-  sonarr-hunter:
-    image: admin9705/sonarr-hunter:latest
-    container_name: sonarr-hunter
+  hunter-4-sonarr:
+    image: admin9705/hunter-4-sonarr:latest
+    container_name: hunter-4-sonarr
     restart: always
     environment:
       API_KEY: "your-api-key"
@@ -193,18 +193,18 @@ services:
 Then run:
 
 ```bash
-docker-compose up -d sonarr-hunter
+docker-compose up -d hunter-4-sonarr
 ```
 
 To check on the status of the program, you should see new files downloading or you can type:
 ```bash
-docker logs sonarr-hunter
+docker logs hunter-4-sonarr
 ```
 
 ### Unraid Users
 
 1. Install the plugin called `UserScripts`
-2. Copy and paste the following script file as a new script - [sonarr-hunter.sh](sonarr-hunter.sh) 
+2. Copy and paste the following script file as a new script - [hunter-4-sonarr.sh](hunter-4-sonarr.sh) 
 3. Ensure to set it to `Run in the background` if your array is already running and set the schedule to `At Startup Array`
 4. Update the variables at the top of the script to match your configuration
 
@@ -221,13 +221,13 @@ docker logs sonarr-hunter
 
 For a more permanent installation on Linux systems using SystemD:
 
-1. Save the script to `/usr/local/bin/sonarr-hunter.sh`
-2. Make it executable: `chmod +x /usr/local/bin/sonarr-hunter.sh`
-3. Create a systemd service file at `/etc/systemd/system/sonarr-hunter.service`:
+1. Save the script to `/usr/local/bin/hunter-4-sonarr.sh`
+2. Make it executable: `chmod +x /usr/local/bin/hunter-4-sonarr.sh`
+3. Create a systemd service file at `/etc/systemd/system/hunter-4-sonarr.service`:
 
 ```ini
 [Unit]
-Description=Sonarr Hunter Service
+Description=Hunter-4-Sonarr Service
 After=network.target sonarr.service
 
 [Service]
@@ -243,7 +243,7 @@ Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
 Environment="STATE_RESET_INTERVAL_HOURS=168"
 Environment="DEBUG_MODE=false"
-ExecStart=/usr/local/bin/sonarr-hunter.sh
+ExecStart=/usr/local/bin/hunter-4-sonarr.sh
 Restart=on-failure
 RestartSec=10
 
@@ -254,8 +254,8 @@ WantedBy=multi-user.target
 4. Enable and start the service:
 
 ```bash
-sudo systemctl enable sonarr-hunter
-sudo systemctl start sonarr-hunter
+sudo systemctl enable hunter-4-sonarr
+sudo systemctl start hunter-4-sonarr
 ```
 
 ## Use Cases
@@ -281,9 +281,9 @@ sudo systemctl start sonarr-hunter
 - **API Key Issues**: Check that your API key is correct in Sonarr settings
 - **Connection Problems**: Ensure the Sonarr URL is accessible from where you're running the script
 - **Command Failures**: If search commands fail, try using the Sonarr UI to verify what commands are available in your version
-- **Logs**: Check the container logs with `docker logs sonarr-hunter` if running in Docker
+- **Logs**: Check the container logs with `docker logs hunter-4-sonarr` if running in Docker
 - **Debug Mode**: Enable `DEBUG_MODE=true` to see detailed API responses and process flow
-- **State Files**: The script stores state in `/tmp/sonarr-hunter-state/` - if something seems stuck, you can try deleting these files
+- **State Files**: The script stores state in `/tmp/hunter-4-sonarr-state/` - if something seems stuck, you can try deleting these files
 
 ---
 
@@ -297,6 +297,7 @@ sudo systemctl start sonarr-hunter
 - **v7**: Implemented configurable state reset timer
 - **v8**: Added debug mode and improved error handling
 - **v9**: Enhanced random selection mode for better distribution
+- **v10**: Renamed from "Sonarr Hunter" to "Hunter-4-Sonarr"
 
 ---
 
