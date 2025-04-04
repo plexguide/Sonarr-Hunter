@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Huntarr [Sonarr Edition] - Python Version
-Automatically search for missing episodes and quality upgrades in Sonarr
+Automatically search for missing episodes (per-episode) and quality upgrades in Sonarr,
+while respecting unmonitored seasons/episodes.
 """
 
 import os
@@ -92,7 +93,7 @@ PROCESSED_UPGRADE_FILE.touch(exist_ok=True)
 # Helper Functions
 # ---------------------------
 def debug_log(message: str, data: Any = None) -> None:
-    """Log debug messages with optional data"""
+    """Log debug messages with optional data."""
     if DEBUG_MODE:
         logger.debug(f"{message}")
         if data is not None:
@@ -108,7 +109,7 @@ def debug_log(message: str, data: Any = None) -> None:
                 logger.debug(data_str)
 
 def load_processed_ids(file_path: pathlib.Path) -> List[int]:
-    """Load processed show/episode IDs from a file"""
+    """Load processed show/episode IDs from a file."""
     try:
         with open(file_path, 'r') as f:
             return [int(line.strip()) for line in f if line.strip().isdigit()]
@@ -117,7 +118,7 @@ def load_processed_ids(file_path: pathlib.Path) -> List[int]:
         return []
 
 def save_processed_id(file_path: pathlib.Path, obj_id: int) -> None:
-    """Save a processed show/episode ID to a file"""
+    """Save a processed show/episode ID to a file."""
     try:
         with open(file_path, 'a') as f:
             f.write(f"{obj_id}\n")
@@ -125,9 +126,10 @@ def save_processed_id(file_path: pathlib.Path, obj_id: int) -> None:
         logger.error(f"Error writing to {file_path}: {e}")
 
 def truncate_processed_list(file_path: pathlib.Path, max_lines: int = 500) -> None:
-    """Truncate the processed list to prevent unbounded growth"""
+    """Truncate the processed list to prevent unbounded growth."""
     try:
-        if file_path.stat().st_size > 10000:  # only check if file is somewhat large
+        # Only check if file is somewhat large
+        if file_path.stat().st_size > 10000:
             lines = file_path.read_text().splitlines()
             if len(lines) > max_lines:
                 logger.info(f"Processed list is large. Truncating to last {max_lines} entries.")
@@ -137,7 +139,7 @@ def truncate_processed_list(file_path: pathlib.Path, max_lines: int = 500) -> No
         logger.error(f"Error truncating {file_path}: {e}")
 
 def check_state_reset() -> None:
-    """Check if state files need to be reset based on their age"""
+    """Check if state files need to be reset based on their age."""
     if STATE_RESET_INTERVAL_HOURS <= 0:
         logger.info("State reset is disabled. Processed items will be remembered indefinitely.")
         return
@@ -201,35 +203,6 @@ def refresh_series(series_id: int) -> Optional[Dict]:
     }
     return sonarr_request("command", method="POST", data=data)
 
-def missing_episode_search(series_id: int) -> Optional[Dict]:
-    """
-    POST /api/v3/command
-    {
-      "name": "MissingEpisodeSearch",
-      "seriesId": <series_id>
-    }
-    """
-    data = {
-        "name": "MissingEpisodeSearch",
-        "seriesId": series_id
-    }
-    return sonarr_request("command", method="POST", data=data)
-
-def episode_search_series(series_id: int) -> Optional[Dict]:
-    """
-    Fallback search:
-    POST /api/v3/command
-    {
-      "name": "EpisodeSearch",
-      "seriesId": <series_id>
-    }
-    """
-    data = {
-        "name": "EpisodeSearch",
-        "seriesId": series_id
-    }
-    return sonarr_request("command", method="POST", data=data)
-
 def episode_search_episodes(episode_ids: List[int]) -> Optional[Dict]:
     """
     POST /api/v3/command
@@ -275,87 +248,100 @@ def get_cutoff_unmet_total_pages() -> int:
     return max(total_pages, 1)
 
 # ---------------------------
-# Missing Episodes Logic
+# Missing Episodes Logic (Episode-by-episode approach)
 # ---------------------------
 def process_missing_episodes() -> None:
-    """Process shows that have missing episodes."""
+    """
+    Process shows that have missing episodes, but respect
+    unmonitored seasons/episodes. We'll fetch episodes for each show
+    and only search for episodes that are BOTH missing and monitored.
+    """
     logger.info("=== Checking for Missing Episodes ===")
-    
+
     shows = get_series()
     if not shows:
         logger.error("ERROR: Unable to retrieve series data from Sonarr. Retrying in 60s...")
         time.sleep(60)
         return
-    
+
+    # Optionally filter to only monitored shows (if MONITORED_ONLY==true).
     if MONITORED_ONLY:
-        logger.info("MONITORED_ONLY=true => only monitored shows with missing episodes.")
-        missing_shows = [
-            s for s in shows
-            if s.get("monitored") 
-            and "statistics" in s 
-            and s["statistics"].get("episodeCount", 0) > s["statistics"].get("episodeFileCount", 0)
-        ]
+        logger.info("MONITORED_ONLY=true => only fully monitored shows.")
+        shows = [s for s in shows if s.get("monitored") is True]
     else:
-        logger.info("MONITORED_ONLY=false => all shows with missing episodes.")
-        missing_shows = [
-            s for s in shows
-            if "statistics" in s
-            and s["statistics"].get("episodeCount", 0) > s["statistics"].get("episodeFileCount", 0)
-        ]
-    
-    if not missing_shows:
-        logger.info("No shows with missing episodes found.")
+        logger.info("MONITORED_ONLY=false => all shows, even if unmonitored.")
+
+    if not shows:
+        logger.info("No shows to process.")
         return
-    
-    logger.info(f"Found {len(missing_shows)} show(s) with missing episodes.")
+
     processed_missing_ids = load_processed_ids(PROCESSED_MISSING_FILE)
     shows_processed = 0
-    
-    indices = list(range(len(missing_shows)))
+
+    indices = list(range(len(shows)))
     if RANDOM_SELECTION:
         random.shuffle(indices)
-    
+
     for idx in indices:
         if MAX_MISSING > 0 and shows_processed >= MAX_MISSING:
             break
-        
-        show = missing_shows[idx]
-        show_id = show.get("id")
-        if not show_id or show_id in processed_missing_ids:
+
+        show = shows[idx]
+        series_id = show.get("id")
+        if not series_id:
             continue
-        
-        show_title = show.get("title", "Unknown Title")
-        ep_count = show.get("statistics", {}).get("episodeCount", 0)
-        ep_file_count = show.get("statistics", {}).get("episodeFileCount", 0)
-        missing = ep_count - ep_file_count
-        
-        logger.info(f"Processing missing episodes for \"{show_title}\" ({missing} missing).")
-        
-        logger.info(f" - Refreshing series (ID: {show_id})...")
-        refresh_res = refresh_series(show_id)
+
+        # If we already processed this show ID, skip
+        if series_id in processed_missing_ids:
+            continue
+
+        show_title = show.get("title", "Unknown Show")
+
+        # Fetch the episodes for this show
+        episode_list = sonarr_request(f"episode?seriesId={series_id}", method="GET")
+        if not episode_list:
+            logger.warning(f"WARNING: Could not retrieve episodes for series ID={series_id}. Skipping.")
+            continue
+
+        # Find all episodes that are monitored and missing a file
+        missing_monitored_eps = [
+            e for e in episode_list
+            if e.get("monitored") is True
+            and e.get("hasFile") is False
+        ]
+
+        if not missing_monitored_eps:
+            # This show has no missing monitored episodes, skip
+            logger.info(f"No missing monitored episodes for '{show_title}' — skipping.")
+            continue
+
+        logger.info(f"Found {len(missing_monitored_eps)} missing monitored episode(s) for '{show_title}'.")
+
+        # Refresh the series
+        logger.info(f" - Refreshing series (ID: {series_id})...")
+        refresh_res = refresh_series(series_id)
         if not refresh_res or "id" not in refresh_res:
             logger.warning(f"WARNING: Refresh command failed for {show_title}. Skipping.")
-            time.sleep(10)
+            time.sleep(5)
             continue
-        
+
         logger.info(f"Refresh command accepted (ID: {refresh_res['id']}). Waiting 5s...")
         time.sleep(5)
-        
-        logger.info(f" - MissingEpisodeSearch for \"{show_title}\"...")
-        search_res = missing_episode_search(show_id)
+
+        # Search specifically for these missing + monitored episodes
+        episode_ids = [ep["id"] for ep in missing_monitored_eps]
+        logger.info(f" - Searching for {len(episode_ids)} missing episodes in '{show_title}'...")
+        search_res = episode_search_episodes(episode_ids)
         if search_res and "id" in search_res:
             logger.info(f"Search command accepted (ID: {search_res['id']}).")
         else:
-            logger.warning("WARNING: MissingEpisodeSearch failed. Attempting fallback EpisodeSearch...")
-            fallback_res = episode_search_series(show_id)
-            if fallback_res and "id" in fallback_res:
-                logger.info(f"Fallback EpisodeSearch accepted (ID: {fallback_res['id']}).")
-        
+            logger.warning(f"WARNING: EpisodeSearch failed for show '{show_title}' (ID: {series_id}).")
+
         # Mark as processed
-        save_processed_id(PROCESSED_MISSING_FILE, show_id)
+        save_processed_id(PROCESSED_MISSING_FILE, series_id)
         shows_processed += 1
         logger.info(f"Processed {shows_processed}/{MAX_MISSING} missing shows this cycle.")
-    
+
     # Truncate processed list if needed
     truncate_processed_list(PROCESSED_MISSING_FILE)
 
@@ -363,81 +349,83 @@ def process_missing_episodes() -> None:
 # Quality Upgrades Logic
 # ---------------------------
 def process_cutoff_upgrades() -> None:
-    """Process episodes that need quality upgrades."""
+    """Process episodes that need quality upgrades (cutoff unmet)."""
     logger.info("=== Checking for Quality Upgrades (Cutoff Unmet) ===")
-    
+
     total_pages = get_cutoff_unmet_total_pages()
     if total_pages == 0:
         logger.info("No episodes found that need quality upgrades.")
         return
-    
+
     logger.info(f"Found {total_pages} total pages of episodes that need quality upgrades.")
     processed_upgrade_ids = load_processed_ids(PROCESSED_UPGRADE_FILE)
     episodes_processed = 0
-    
-    # We'll loop until we've processed MAX_UPGRADES or run out of pages
+
     page = 1
     while True:
         if MAX_UPGRADES > 0 and episodes_processed >= MAX_UPGRADES:
             logger.info(f"Reached MAX_UPGRADES={MAX_UPGRADES} for this cycle.")
             break
-        
-        # If random selection, pick a random page each time
+
+        # If random selection, pick a random page each iteration
         if RANDOM_SELECTION and total_pages > 1:
             page = random.randint(1, total_pages)
-        
+
         logger.info(f"Retrieving cutoff-unmet episodes (page={page} of {total_pages})...")
         cutoff_data = get_cutoff_unmet(page)
         if not cutoff_data or "records" not in cutoff_data:
-            logger.error(f"ERROR: Unable to retrieve cutoff–unmet data from Sonarr on page {page}. Retrying next cycle.")
+            logger.error(f"ERROR: Unable to retrieve cutoff–unmet data from Sonarr on page {page}.")
             break
-        
+
         episodes = cutoff_data["records"]
         total_eps = len(episodes)
         logger.info(f"Found {total_eps} episodes on page {page} that need quality upgrades.")
-        
-        # Randomize or sequential
+
+        # Randomize or sequential indices
         indices = list(range(total_eps))
         if RANDOM_SELECTION:
             random.shuffle(indices)
-        
+
         for idx in indices:
             if MAX_UPGRADES > 0 and episodes_processed >= MAX_UPGRADES:
                 break
-            
+
             ep_obj = episodes[idx]
             episode_id = ep_obj.get("id")
             if not episode_id or episode_id in processed_upgrade_ids:
                 continue
-            
+
             series_id = ep_obj.get("seriesId")
             season_num = ep_obj.get("seasonNumber")
             ep_num = ep_obj.get("episodeNumber")
             ep_title = ep_obj.get("title", "Unknown Episode Title")
-            
-            # If we already have 'seriesTitle' in response, use it
+
             series_title = ep_obj.get("seriesTitle", None)
             if not series_title:
                 # fallback: request the series
                 series_data = sonarr_request(f"series/{series_id}", method="GET")
-                series_title = series_data.get("title") if series_data else "Unknown Series"
-            
+                if series_data:
+                    series_title = series_data.get("title", "Unknown Series")
+                else:
+                    series_title = "Unknown Series"
+
             logger.info(f"Processing upgrade for \"{series_title}\" - S{season_num}E{ep_num} - \"{ep_title}\" (Episode ID: {episode_id})")
-            
+
             # If MONITORED_ONLY, ensure both series & episode are monitored
             if MONITORED_ONLY:
                 ep_monitored = ep_obj.get("monitored", False)
-                # The API sometimes includes series info; if not, fetch it
+                # Check if series info is already included
                 if "series" in ep_obj and isinstance(ep_obj["series"], dict):
                     series_monitored = ep_obj["series"].get("monitored", False)
                 else:
+                    # retrieve the series
                     series_data = sonarr_request(f"series/{series_id}", "GET")
                     series_monitored = series_data.get("monitored", False) if series_data else False
-                
+
                 if not ep_monitored or not series_monitored:
                     logger.info("Skipping unmonitored episode or series.")
                     continue
-            
+
             # Refresh the series
             logger.info(" - Refreshing series information...")
             refresh_res = refresh_series(series_id)
@@ -445,10 +433,10 @@ def process_cutoff_upgrades() -> None:
                 logger.warning("WARNING: Refresh command failed. Skipping this episode.")
                 time.sleep(10)
                 continue
-            
+
             logger.info(f"Refresh command accepted (ID: {refresh_res['id']}). Waiting 5s...")
             time.sleep(5)
-            
+
             # Search for the episode (upgrade)
             logger.info(" - Searching for quality upgrade...")
             search_res = episode_search_episodes([episode_id])
@@ -461,17 +449,17 @@ def process_cutoff_upgrades() -> None:
             else:
                 logger.warning(f"WARNING: Search command failed for episode ID {episode_id}.")
                 time.sleep(10)
-        
+
         # Move to the next page if not random
         if not RANDOM_SELECTION:
             page += 1
             if page > total_pages:
                 break
         else:
-            # In random mode, we just do one random page at a time, then break
-            # or repeat until we reach the MAX_UPGRADES.
+            # In random mode, we just handle one random page this iteration,
+            # then either break or keep looping until we hit MAX_UPGRADES.
             pass
-    
+
     logger.info(f"Completed processing {episodes_processed} upgrade episodes for this cycle.")
     truncate_processed_list(PROCESSED_UPGRADE_FILE)
 
@@ -498,12 +486,12 @@ def calculate_reset_time() -> None:
     logger.info(f"State reset will occur in approximately {remaining_minutes} minutes.")
 
 def main_loop() -> None:
-    """Main processing loop"""
+    """Main processing loop."""
     while True:
-        # Reset old state files if needed
+        # Check if state files need to be reset
         check_state_reset()
         
-        # Process based on SEARCH_TYPE
+        # Process shows/episodes based on SEARCH_TYPE
         if SEARCH_TYPE == "missing":
             process_missing_episodes()
         elif SEARCH_TYPE == "upgrade":
@@ -514,7 +502,7 @@ def main_loop() -> None:
         else:
             logger.error(f"Unknown SEARCH_TYPE={SEARCH_TYPE}. Use 'missing','upgrade','both'.")
         
-        # Calculate minutes remaining until state reset
+        # Calculate time until the next reset
         calculate_reset_time()
         
         logger.info(f"Cycle complete. Waiting {SLEEP_DURATION} seconds before next cycle...")
