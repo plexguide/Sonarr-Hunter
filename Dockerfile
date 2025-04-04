@@ -28,9 +28,5 @@ COPY huntarr.py /app/huntarr.py
 # Make the script executable (optional but good practice)
 RUN chmod +x /app/huntarr.py
 
-# Add a simple HEALTHCHECK (optional)
-HEALTHCHECK --interval=5m --timeout=3s \
-  CMD pgrep -f huntarr.py || exit 1
-
 # The script’s entrypoint. It will run your `huntarr.py` when the container starts.
 ENTRYPOINT ["python", "huntarr.py"]
