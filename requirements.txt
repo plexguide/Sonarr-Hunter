@@ -1,0 +1,13 @@
+annotated-types==0.7.0
+certifi==2025.1.31
+charset-normalizer==3.4.1
+dotenv==0.9.9
+idna==3.10
+pydantic==2.11.2
+pydantic-settings==2.8.1
+pydantic_core==2.33.1
+python-dotenv==1.1.0
+requests==2.32.3
+typing-inspection==0.4.0
+typing_extensions==4.13.1
+urllib3==2.3.0
