@@ -72,11 +72,11 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 <table>
   <tr>
     <td width="50%">
-      <img src="https://github.com/user-attachments/assets/6a9dd459-db84-42bc-9392-27491d2ae1c8" width="100%"/>
+      <img src="https://github.com/user-attachments/assets/558b5c39-3fe5-4dc4-b397-146064b4dc8d" width="100%"/>
       <p align="center"><em>Missing Episodes Demo</em></p>
     </td>
     <td width="50%">
-      <img src="https://github.com/user-attachments/assets/db502745-adb2-47e5-95e5-51d2ea54aa59" width="100%"/>
+      <img src="https://github.com/user-attachments/assets/bf897600-54f8-4511-aa67-112f1dfe55bb" width="100%"/>
       <p align="center"><em>Quality Upgrade Demo</em></p>
     </td>
   </tr>
