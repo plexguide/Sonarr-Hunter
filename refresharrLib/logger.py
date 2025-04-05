@@ -7,7 +7,7 @@ def get_settings():
 
 
 settings = get_settings()
-log_path = '/app/log/app.log'
+log_path = '/config/log/app.log'
 
 # Setup logging
 logging.basicConfig(

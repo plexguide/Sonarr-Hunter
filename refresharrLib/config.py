@@ -8,8 +8,10 @@ def get_logger():
 
 
 class Settings(BaseSettings):
-    API_KEY: str = "your-api-key"
-    API_URL: str = "your-ip-address:7878"
+    SONARR_API_KEY: str = "your-api-key"
+    SONARR_API_URL: str = "your-ip-address:7878"
+    RADARR_API_KEY: str = "your-api-key"
+    RADARR_API_URL: str = "your-ip-address:7878"
     MAX_MISSING: str = "1"
     MAX_UPGRADES: str = "5"
     SLEEP_DURATION: str = "900"

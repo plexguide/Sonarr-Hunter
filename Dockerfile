@@ -9,14 +9,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /app && \
     mkdir -p /tmp/huntarr-radarr-state && \
     mkdir -p /app/data && \
-    mkdir -p /app/log && \
-    touch /app/log/app.log \
+    mkdir -p /config/log && \
+    touch /config/log/app.log \
     touch /app/data/processed_upgrade_ids.txt \
     touch /app/data/processed_missing_ids.txt
 
 
 # Switch working directory
 WORKDIR /app
+
+COPY .env /config/.env
 
 # Copy the Python code into the container
 COPY . /app
@@ -36,5 +38,5 @@ ENV API_URL="http://your-sonarr-address:7878" \
     STATE_RESET_INTERVAL_HOURS="168" \
     DEBUG_MODE="false"
 
-# The script’s entrypoint. It will run your `huntarr.py` when the container starts.
-ENTRYPOINT ["python", "huntarr.py"]
+# The script’s entrypoint. It will run your `refresharr.py` when the container starts.
+ENTRYPOINT ["python", "refresharr.py"]
