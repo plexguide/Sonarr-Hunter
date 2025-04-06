@@ -7,10 +7,11 @@ Main entry point for the application
 import time
 import sys
 from utils.logger import logger
-from config import HUNT_MODE, SLEEP_DURATION, log_configuration
+from config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, log_configuration
 from missing import process_missing_episodes
 from upgrade import process_cutoff_upgrades
 from state import check_state_reset, calculate_reset_time
+from api import get_download_queue_size
 
 def main_loop() -> None:
     """Main processing loop for Huntarr-Sonarr"""
@@ -22,16 +23,23 @@ def main_loop() -> None:
         
         # Track if any processing was done in this cycle
         processing_done = False
+
+        # Check if we should ignore the download queue size or if we are below the minimum queue size
+        download_queue_size = get_download_queue_size()
+        if MINIMUM_DOWNLOAD_QUEUE_SIZE < 0 or (MINIMUM_DOWNLOAD_QUEUE_SIZE >= 0 and download_queue_size <= MINIMUM_DOWNLOAD_QUEUE_SIZE):
         
-        # Process shows/episodes based on HUNT_MODE
-        if HUNT_MODE in ["missing", "both"]:
-            if process_missing_episodes():
-                processing_done = True
-                
-        if HUNT_MODE in ["upgrade", "both"]:
-            if process_cutoff_upgrades():
-                processing_done = True
-        
+            # Process shows/episodes based on HUNT_MODE
+            if HUNT_MODE in ["missing", "both"]:
+                if process_missing_episodes():
+                    processing_done = True
+                    
+            if HUNT_MODE in ["upgrade", "both"]:
+                if process_cutoff_upgrades():
+                    processing_done = True
+
+        else:
+            logger.info(f"Download queue size ({download_queue_size}) is above the minimum threshold ({MINIMUM_DOWNLOAD_QUEUE_SIZE}).  Skipped processing.")
+
         # Calculate time until the next reset
         calculate_reset_time()
         

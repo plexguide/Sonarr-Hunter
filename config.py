@@ -46,6 +46,27 @@ except ValueError:
     STATE_RESET_INTERVAL_HOURS = 168
     print(f"Warning: Invalid STATE_RESET_INTERVAL_HOURS value, using default: {STATE_RESET_INTERVAL_HOURS}")
 
+# Delay in seconds between checking the status of a command (default 1 second)
+try:
+    COMMAND_WAIT_DELAY = int(os.environ.get("COMMAND_WAIT_DELAY", "1"))
+except ValueError:
+    COMMAND_WAIT_DELAY = 1
+    print(f"Warning: Invalid COMMAND_WAIT_DELAY value, using default: {COMMAND_WAIT_DELAY}")
+
+# Number of attempts to wait for a command to complete before giving up (default 600 attempts)
+try:
+    COMMAND_WAIT_ATTEMPTS = int(os.environ.get("COMMAND_WAIT_ATTEMPTS", "600"))
+except ValueError:
+    COMMAND_WAIT_ATTEMPTS = 600
+    print(f"Warning: Invalid COMMAND_WAIT_ATTEMPTS value, using default: {COMMAND_WAIT_ATTEMPTS}")
+
+# Minimum size of the download queue before starting a hunt (default -1)
+try:
+    MINIMUM_DOWNLOAD_QUEUE_SIZE = int(os.environ.get("MINIMUM_DOWNLOAD_QUEUE_SIZE", "-1"))
+except ValueError:
+    MINIMUM_DOWNLOAD_QUEUE_SIZE = -1
+    print(f"Warning: Invalid MINIMUM_DOWNLOAD_QUEUE_SIZE value, using default: {MINIMUM_DOWNLOAD_QUEUE_SIZE}")
+
 # Selection Settings
 RANDOM_SELECTION = os.environ.get("RANDOM_SELECTION", "true").lower() == "true"
 MONITORED_ONLY = os.environ.get("MONITORED_ONLY", "true").lower() == "true"
@@ -64,6 +85,8 @@ def log_configuration(logger):
     logger.info(f"Missing Content Configuration: HUNT_MISSING_SHOWS={HUNT_MISSING_SHOWS}")
     logger.info(f"Upgrade Configuration: HUNT_UPGRADE_EPISODES={HUNT_UPGRADE_EPISODES}")
     logger.info(f"State Reset Interval: {STATE_RESET_INTERVAL_HOURS} hours")
+    logger.info(f"Minimum Download Queue Size: {MINIMUM_DOWNLOAD_QUEUE_SIZE}")
     logger.info(f"MONITORED_ONLY={MONITORED_ONLY}, RANDOM_SELECTION={RANDOM_SELECTION}")
     logger.info(f"HUNT_MODE={HUNT_MODE}, SLEEP_DURATION={SLEEP_DURATION}s")
+    logger.info(f"COMMAND_WAIT_DELAY={COMMAND_WAIT_DELAY}, COMMAND_WAIT_ATTEMPTS={COMMAND_WAIT_ATTEMPTS}")
     logger.debug(f"API_KEY={API_KEY}")
