@@ -9,7 +9,7 @@
 </table>
 
 
-**NOTE**: This utilizes Sonarr API Version - `5`. The Script: [huntarr.sh](huntarr.sh)
+**NOTE**: This utilizes Sonarr API Version - `5`.
 
 ## Table of Contents
 - [Overview](#overview)
@@ -53,6 +53,7 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 - 🛡️ **Error Handling**: Gracefully handles connection issues and API failures
 - 🔁 **State Tracking**: Remembers which shows and episodes have been processed to avoid duplicate searches
 - ⚙️ **Configurable Reset Timer**: Automatically resets search history after a configurable period
+- 📦 **Modular Design**: Modern codebase with separated concerns for easier maintenance
 
 ## How It Works
 
@@ -98,9 +99,9 @@ The following environment variables can be configured:
 | `API_KEY`                    | Your Sonarr API key                                                      | Required   |
 | `API_URL`                    | URL to your Sonarr instance                                              | Required   |
 | `MONITORED_ONLY`             | Only process monitored shows/episodes                                    | true       |
-| `SEARCH_TYPE`                | Which search to perform: `"missing"`, `"upgrade"`, or `"both"`           | both       |
-| `MAX_MISSING`                | Maximum missing shows to process per cycle                               | 1          |
-| `MAX_UPGRADES`               | Maximum upgrade episodes to process per cycle                            | 5          |
+| `HUNT_MODE`                  | Which search to perform: `"missing"`, `"upgrade"`, or `"both"`           | both       |
+| `HUNT_MISSING_SHOWS`         | Maximum missing shows to process per cycle                               | 1          |
+| `HUNT_UPGRADE_EPISODES`      | Maximum upgrade episodes to process per cycle                            | 3          |
 | `SLEEP_DURATION`             | Seconds to wait after completing a cycle (900 = 15 minutes)              | 900        |
 | `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                    | true       |
 | `STATE_RESET_INTERVAL_HOURS` | Hours which the processed state files reset (168=1 week, 0=never reset)  | 168        |
@@ -108,20 +109,22 @@ The following environment variables can be configured:
 
 ### Detailed Configuration Explanation
 
-- **SEARCH_TYPE**  
+- **HUNT_MODE**  
   - Determines which type of search the script performs.  
   - Options:  
     - `"missing"`: Only processes missing shows (episodes that haven't been downloaded yet).  
     - `"upgrade"`: Only processes episodes that need quality upgrades (do not meet the quality cutoff).  
-    - `"both"`: First processes missing shows and then processes upgrade episodes in one cycle.
+    - `"both"`: Processes both missing shows and upgrade episodes in each cycle.
 
-- **MAX_MISSING**  
+- **HUNT_MISSING_SHOWS**  
   - Sets the maximum number of missing shows to process in each cycle.  
   - Once this limit is reached, the script stops processing further missing shows until the next cycle.
+  - Set to `0` to disable missing show processing completely.
 
-- **MAX_UPGRADES**  
+- **HUNT_UPGRADE_EPISODES**  
   - Sets the maximum number of upgrade episodes to process in each cycle.  
-  - When this limit is reached, the upgrade portion of the cycle stops and the script waits for the next cycle.
+  - When this limit is reached, the upgrade portion of the cycle stops.
+  - Set to `0` to disable quality upgrade processing completely.
 
 - **RANDOM_SELECTION**
   - When `true`, selects shows and episodes randomly, which helps distribute searches across your library.
@@ -131,9 +134,9 @@ The following environment variables can be configured:
   - Controls how often the script "forgets" which items it has already processed.  
   - The script records the IDs of missing shows and upgrade episodes that have been processed.  
   - When the age of these records exceeds the number of hours set by this variable, the records are cleared automatically.  
-  - This reset allows the script to re-check items that were previously processed, so if there are changes (such as improved quality or new episodes), they can be processed again.  
+  - This reset allows the script to re-check items that were previously processed.
   - Setting this to `0` will disable the reset functionality entirely - processed items will be remembered indefinitely.
-  - Default is 168 hours (one week) - meaning the script will start fresh and re-check everything weekly.
+  - Default is 168 hours (one week) - meaning the script will start fresh weekly.
 
 - **DEBUG_MODE**
   - When set to `true`, the script will output detailed debugging information about API responses and internal operations.
@@ -153,9 +156,9 @@ docker run -d --name huntarr-sonarr \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e MONITORED_ONLY="true" \
-  -e SEARCH_TYPE="both" \
-  -e MAX_MISSING="1" \
-  -e MAX_UPGRADES="5" \
+  -e HUNT_MODE="both" \
+  -e HUNT_MISSING_SHOWS="1" \
+  -e HUNT_UPGRADE_EPISODES="3" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
@@ -183,9 +186,9 @@ services:
       API_KEY: "your-api-key"
       API_URL: "http://your-sonarr-address:8989"
       MONITORED_ONLY: "true"
-      SEARCH_TYPE: "both"
-      MAX_MISSING: "1"
-      MAX_UPGRADES: "5"
+      HUNT_MODE: "both"
+      HUNT_MISSING_SHOWS: "1"
+      HUNT_UPGRADE_EPISODES: "3"
       SLEEP_DURATION: "900"
       RANDOM_SELECTION: "true"
       STATE_RESET_INTERVAL_HOURS: "168"
@@ -198,28 +201,25 @@ Then run:
 docker-compose up -d huntarr-sonarr
 ```
 
-To check on the status of the program, you should see new files downloading or you can type:
-```bash
-docker logs huntarr-sonarr
-```
-
 ### Unraid Users
 
-Run this from Command Line in Unraid. This will eventually be pushed to the Unraid App Store
+Run this from Command Line in Unraid:
 
+```bash
 docker run -d --name huntarr-sonarr \
   --restart always \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e MONITORED_ONLY="true" \
-  -e SEARCH_TYPE="both" \
-  -e MAX_MISSING="1" \
-  -e MAX_UPGRADES="5" \
+  -e HUNT_MODE="both" \
+  -e HUNT_MISSING_SHOWS="1" \
+  -e HUNT_UPGRADE_EPISODES="3" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
   huntarr/4sonarr:latest
+```
 
 ### SystemD Service
 
@@ -240,9 +240,9 @@ User=your-username
 Environment="API_KEY=your-api-key"
 Environment="API_URL=http://localhost:8989"
 Environment="MONITORED_ONLY=true"
-Environment="SEARCH_TYPE=both"
-Environment="MAX_MISSING=1"
-Environment="MAX_UPGRADES=5"
+Environment="HUNT_MODE=both"
+Environment="HUNT_MISSING_SHOWS=1"
+Environment="HUNT_UPGRADE_EPISODES=3"
 Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
 Environment="STATE_RESET_INTERVAL_HOURS=168"
@@ -274,8 +274,8 @@ sudo systemctl start huntarr
 
 - **First-Time Use**: Start with default settings to ensure it works with your setup
 - **Adjusting Speed**: Lower the `SLEEP_DURATION` to search more frequently (be careful with indexer limits)
-- **Focus on Missing or Upgrades**: Use the `SEARCH_TYPE` setting to focus on what matters to you
-- **Batch Size Control**: Adjust `MAX_MISSING` and `MAX_UPGRADES` based on your indexer's rate limits
+- **Focus on Missing or Upgrades**: Use the `HUNT_MODE` setting to focus on what matters to you
+- **Batch Size Control**: Adjust `HUNT_MISSING_SHOWS` and `HUNT_UPGRADE_EPISODES` based on your indexer's rate limits
 - **Monitored Status**: Set `MONITORED_ONLY=false` if you want to download all missing episodes regardless of monitored status
 - **System Resources**: The script uses minimal resources and can run continuously on even low-powered systems
 - **Debugging Issues**: Enable `DEBUG_MODE=true` temporarily to see detailed logs when troubleshooting
@@ -287,7 +287,7 @@ sudo systemctl start huntarr
 - **Command Failures**: If search commands fail, try using the Sonarr UI to verify what commands are available in your version
 - **Logs**: Check the container logs with `docker logs huntarr-sonarr` if running in Docker
 - **Debug Mode**: Enable `DEBUG_MODE=true` to see detailed API responses and process flow
-- **State Files**: The script stores state in `/tmp/huntarr-sonarr-state/` - if something seems stuck, you can try deleting these files
+- **State Files**: The script stores state in `/tmp/huntarr-state/` - if something seems stuck, you can try deleting these files
 
 ---
 
@@ -302,6 +302,9 @@ sudo systemctl start huntarr
 - **v8**: Added debug mode and improved error handling
 - **v9**: Enhanced random selection mode for better distribution
 - **v10**: Renamed from "Sonarr Hunter" to "Huntarr"
+- **v11**: Complete modular refactoring for better maintainability
+- **v12**: Improved variable naming with HUNT_ prefix
+- **v13**: Enhanced state management and cycle processing
 
 ---
 
