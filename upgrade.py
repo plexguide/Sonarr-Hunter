@@ -103,19 +103,17 @@ def process_cutoff_upgrades() -> bool:
             # Refresh the series
             logger.info(" - Refreshing series information...")
             refresh_res = refresh_series(series_id)
-            if not refresh_res or "id" not in refresh_res:
+            if not refresh_res:
                 logger.warning("WARNING: Refresh command failed. Skipping this episode.")
-                time.sleep(10)
                 continue
-
-            logger.info(f"Refresh command accepted (ID: {refresh_res['id']}). Waiting 5s...")
-            time.sleep(5)
+            
+            logger.info(f"Refresh command completed successfully.")
 
             # Search for the episode (upgrade)
             logger.info(" - Searching for quality upgrade...")
             search_res = episode_search_episodes([episode_id])
-            if search_res and "id" in search_res:
-                logger.info(f"Search command accepted (ID: {search_res['id']}).")
+            if search_res:
+                logger.info(f"Search command completed successfully.")
                 # Mark processed
                 save_processed_id(PROCESSED_UPGRADE_FILE, episode_id)
                 episodes_processed += 1
@@ -123,7 +121,6 @@ def process_cutoff_upgrades() -> bool:
                 logger.info(f"Processed {episodes_processed}/{HUNT_UPGRADE_EPISODES} upgrade episodes this cycle.")
             else:
                 logger.warning(f"WARNING: Search command failed for episode ID {episode_id}.")
-                time.sleep(10)
                 continue
 
         # Move to the next page if not random

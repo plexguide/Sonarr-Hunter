@@ -93,20 +93,18 @@ def process_missing_episodes() -> bool:
         # Refresh the series
         logger.info(f" - Refreshing series (ID: {series_id})...")
         refresh_res = refresh_series(series_id)
-        if not refresh_res or "id" not in refresh_res:
+        if not refresh_res:
             logger.warning(f"WARNING: Refresh command failed for {show_title}. Skipping.")
-            time.sleep(5)
             continue
 
-        logger.info(f"Refresh command accepted (ID: {refresh_res['id']}). Waiting 5s...")
-        time.sleep(5)
+        logger.info(f"Refresh command completed successfully.")
 
         # Search specifically for these missing + monitored episodes
         episode_ids = [ep["id"] for ep in monitored_missing_episodes]
         logger.info(f" - Searching for {len(episode_ids)} missing episodes in '{show_title}'...")
         search_res = episode_search_episodes(episode_ids)
-        if search_res and "id" in search_res:
-            logger.info(f"Search command accepted (ID: {search_res['id']}).")
+        if search_res:
+            logger.info(f"Search command completed successfully.")
             processing_done = True
         else:
             logger.warning(f"WARNING: EpisodeSearch failed for show '{show_title}' (ID: {series_id}).")

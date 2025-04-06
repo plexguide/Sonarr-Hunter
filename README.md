@@ -98,18 +98,21 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 
 The following environment variables can be configured:
 
-| Variable                     | Description                                                              | Default    |
-|------------------------------|-----------------------------------------------------------------------|---------------|
-| `API_KEY`                    | Your Sonarr API key                                                      | Required   |
-| `API_URL`                    | URL to your Sonarr instance                                              | Required   |
-| `API_TIMEOUT`                | Timeout in seconds for API requests to Sonarr                            | 60         |
-| `MONITORED_ONLY`             | Only process monitored shows/episodes                                    | true       |
-| `HUNT_MISSING_SHOWS`         | Maximum missing shows to process per cycle                               | 1          |
-| `HUNT_UPGRADE_EPISODES`      | Maximum upgrade episodes to process per cycle                            | 0          |
-| `SLEEP_DURATION`             | Seconds to wait after completing a cycle (900 = 15 minutes)              | 900        |
-| `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                    | true       |
-| `STATE_RESET_INTERVAL_HOURS` | Hours which the processed state files reset (168=1 week, 0=never reset)  | 168        |
-| `DEBUG_MODE`                 | Enable detailed debug logging (`true` or `false`)                        | false      |
+| Variable                      | Description                                                              | Default    |
+|-------------------------------|-----------------------------------------------------------------------|---------------|
+| `API_KEY`                     | Your Sonarr API key                                                      | Required   |
+| `API_URL`                     | URL to your Sonarr instance                                              | Required   |
+| `API_TIMEOUT`                 | Timeout in seconds for API requests to Sonarr                            | 60         |
+| `MONITORED_ONLY`              | Only process monitored shows/episodes                                    | true       |
+| `HUNT_MISSING_SHOWS`          | Maximum missing shows to process per cycle                               | 1          |
+| `HUNT_UPGRADE_EPISODES`       | Maximum upgrade episodes to process per cycle                            | 0          |
+| `SLEEP_DURATION`              | Seconds to wait after completing a cycle (900 = 15 minutes)              | 900        |
+| `RANDOM_SELECTION`            | Use random selection (`true`) or sequential (`false`)                    | true       |
+| `STATE_RESET_INTERVAL_HOURS`  | Hours which the processed state files reset (168=1 week, 0=never reset)  | 168        |
+| `DEBUG_MODE`                  | Enable detailed debug logging (`true` or `false`)                        | false      |
+| `COMMAND_WAIT_DELAY`          | Delay in seconds between checking for command status                     | 1          |
+| `COMMAND_WAIT_ATTEMPTS`       | Number of attempts to check for command completeion before giving up     | 600        |
+| `MINIMUM_DOWNLOAD_QUEUE_SIZE` | Minimum number of items in the download queue before starting a hunt     | -1         |
 
 ### Detailed Configuration Explanation
 
@@ -145,6 +148,20 @@ The following environment variables can be configured:
 - **DEBUG_MODE**
   - When set to `true`, the script will output detailed debugging information about API responses and internal operations.
   - Useful for troubleshooting issues but can make logs verbose.
+
+- **COMMAND_WAIT_DELAY**
+  - Certain operations like refreshing and searching happen asynchronously.  
+  - This is the delay in seconds between checking the status of these operations for completion.
+  - By checking for these to complete before proceeding we can ensure we do not overload the command queue.
+  - Operations like refreshing update show metadata so this ensures those actions are fully completed before additional operations are performed.
+
+- **COMMAND_WAIT_ATTEMPTS**
+  - The number of attempts to wait for an operation to complete before giving up.  If a command times out the operation will be considered failed.
+
+- **MINIMUM_DOWNLOAD_QUEUE_SIZE**
+  - The minimum number of items in the download queue before a new hunt is initiated.  For example if set to `5` then a new hunt will only start when there are 5 or less items marked as `downloading` in the queue.
+  - This helps prevent overwhelming the queue with too many download requests at once and avoids creating a massive backlog of downloads.
+  - Set to `-1` to disable this check.
 
 ---
 

@@ -5,9 +5,10 @@ Handles all communication with the Sonarr API
 """
 
 import requests
+import time
 from typing import List, Dict, Any, Optional, Union
 from utils.logger import logger, debug_log
-from config import API_KEY, API_URL, API_TIMEOUT
+from config import API_KEY, API_URL, API_TIMEOUT, COMMAND_WAIT_DELAY, COMMAND_WAIT_ATTEMPTS
 
 # Create a session for reuse
 session = requests.Session()
@@ -37,6 +38,31 @@ def sonarr_request(endpoint: str, method: str = "GET", data: Dict = None) -> Opt
     except requests.exceptions.RequestException as e:
         logger.error(f"API request error: {e}")
         return None
+    
+def wait_for_command(command_id: int):
+    logger.debug(f"Waiting for command {command_id} to complete...")
+    attempts = 0
+    while True:
+        try:
+            time.sleep(COMMAND_WAIT_DELAY)
+            response = sonarr_request(f"command/{command_id}")
+            logger.debug(f"Command {command_id} Status: {response['status']}")
+        except Exception as error:
+            logger.error(f"Error fetching command status on attempt {attempts + 1}: {error}")
+            return False
+
+        attempts += 1
+
+        if response['status'].lower() in ['complete', 'completed'] or attempts >= COMMAND_WAIT_ATTEMPTS:
+            break
+
+    if response['status'].lower() not in ['complete', 'completed']:
+        logger.warning(f"Command {command_id} did not complete within the allowed attempts.")
+        return False
+
+    time.sleep(0.5)
+
+    return response['status'].lower() in ['complete', 'completed']
 
 def get_series() -> List[Dict]:
     """Get all series from Sonarr."""
@@ -57,7 +83,8 @@ def refresh_series(series_id: int) -> Optional[Dict]:
         "name": "RefreshSeries",
         "seriesId": series_id
     }
-    return sonarr_request("command", method="POST", data=data)
+    response = sonarr_request("command", method="POST", data=data)
+    return wait_for_command(response['id'])
 
 def episode_search_episodes(episode_ids: List[int]) -> Optional[Dict]:
     """
@@ -71,7 +98,21 @@ def episode_search_episodes(episode_ids: List[int]) -> Optional[Dict]:
         "name": "EpisodeSearch",
         "episodeIds": episode_ids
     }
-    return sonarr_request("command", method="POST", data=data)
+    response = sonarr_request("command", method="POST", data=data)
+    return wait_for_command(response['id'])
+
+def get_download_queue_size() -> Optional[int]:
+    """
+    GET /api/v3/queue
+    Returns total number of items in the queue with the status 'downloading'.
+    """
+    response = sonarr_request("queue?status=downloading")
+    total_records = response.get("totalRecords", 0)
+    if not isinstance(total_records, int):
+        total_records = 0
+    logger.debug(f"Download Queue Size: {total_records}")
+
+    return total_records
 
 def get_cutoff_unmet(page: int = 1) -> Optional[Dict]:
     """
