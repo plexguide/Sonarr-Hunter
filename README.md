@@ -102,22 +102,14 @@ The following environment variables can be configured:
 | `API_KEY`                    | Your Sonarr API key                                                      | Required   |
 | `API_URL`                    | URL to your Sonarr instance                                              | Required   |
 | `MONITORED_ONLY`             | Only process monitored shows/episodes                                    | true       |
-| `HUNT_MODE`                  | Which search to perform: `"missing"`, `"upgrade"`, or `"both"`           | both       |
 | `HUNT_MISSING_SHOWS`         | Maximum missing shows to process per cycle                               | 1          |
-| `HUNT_UPGRADE_EPISODES`      | Maximum upgrade episodes to process per cycle                            | 3          |
+| `HUNT_UPGRADE_EPISODES`      | Maximum upgrade episodes to process per cycle                            | 0          |
 | `SLEEP_DURATION`             | Seconds to wait after completing a cycle (900 = 15 minutes)              | 900        |
 | `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                    | true       |
 | `STATE_RESET_INTERVAL_HOURS` | Hours which the processed state files reset (168=1 week, 0=never reset)  | 168        |
 | `DEBUG_MODE`                 | Enable detailed debug logging (`true` or `false`)                        | false      |
 
 ### Detailed Configuration Explanation
-
-- **HUNT_MODE**  
-  - Determines which type of search the script performs.  
-  - Options:  
-    - `"missing"`: Only processes missing shows (episodes that haven't been downloaded yet).  
-    - `"upgrade"`: Only processes episodes that need quality upgrades (do not meet the quality cutoff).  
-    - `"both"`: Processes both missing shows and upgrade episodes in each cycle.
 
 - **HUNT_MISSING_SHOWS**  
   - Sets the maximum number of missing shows to process in each cycle.  
@@ -159,9 +151,8 @@ docker run -d --name huntarr-sonarr \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e MONITORED_ONLY="true" \
-  -e HUNT_MODE="both" \
   -e HUNT_MISSING_SHOWS="1" \
-  -e HUNT_UPGRADE_EPISODES="3" \
+  -e HUNT_UPGRADE_EPISODES="0" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
@@ -189,9 +180,8 @@ services:
       API_KEY: "your-api-key"
       API_URL: "http://your-sonarr-address:8989"
       MONITORED_ONLY: "true"
-      HUNT_MODE: "both"
       HUNT_MISSING_SHOWS: "1"
-      HUNT_UPGRADE_EPISODES: "3"
+      HUNT_UPGRADE_EPISODES: "0"
       SLEEP_DURATION: "900"
       RANDOM_SELECTION: "true"
       STATE_RESET_INTERVAL_HOURS: "168"
@@ -214,9 +204,8 @@ docker run -d --name huntarr-sonarr \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e MONITORED_ONLY="true" \
-  -e HUNT_MODE="both" \
   -e HUNT_MISSING_SHOWS="1" \
-  -e HUNT_UPGRADE_EPISODES="3" \
+  -e HUNT_UPGRADE_EPISODES="0" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
@@ -243,9 +232,8 @@ User=your-username
 Environment="API_KEY=your-api-key"
 Environment="API_URL=http://localhost:8989"
 Environment="MONITORED_ONLY=true"
-Environment="HUNT_MODE=both"
-Environment="HUNT_MISSING_SHOWS=1"
-Environment="HUNT_UPGRADE_EPISODES=3"
+xEnvironment="HUNT_MISSING_SHOWS=1"
+Environment="HUNT_UPGRADE_EPISODES=0"
 Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
 Environment="STATE_RESET_INTERVAL_HOURS=168"
@@ -277,7 +265,6 @@ sudo systemctl start huntarr
 
 - **First-Time Use**: Start with default settings to ensure it works with your setup
 - **Adjusting Speed**: Lower the `SLEEP_DURATION` to search more frequently (be careful with indexer limits)
-- **Focus on Missing or Upgrades**: Use the `HUNT_MODE` setting to focus on what matters to you
 - **Batch Size Control**: Adjust `HUNT_MISSING_SHOWS` and `HUNT_UPGRADE_EPISODES` based on your indexer's rate limits
 - **Monitored Status**: Set `MONITORED_ONLY=false` if you want to download all missing episodes regardless of monitored status
 - **System Resources**: The script uses minimal resources and can run continuously on even low-powered systems
