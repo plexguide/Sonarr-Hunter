@@ -7,7 +7,7 @@ Handles all communication with the Sonarr API
 import requests
 from typing import List, Dict, Any, Optional, Union
 from utils.logger import logger, debug_log
-from config import API_KEY, API_URL
+from config import API_KEY, API_URL, API_TIMEOUT
 
 # Create a session for reuse
 session = requests.Session()
@@ -25,9 +25,9 @@ def sonarr_request(endpoint: str, method: str = "GET", data: Dict = None) -> Opt
     
     try:
         if method.upper() == "GET":
-            response = session.get(url, headers=headers, timeout=30)
+            response = session.get(url, headers=headers, timeout=API_TIMEOUT)
         elif method.upper() == "POST":
-            response = session.post(url, headers=headers, json=data, timeout=30)
+            response = session.post(url, headers=headers, json=data, timeout=API_TIMEOUT)
         else:
             logger.error(f"Unsupported HTTP method: {method}")
             return None
