@@ -49,8 +49,8 @@ jobs:
           context: .
           push: true
           tags: |
-            huntarr/4lidarr:latest
-            huntarr/4lidarr:${{ github.sha }}
+            huntarr/4sonarr:latest
+            huntarr/4sonarr:${{ github.sha }}
       
       # 6b) Build & Push if on 'dev' branch
       - name: Build and Push (dev)
@@ -60,8 +60,8 @@ jobs:
           context: .
           push: true
           tags: |
-            huntarr/4lidarr:dev
-            huntarr/4lidarr:${{ github.sha }}
+            huntarr/4sonarr:dev
+            huntarr/4sonarr:${{ github.sha }}
       
       # 6c) Build & Push if it's a tag/release
       - name: Build and Push (release)
@@ -71,8 +71,8 @@ jobs:
           context: .
           push: true
           tags: |
-            huntarr/4lidarr:${{ steps.get_version.outputs.VERSION }}
-            huntarr/4lidarr:latest
+            huntarr/4sonarr:${{ steps.get_version.outputs.VERSION }}
+            huntarr/4sonarr:latest
       
       # 6d) Just build on pull requests
       - name: Build (PR)
