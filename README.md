@@ -100,7 +100,7 @@ The following environment variables can be configured:
 | `API_URL`                    | URL to your Sonarr instance                                              | Required   |
 | `MONITORED_ONLY`             | Only process monitored shows/episodes                                    | true       |
 | `HUNT_MISSING_SHOWS`         | Maximum missing shows to process per cycle                               | 1          |
-| `HUNT_UPGRADE_EPISODES`      | Maximum upgrade episodes to process per cycle                            | 3          |
+| `HUNT_UPGRADE_EPISODES`      | Maximum upgrade episodes to process per cycle                            | 0          |
 | `SLEEP_DURATION`             | Seconds to wait after completing a cycle (900 = 15 minutes)              | 900        |
 | `RANDOM_SELECTION`           | Use random selection (`true`) or sequential (`false`)                    | true       |
 | `STATE_RESET_INTERVAL_HOURS` | Hours which the processed state files reset (168=1 week, 0=never reset)  | 168        |
@@ -149,7 +149,7 @@ docker run -d --name huntarr-sonarr \
   -e API_URL="http://your-sonarr-address:8989" \
   -e MONITORED_ONLY="true" \
   -e HUNT_MISSING_SHOWS="1" \
-  -e HUNT_UPGRADE_EPISODES="3" \
+  -e HUNT_UPGRADE_EPISODES="0" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
@@ -178,7 +178,7 @@ services:
       API_URL: "http://your-sonarr-address:8989"
       MONITORED_ONLY: "true"
       HUNT_MISSING_SHOWS: "1"
-      HUNT_UPGRADE_EPISODES: "3"
+      HUNT_UPGRADE_EPISODES: "0"
       SLEEP_DURATION: "900"
       RANDOM_SELECTION: "true"
       STATE_RESET_INTERVAL_HOURS: "168"
@@ -202,7 +202,7 @@ docker run -d --name huntarr-sonarr \
   -e API_URL="http://your-sonarr-address:8989" \
   -e MONITORED_ONLY="true" \
   -e HUNT_MISSING_SHOWS="1" \
-  -e HUNT_UPGRADE_EPISODES="3" \
+  -e HUNT_UPGRADE_EPISODES="0" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
@@ -230,7 +230,7 @@ Environment="API_KEY=your-api-key"
 Environment="API_URL=http://localhost:8989"
 Environment="MONITORED_ONLY=true"
 xEnvironment="HUNT_MISSING_SHOWS=1"
-Environment="HUNT_UPGRADE_EPISODES=3"
+Environment="HUNT_UPGRADE_EPISODES=0"
 Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
 Environment="STATE_RESET_INTERVAL_HOURS=168"
