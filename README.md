@@ -53,6 +53,9 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 - 🔁 **State Tracking**: Remembers which shows and episodes have been processed to avoid duplicate searches
 - ⚙️ **Configurable Reset Timer**: Automatically resets search history after a configurable period
 
+## Indexers Approving of Huntarr:
+* https://ninjacentral.co.za
+
 ## How It Works
 
 1. **Initialization**: Connects to your Sonarr instance and analyzes your library
