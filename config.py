@@ -11,6 +11,13 @@ import logging
 API_KEY = os.environ.get("API_KEY", "your-api-key")
 API_URL = os.environ.get("API_URL", "http://your-sonarr-address:8989")
 
+# API timeout in seconds
+try:
+    API_TIMEOUT = int(os.environ.get("API_TIMEOUT", "60"))
+except ValueError:
+    API_TIMEOUT = 60
+    print(f"Warning: Invalid API_TIMEOUT value, using default: {API_TIMEOUT}")
+
 # Missing Content Settings
 try:
     HUNT_MISSING_SHOWS = int(os.environ.get("HUNT_MISSING_SHOWS", "1"))
@@ -53,6 +60,7 @@ def log_configuration(logger):
     """Log the current configuration settings"""
     logger.info("=== Huntarr [Sonarr Edition] Starting ===")
     logger.info(f"API URL: {API_URL}")
+    logger.info(f"API Timeout: {API_TIMEOUT}s")
     logger.info(f"Missing Content Configuration: HUNT_MISSING_SHOWS={HUNT_MISSING_SHOWS}")
     logger.info(f"Upgrade Configuration: HUNT_UPGRADE_EPISODES={HUNT_UPGRADE_EPISODES}")
     logger.info(f"State Reset Interval: {STATE_RESET_INTERVAL_HOURS} hours")

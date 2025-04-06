@@ -9,7 +9,12 @@ import time
 from typing import List
 from utils.logger import logger
 from config import HUNT_MISSING_SHOWS, MONITORED_ONLY, RANDOM_SELECTION
-from api import get_series, get_episodes_for_series, refresh_series, episode_search_episodes
+from api import (
+    get_episodes_for_series, 
+    refresh_series, 
+    episode_search_episodes, 
+    get_series_with_missing_episodes
+)
 from state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_MISSING_FILE
 
 def process_missing_episodes() -> bool:
@@ -28,35 +33,37 @@ def process_missing_episodes() -> bool:
         logger.info("HUNT_MISSING_SHOWS is set to 0, skipping missing content")
         return False
 
-    shows = get_series()
-    if not shows:
-        logger.error("ERROR: Unable to retrieve series data from Sonarr.")
+    # Get shows that have missing episodes directly - more efficient than checking all shows
+    shows_with_missing = get_series_with_missing_episodes()
+    if not shows_with_missing:
+        logger.info("No shows with missing episodes found.")
         return False
+    
+    logger.info(f"Found {len(shows_with_missing)} shows with missing episodes.")
 
     # Optionally filter to only monitored shows (if MONITORED_ONLY==true)
     if MONITORED_ONLY:
         logger.info("MONITORED_ONLY=true => only fully monitored shows.")
-        shows = [s for s in shows if s.get("monitored") is True]
+        shows_with_missing = [s for s in shows_with_missing if s.get("monitored") is True]
     else:
         logger.info("MONITORED_ONLY=false => all shows, even if unmonitored.")
 
-    if not shows:
-        logger.info("No shows to process.")
+    if not shows_with_missing:
+        logger.info("No monitored shows with missing episodes found.")
         return False
 
     processed_missing_ids = load_processed_ids(PROCESSED_MISSING_FILE)
     shows_processed = 0
     processing_done = False
 
-    indices = list(range(len(shows)))
+    # Optionally randomize show order
     if RANDOM_SELECTION:
-        random.shuffle(indices)
+        random.shuffle(shows_with_missing)
 
-    for idx in indices:
+    for show in shows_with_missing:
         if shows_processed >= HUNT_MISSING_SHOWS:
             break
 
-        show = shows[idx]
         series_id = show.get("id")
         if not series_id:
             continue
@@ -66,26 +73,22 @@ def process_missing_episodes() -> bool:
             continue
 
         show_title = show.get("title", "Unknown Show")
+        missing_count = show.get("missingEpisodeCount", 0)
+        missing_episodes = show.get("missingEpisodes", [])
+        
+        logger.info(f"Processing '{show_title}' with {missing_count} missing episodes.")
 
-        # Fetch the episodes for this show
-        episode_list = get_episodes_for_series(series_id)
-        if not episode_list:
-            logger.warning(f"WARNING: Could not retrieve episodes for series ID={series_id}. Skipping.")
-            continue
-
-        # Find all episodes that are monitored and missing a file
-        missing_monitored_eps = [
-            e for e in episode_list
-            if e.get("monitored") is True
-            and e.get("hasFile") is False
+        # Filter missing episodes to find those that are monitored
+        monitored_missing_episodes = [
+            ep for ep in missing_episodes
+            if ep.get("monitored") is True
         ]
 
-        if not missing_monitored_eps:
-            # This show has no missing monitored episodes, skip
-            logger.info(f"No missing monitored episodes for '{show_title}' — skipping.")
+        if not monitored_missing_episodes:
+            logger.info(f"No missing monitored episodes found for '{show_title}' — skipping.")
             continue
 
-        logger.info(f"Found {len(missing_monitored_eps)} missing monitored episode(s) for '{show_title}'.")
+        logger.info(f"Found {len(monitored_missing_episodes)} missing monitored episode(s) for '{show_title}'.")
 
         # Refresh the series
         logger.info(f" - Refreshing series (ID: {series_id})...")
@@ -99,7 +102,7 @@ def process_missing_episodes() -> bool:
         time.sleep(5)
 
         # Search specifically for these missing + monitored episodes
-        episode_ids = [ep["id"] for ep in missing_monitored_eps]
+        episode_ids = [ep["id"] for ep in monitored_missing_episodes]
         logger.info(f" - Searching for {len(episode_ids)} missing episodes in '{show_title}'...")
         search_res = episode_search_episodes(episode_ids)
         if search_res and "id" in search_res:
