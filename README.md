@@ -55,6 +55,9 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 - ⚙️ **Configurable Reset Timer**: Automatically resets search history after a configurable period
 - 📦 **Modular Design**: Modern codebase with separated concerns for easier maintenance
 
+## Indexers Approving of Huntarr:
+* https://ninjacentral.co.za
+
 ## How It Works
 
 1. **Initialization**: Connects to your Sonarr instance and analyzes your library
