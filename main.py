@@ -37,8 +37,8 @@ def main_loop() -> None:
         
         # Sleep at the end of the cycle only
         logger.info(f"Cycle complete. Sleeping {SLEEP_DURATION}s before next cycle...")
-        time.sleep(SLEEP_DURATION)
         logger.info("⭐ Tool Great? Donate @ https://donate.plex.one for Daughter's College Fund!")
+        time.sleep(SLEEP_DURATION)
 
 if __name__ == "__main__":
     # Log configuration settings
