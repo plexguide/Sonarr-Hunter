@@ -1,32 +1,30 @@
-# Start from a lightweight Python image
-FROM python:3.10-slim
+FROM python:3.9-slim
 
-# Set default environment variables (non-sensitive only!)
-# NOTE: We removed API_KEY to avoid the Dockerfile secrets warning
-ENV API_URL="http://your-sonarr-address:7878" \
-    SEARCH_TYPE="both" \
-    MAX_MISSING="1" \
-    MAX_UPGRADES="5" \
-    SLEEP_DURATION="900" \
-    RANDOM_SELECTION="true" \
-    MONITORED_ONLY="true" \
-    STATE_RESET_INTERVAL_HOURS="168" \
-    DEBUG_MODE="false"
-
-# Create a directory for our script and state files
-RUN mkdir -p /app && mkdir -p /tmp/huntarr-radarr-state
-
-# Switch working directory
 WORKDIR /app
 
-# Install any Python dependencies you need (requests is needed by huntarr.py)
-RUN pip install --no-cache-dir requests
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the Python script into the container
-COPY huntarr.py /app/huntarr.py
+# Copy application files
+COPY main.py config.py api.py state.py ./
+COPY missing.py upgrade.py ./
+COPY utils/ ./utils/
 
-# Make the script executable (optional but good practice)
-RUN chmod +x /app/huntarr.py
+# Create state directory
+RUN mkdir -p /tmp/huntarr-state
 
-# The script’s entrypoint. It will run your `huntarr.py` when the container starts.
-ENTRYPOINT ["python", "huntarr.py"]
+# Default environment variables
+ENV API_KEY="your-api-key" \
+    API_URL="http://your-sonarr-address:8989" \
+    HUNT_MISSING_SHOWS=1 \
+    HUNT_UPGRADE_EPISODES=5 \
+    SLEEP_DURATION=900 \
+    STATE_RESET_INTERVAL_HOURS=168 \
+    RANDOM_SELECTION="true" \
+    MONITORED_ONLY="true" \
+    HUNT_MODE="both" \
+    DEBUG_MODE="false"
+
+# Run the application
+CMD ["python", "main.py"]
