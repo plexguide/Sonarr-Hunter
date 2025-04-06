@@ -101,6 +101,7 @@ The following environment variables can be configured:
 |------------------------------|-----------------------------------------------------------------------|---------------|
 | `API_KEY`                    | Your Sonarr API key                                                      | Required   |
 | `API_URL`                    | URL to your Sonarr instance                                              | Required   |
+| `API_TIMEOUT`                | Timeout in seconds for API requests to Sonarr                            | 60         |
 | `MONITORED_ONLY`             | Only process monitored shows/episodes                                    | true       |
 | `HUNT_MISSING_SHOWS`         | Maximum missing shows to process per cycle                               | 1          |
 | `HUNT_UPGRADE_EPISODES`      | Maximum upgrade episodes to process per cycle                            | 0          |
@@ -110,6 +111,13 @@ The following environment variables can be configured:
 | `DEBUG_MODE`                 | Enable detailed debug logging (`true` or `false`)                        | false      |
 
 ### Detailed Configuration Explanation
+
+- **API_TIMEOUT**
+  - Sets the maximum number of seconds to wait for Sonarr API responses before timing out.
+  - This is particularly important when working with large libraries or when checking for many quality upgrades.
+  - If you experience timeout errors (especially during the "Checking for Quality Upgrades" phase), increase this value.
+  - For libraries with thousands of episodes needing quality upgrades, values of 90-120 seconds may be necessary.
+  - Default is 60 seconds, which works well for most medium-sized libraries.
 
 - **HUNT_MISSING_SHOWS**  
   - Sets the maximum number of missing shows to process in each cycle.  
@@ -179,6 +187,7 @@ services:
     environment:
       API_KEY: "your-api-key"
       API_URL: "http://your-sonarr-address:8989"
+      API_TIMEOUT: "60"
       MONITORED_ONLY: "true"
       HUNT_MISSING_SHOWS: "1"
       HUNT_UPGRADE_EPISODES: "0"
@@ -203,6 +212,7 @@ docker run -d --name huntarr-sonarr \
   --restart always \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
+  -e API_TIMEOUT="60" \
   -e MONITORED_ONLY="true" \
   -e HUNT_MISSING_SHOWS="1" \
   -e HUNT_UPGRADE_EPISODES="0" \
@@ -231,8 +241,9 @@ Type=simple
 User=your-username
 Environment="API_KEY=your-api-key"
 Environment="API_URL=http://localhost:8989"
+Environment="API_TIMEOUT=60"
 Environment="MONITORED_ONLY=true"
-xEnvironment="HUNT_MISSING_SHOWS=1"
+Environment="HUNT_MISSING_SHOWS=1"
 Environment="HUNT_UPGRADE_EPISODES=0"
 Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
