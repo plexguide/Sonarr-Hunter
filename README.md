@@ -4,12 +4,6 @@
 
 <table>
   <tr>
-    <td colspan="2"><img src="https://github.com/user-attachments/assets/7c0d98f4-3ee3-4d60-be93-0ec4e92d7227" width="100%"/></td>
-  </tr>
-</table>
-
-<table>
-  <tr>
     <td colspan="2"><img src="https://github.com/user-attachments/assets/34264f2e-928d-44e5-adb7-0dbd08fadfd0" width="100%"/></td>
   </tr>
 </table>
