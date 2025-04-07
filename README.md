@@ -206,13 +206,11 @@ Huntarr-Sonarr includes a real-time log viewer web interface that allows you to 
 <table>
   <tr>
     <td colspan="2">
-      <img src="https://github.com/user-attachments/assets/3e95f6d5-4a96-4bb8-a5b9-1d7b871ff94a" width="100%"/>
-      <p align="center"><em>State Management System</em></p>
+      <img src="https://github.com/user-attachments/assets/37c052cb-df00-4d61-aaa2-be8c0dd3c10e" width="100%"/>
+      <p align="center"><em>Demo Logger UI</em></p>
     </td>
   </tr>
 </table>
-
-<img width="1769" alt="image" src="https://github.com/user-attachments/assets/37c052cb-df00-4d61-aaa2-be8c0dd3c10e" />
 
 ### Features
 
