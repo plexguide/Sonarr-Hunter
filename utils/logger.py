@@ -6,7 +6,13 @@ Logging configuration for Huntarr-Sonarr
 import logging
 import sys
 import os
+import pathlib
 from config import DEBUG_MODE
+
+# Create log directory
+LOG_DIR = pathlib.Path("/tmp/huntarr-logs")
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG_FILE = LOG_DIR / "huntarr.log"
 
 def setup_logger():
     """Configure and return the application logger"""
@@ -19,15 +25,21 @@ def setup_logger():
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.DEBUG if DEBUG_MODE else logging.INFO)
     
+    # Create file handler for the web interface
+    file_handler = logging.FileHandler(LOG_FILE)
+    file_handler.setLevel(logging.DEBUG if DEBUG_MODE else logging.INFO)
+    
     # Set format
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     console_handler.setFormatter(formatter)
+    file_handler.setFormatter(formatter)
     
-    # Add handler to logger
+    # Add handlers to logger
     logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
     
     return logger
 

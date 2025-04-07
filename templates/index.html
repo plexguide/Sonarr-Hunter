@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huntarr-Sonarr Log Viewer</title>
+    <style>
+        :root {
+            --bg-color: #000;
+            --text-color: #fff;
+            --border-color: #333;
+            --highlight-color: #0f0;
+            --log-bg-color: #0a0a0a;
+            --info-color: #fff;
+            --error-color: #f00;
+            --warning-color: #ff0;
+            --debug-color: #0ff;
+            --header-border: 1px solid #333;
+            --log-border: 1px solid #fff;
+        }
+        
+        [data-theme="light"] {
+            --bg-color: #fff;
+            --text-color: #000;
+            --border-color: #ddd;
+            --highlight-color: #090;
+            --log-bg-color: #f0f0f0;
+            --info-color: #000;
+            --error-color: #d00;
+            --warning-color: #a50;
+            --debug-color: #07a;
+            --header-border: 1px solid #ddd;
+            --log-border: 1px solid #000;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: var(--header-border);
+            padding-bottom: 10px;
+        }
+        
+        h1 {
+            margin: 0;
+            padding: 0;
+            color: var(--highlight-color);
+        }
+        
+        a {
+            color: var(--highlight-color);
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        #log-container {
+            background-color: var(--log-bg-color);
+            height: 75vh;
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 5px;
+            border: var(--log-border);
+            margin-bottom: 20px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .info { color: var(--info-color); }
+        .error { color: var(--error-color); }
+        .warning { color: var(--warning-color); }
+        .debug { color: var(--debug-color); }
+        
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        #status {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 26px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--highlight-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(34px);
+        }
+        
+        .donation-msg {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px dashed var(--highlight-color);
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .donation-msg a {
+            font-weight: bold;
+        }
+        
+        .icon {
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        
+        .toggle-label {
+            display: inline-block;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Huntarr-Sonarr Log Viewer</h1>
+        <p>Visit the <a href="https://github.com/plexguide/huntarr-sonarr" target="_blank">Huntarr [Sonarr Edition] GITHUB Page</a> and click the ⭐ in the Upper Right!</p>
+    </header>
+
+    <div class="donation-msg">
+        <span class="icon">💰</span> Tool Great? Donate @ <a href="https://donate.plex.one" target="_blank">https://donate.plex.one</a> for my Daughter's College Fund!
+    </div>
+
+    <div id="controls">
+        <div id="status">Connected: <span id="connection-status">Yes</span> | Auto-refresh: Every 1 second</div>
+        <div class="toggle-container">
+            <div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="autoscroll-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label" id="autoscroll-label">Auto-scroll ON</span>
+            </div>
+            <div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="theme-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label" id="theme-label">Night Mode</span>
+            </div>
+        </div>
+    </div>
+    
+    <div id="log-container"></div>
+
+    <footer>
+        Huntarr-Sonarr Log Viewer &copy; 2025
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logContainer = document.getElementById('log-container');
+            const connectionStatus = document.getElementById('connection-status');
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeLabel = document.getElementById('theme-label');
+            const autoscrollToggle = document.getElementById('autoscroll-toggle');
+            const autoscrollLabel = document.getElementById('autoscroll-label');
+            
+            // Auto-scroll flag - enabled by default
+            let autoScrollEnabled = true;
+            
+            // Theme toggle functionality
+            themeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeLabel.textContent = 'Night Mode';
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    themeLabel.textContent = 'Day Mode';
+                }
+            });
+            
+            // Auto-scroll toggle functionality
+            autoscrollToggle.addEventListener('change', function() {
+                autoScrollEnabled = this.checked;
+                autoscrollLabel.textContent = autoScrollEnabled ? 'Auto-scroll ON' : 'Auto-scroll OFF';
+                
+                // If turning auto-scroll back on, scroll to bottom immediately
+                if (autoScrollEnabled) {
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+            });
+            
+            // Detect manual scrolling to disable auto-scroll
+            logContainer.addEventListener('scroll', function() {
+                // If user scrolls up manually and auto-scroll is enabled
+                if (autoScrollEnabled && logContainer.scrollTop < logContainer.scrollHeight - logContainer.clientHeight - 50) {
+                    // User has scrolled up, disable auto-scroll
+                    autoscrollToggle.checked = false;
+                    autoScrollEnabled = false;
+                    autoscrollLabel.textContent = 'Auto-scroll OFF';
+                }
+            });
+            
+            // Function to add a log entry to the container
+            function addLogEntry(text) {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                
+                // Color coding based on log level
+                if (text.includes(' - ERROR - ')) {
+                    entry.className += ' error';
+                } else if (text.includes(' - WARNING - ')) {
+                    entry.className += ' warning';
+                } else if (text.includes(' - DEBUG - ')) {
+                    entry.className += ' debug';
+                } else {
+                    entry.className += ' info';
+                }
+                
+                entry.textContent = text;
+                logContainer.appendChild(entry);
+                
+                // Auto-scroll to bottom if enabled
+                if (autoScrollEnabled) {
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+                
+                // Limit the number of entries to prevent browser slowdown
+                while (logContainer.children.length > 1000) {
+                    logContainer.removeChild(logContainer.firstChild);
+                }
+            }
+            
+            // Set up event source for server-sent events
+            const eventSource = new EventSource('/logs');
+            
+            eventSource.onmessage = function(event) {
+                addLogEntry(event.data);
+            };
+            
+            eventSource.onerror = function() {
+                connectionStatus.textContent = 'No';
+                connectionStatus.style.color = '#f00';
+                
+                // Try to reconnect after 5 seconds
+                setTimeout(function() {
+                    window.location.reload();
+                }, 5000);
+            };
+            
+            eventSource.onopen = function() {
+                connectionStatus.textContent = 'Yes';
+                connectionStatus.style.color = '#0f0';
+            };
+        });
+    </script>
+</body>
+</html>

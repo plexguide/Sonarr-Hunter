@@ -11,12 +11,18 @@
 
 **NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
 
+---
+
+**Change Log:**
+Visit: https://github.com/plexguide/Huntarr-Sonarr/releases/
+
 ## Table of Contents
 - [Overview](#overview)
 - [Related Projects](#related-projects)
 - [Features](#features)
 - [How It Works](#how-it-works)
 - [Configuration Options](#configuration-options)
+- [Web Interface](#web-interface)
 - [Installation Methods](#installation-methods)
   - [Docker Run](#docker-run)
   - [Docker Compose](#docker-compose)
@@ -55,6 +61,7 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 - 🔁 **State Tracking**: Remembers which shows and episodes have been processed to avoid duplicate searches
 - ⚙️ **Configurable Reset Timer**: Automatically resets search history after a configurable period
 - 📦 **Modular Design**: Modern codebase with separated concerns for easier maintenance
+- 🌐 **Web Interface**: Real-time log viewer with day/night mode (new!)
 
 ## Indexers Approving of Huntarr:
 * https://ninjacentral.co.za
@@ -110,8 +117,14 @@ The following environment variables can be configured:
 | `RANDOM_SELECTION`            | Use random selection (`true`) or sequential (`false`)                    | true       |
 | `STATE_RESET_INTERVAL_HOURS`  | Hours which the processed state files reset (168=1 week, 0=never reset)  | 168        |
 | `DEBUG_MODE`                  | Enable detailed debug logging (`true` or `false`)                        | false      |
+| `ENABLE_WEB_UI`               | Enable or disable the web interface (`true` or `false`)                  | true       |
+
+### Advanced Options (Optional)
+
+| Variable                      | Description                                                              | Default    |
+|-------------------------------|-----------------------------------------------------------------------|---------------|
 | `COMMAND_WAIT_DELAY`          | Delay in seconds between checking for command status                     | 1          |
-| `COMMAND_WAIT_ATTEMPTS`       | Number of attempts to check for command completeion before giving up     | 600        |
+| `COMMAND_WAIT_ATTEMPTS`       | Number of attempts to check for command completion before giving up      | 600        |
 | `MINIMUM_DOWNLOAD_QUEUE_SIZE` | Minimum number of items in the download queue before starting a hunt     | -1         |
 
 ### Detailed Configuration Explanation
@@ -149,6 +162,11 @@ The following environment variables can be configured:
   - When set to `true`, the script will output detailed debugging information about API responses and internal operations.
   - Useful for troubleshooting issues but can make logs verbose.
 
+- **ENABLE_WEB_UI**
+  - When set to `true`, the web interface will be enabled on port 8988.
+  - When set to `false`, the web interface will not start, saving resources.
+  - Default is `true` for convenient monitoring.
+
 - **COMMAND_WAIT_DELAY**
   - Certain operations like refreshing and searching happen asynchronously.  
   - This is the delay in seconds between checking the status of these operations for completion.
@@ -163,6 +181,53 @@ The following environment variables can be configured:
   - This helps prevent overwhelming the queue with too many download requests at once and avoids creating a massive backlog of downloads.
   - Set to `-1` to disable this check.
 
+## Web Interface
+
+Huntarr-Sonarr includes a real-time log viewer web interface that allows you to monitor its operation directly from your browser.
+
+### Features
+
+- **Real-time Log Updates**: Logs refresh automatically every second
+- **Day/Night Mode**: Toggle between light and dark themes
+- **Color-coded Log Entries**: Different log levels are displayed in different colors
+- **Auto-scrolling**: Automatically scrolls to the latest log entries
+- **Connection Status**: Shows whether the connection to the log stream is active
+
+### How to Access
+
+The web interface is available on port 8988. Simply navigate to:
+
+```
+http://YOUR_SERVER_IP:8988
+```
+
+Or if you're accessing it locally:
+
+```
+http://localhost:8988
+```
+
+### Port Configuration Explained
+
+When running with Docker, you need to map the container's internal port to a port on your host system. The format is `HOST_PORT:CONTAINER_PORT`.
+
+For example:
+- `8988:8988` means "map port 8988 from the host to port 8988 in the container"
+
+If you want to use a different port on your host (e.g., 9000), you would use:
+- `9000:8988` means "map port 9000 from the host to port 8988 in the container"
+
+You would then access the web interface at `http://YOUR_SERVER_IP:9000`
+
+### Enabling/Disabling the Web UI
+
+The web interface can be enabled or disabled using the `ENABLE_WEB_UI` environment variable:
+
+- `ENABLE_WEB_UI=true` - Enable the web interface (default)
+- `ENABLE_WEB_UI=false` - Disable the web interface
+
+If you disable the web interface, you don't need to expose the port in your Docker configuration.
+
 ---
 
 ## Installation Methods
@@ -174,6 +239,7 @@ The simplest way to run Huntarr is via Docker:
 ```bash
 docker run -d --name huntarr-sonarr \
   --restart always \
+  -p 8988:8988 \  # Can be removed if ENABLE_WEB_UI=false
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e MONITORED_ONLY="true" \
@@ -183,10 +249,16 @@ docker run -d --name huntarr-sonarr \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
+  -e ENABLE_WEB_UI="true" \
   huntarr/4sonarr:latest
+  
+  # Optional advanced settings
+  # -e COMMAND_WAIT_DELAY="1" \
+  # -e COMMAND_WAIT_ATTEMPTS="600" \
+  # -e MINIMUM_DOWNLOAD_QUEUE_SIZE="-1" \
 ```
 
-To check on the status of the program, you should see new files downloading or you can type:
+To check on the status of the program, you can use the web interface at http://YOUR_SERVER_IP:8988 or check the logs with:
 ```bash
 docker logs huntarr-sonarr
 ```
@@ -202,6 +274,8 @@ services:
     image: huntarr/4sonarr:latest
     container_name: huntarr-sonarr
     restart: always
+    ports:
+      - "8988:8988"  # Can be removed if ENABLE_WEB_UI=false
     environment:
       API_KEY: "your-api-key"
       API_URL: "http://your-sonarr-address:8989"
@@ -213,6 +287,12 @@ services:
       RANDOM_SELECTION: "true"
       STATE_RESET_INTERVAL_HOURS: "168"
       DEBUG_MODE: "false"
+      ENABLE_WEB_UI: "true"
+      
+      # Optional advanced settings
+      # COMMAND_WAIT_DELAY: "1"
+      # COMMAND_WAIT_ATTEMPTS: "600"
+      # MINIMUM_DOWNLOAD_QUEUE_SIZE: "-1"
 ```
 
 Then run:
@@ -228,6 +308,7 @@ Run this from Command Line in Unraid:
 ```bash
 docker run -d --name huntarr-sonarr \
   --restart always \
+  -p 8988:8988 \  # Can be removed if ENABLE_WEB_UI=false
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e API_TIMEOUT="60" \
@@ -238,7 +319,13 @@ docker run -d --name huntarr-sonarr \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
+  -e ENABLE_WEB_UI="true" \
   huntarr/4sonarr:latest
+  
+  # Optional advanced settings
+  # -e COMMAND_WAIT_DELAY="1" \
+  # -e COMMAND_WAIT_ATTEMPTS="600" \
+  # -e MINIMUM_DOWNLOAD_QUEUE_SIZE="-1" \
 ```
 
 ### SystemD Service
@@ -289,6 +376,7 @@ sudo systemctl start huntarr
 - **New Show Setup**: Automatically find episodes for newly added shows
 - **Background Service**: Run it in the background to continuously maintain your library
 - **Smart Rotation**: With state tracking, ensures all content gets attention over time
+- **Real-time Monitoring**: Use the web interface to see what's happening at any time
 
 ## Tips
 
@@ -297,6 +385,9 @@ sudo systemctl start huntarr
 - **Batch Size Control**: Adjust `HUNT_MISSING_SHOWS` and `HUNT_UPGRADE_EPISODES` based on your indexer's rate limits
 - **Monitored Status**: Set `MONITORED_ONLY=false` if you want to download all missing episodes regardless of monitored status
 - **System Resources**: The script uses minimal resources and can run continuously on even low-powered systems
+- **Web Interface**: Use the web interface to monitor progress instead of checking Docker logs
+- **Port Conflicts**: If port 8988 is already in use, map to a different host port (e.g., `-p 9000:8988`)
+- **Disable Web UI**: Set `ENABLE_WEB_UI=false` if you don't need the interface to save resources
 - **Debugging Issues**: Enable `DEBUG_MODE=true` temporarily to see detailed logs when troubleshooting
 
 ## Troubleshooting
@@ -304,26 +395,10 @@ sudo systemctl start huntarr
 - **API Key Issues**: Check that your API key is correct in Sonarr settings
 - **Connection Problems**: Ensure the Sonarr URL is accessible from where you're running the script
 - **Command Failures**: If search commands fail, try using the Sonarr UI to verify what commands are available in your version
+- **Web Interface Not Loading**: Make sure port 8988 is exposed in your Docker configuration and not blocked by a firewall
 - **Logs**: Check the container logs with `docker logs huntarr-sonarr` if running in Docker
 - **Debug Mode**: Enable `DEBUG_MODE=true` to see detailed API responses and process flow
 - **State Files**: The script stores state in `/tmp/huntarr-state/` - if something seems stuck, you can try deleting these files
-
----
-
-**Change Log:**
-- **v1**: Original code written
-- **v2**: Optimized search
-- **v3**: Variable names changed for docker optimization
-- **v4**: Added monitored only tag
-- **v5**: Added quality upgrade functionality to find episodes below cutoff quality
-- **v6**: Added state tracking to prevent duplicate searches
-- **v7**: Implemented configurable state reset timer
-- **v8**: Added debug mode and improved error handling
-- **v9**: Enhanced random selection mode for better distribution
-- **v10**: Renamed from "Sonarr Hunter" to "Huntarr"
-- **v11**: Complete modular refactoring for better maintainability
-- **v12**: Improved variable naming with HUNT_ prefix
-- **v13**: Enhanced state management and cycle processing
 
 ---
 
