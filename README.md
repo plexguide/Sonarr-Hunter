@@ -442,3 +442,4 @@ This script helps automate the tedious process of finding missing episodes and q
 Thanks to: 
 
 [IntensiveCareCub](https://www.reddit.com/user/IntensiveCareCub/) for the Hunter to Huntarr idea!
+[ZPatten](https://github.com/zpatten) for adding the Queue Size and Delay Commands!
