@@ -389,6 +389,7 @@ Environment="DEBUG_MODE=false"
 Environment="ENABLE_WEB_UI=true"
 Environment="SKIP_FUTURE_EPISODES=true"
 Environment="SKIP_SERIES_REFRESH=false"
+ExecStartPre=/bin/sleep 30
 ExecStart=/usr/local/bin/huntarr.sh
 Restart=on-failure
 RestartSec=10
