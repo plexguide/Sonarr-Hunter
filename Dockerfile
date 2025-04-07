@@ -39,8 +39,8 @@ ENV API_KEY="your-api-key" \
 EXPOSE 8988
 
 # Add startup script that conditionally starts the web UI
-COPY start.sh .
-RUN chmod +x start.sh
+#COPY start.sh .
+#RUN chmod +x start.sh
 
 # Run the startup script which will decide what to launch
 CMD ["./start.sh"]
