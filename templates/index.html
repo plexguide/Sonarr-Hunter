@@ -104,6 +104,12 @@
             color: #666;
         }
         
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
         .toggle-switch {
             position: relative;
             display: inline-block;
@@ -166,12 +172,18 @@
             vertical-align: middle;
             margin-right: 5px;
         }
+        
+        .toggle-label {
+            display: inline-block;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Huntarr-Sonarr Log Viewer</h1>
-        <p>Visit the <a href="https://github.com/plexguide/huntarr-sonarr" target="_blank">Huntarr [Sonarr Edition] GITHUB Page</a> and click the ⭐ in the Upper Right!</p>
+        <p>View the real-time logs from Huntarr-Sonarr - Visit the <a href="https://github.com/plexguide/huntarr-sonarr" target="_blank">Huntarr [Sonarr Edition] GITHUB Page</a> and click the ⭐ in the Upper Right!</p>
     </header>
 
     <div class="donation-msg">
@@ -180,19 +192,28 @@
 
     <div id="controls">
         <div id="status">Connected: <span id="connection-status">Yes</span> | Auto-refresh: Every 1 second</div>
-        <div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="theme-toggle" checked>
-                <span class="slider"></span>
-            </label>
-            <span id="theme-label">Night Mode</span>
+        <div class="toggle-container">
+            <div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="autoscroll-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label" id="autoscroll-label">Auto-scroll ON</span>
+            </div>
+            <div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="theme-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label" id="theme-label">Night Mode</span>
+            </div>
         </div>
     </div>
     
     <div id="log-container"></div>
 
     <footer>
-        Huntarr [Sonarr Edition] Log Viewer &copy; 2025+
+        Huntarr-Sonarr Log Viewer &copy; 2025
     </footer>
 
     <script>
@@ -201,6 +222,11 @@
             const connectionStatus = document.getElementById('connection-status');
             const themeToggle = document.getElementById('theme-toggle');
             const themeLabel = document.getElementById('theme-label');
+            const autoscrollToggle = document.getElementById('autoscroll-toggle');
+            const autoscrollLabel = document.getElementById('autoscroll-label');
+            
+            // Auto-scroll flag - enabled by default
+            let autoScrollEnabled = true;
             
             // Theme toggle functionality
             themeToggle.addEventListener('change', function() {
@@ -210,6 +236,28 @@
                 } else {
                     document.documentElement.setAttribute('data-theme', 'light');
                     themeLabel.textContent = 'Day Mode';
+                }
+            });
+            
+            // Auto-scroll toggle functionality
+            autoscrollToggle.addEventListener('change', function() {
+                autoScrollEnabled = this.checked;
+                autoscrollLabel.textContent = autoScrollEnabled ? 'Auto-scroll ON' : 'Auto-scroll OFF';
+                
+                // If turning auto-scroll back on, scroll to bottom immediately
+                if (autoScrollEnabled) {
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+            });
+            
+            // Detect manual scrolling to disable auto-scroll
+            logContainer.addEventListener('scroll', function() {
+                // If user scrolls up manually and auto-scroll is enabled
+                if (autoScrollEnabled && logContainer.scrollTop < logContainer.scrollHeight - logContainer.clientHeight - 50) {
+                    // User has scrolled up, disable auto-scroll
+                    autoscrollToggle.checked = false;
+                    autoScrollEnabled = false;
+                    autoscrollLabel.textContent = 'Auto-scroll OFF';
                 }
             });
             
@@ -232,8 +280,10 @@
                 entry.textContent = text;
                 logContainer.appendChild(entry);
                 
-                // Auto-scroll to bottom
-                logContainer.scrollTop = logContainer.scrollHeight;
+                // Auto-scroll to bottom if enabled
+                if (autoScrollEnabled) {
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
                 
                 // Limit the number of entries to prevent browser slowdown
                 while (logContainer.children.length > 1000) {
