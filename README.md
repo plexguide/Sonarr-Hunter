@@ -264,7 +264,7 @@ The simplest way to run Huntarr is via Docker:
 ```bash
 docker run -d --name huntarr-sonarr \
   --restart always \
-  -p 8988:8988 \  # Can be removed if ENABLE_WEB_UI=false
+  -p 8988:8988 \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e API_TIMEOUT="60" \
@@ -303,7 +303,7 @@ services:
     container_name: huntarr-sonarr
     restart: always
     ports:
-      - "8988:8988"  # Can be removed if ENABLE_WEB_UI=false
+      - "8988:8988"
     environment:
       API_KEY: "your-api-key"
       API_URL: "http://your-sonarr-address:8989"
@@ -338,7 +338,7 @@ Run this from Command Line in Unraid:
 ```bash
 docker run -d --name huntarr-sonarr \
   --restart always \
-  -p 8988:8988 \  # Can be removed if ENABLE_WEB_UI=false
+  -p 8988:8988 \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e API_TIMEOUT="60" \
