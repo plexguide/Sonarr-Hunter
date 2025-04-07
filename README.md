@@ -61,7 +61,9 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 - 🔁 **State Tracking**: Remembers which shows and episodes have been processed to avoid duplicate searches
 - ⚙️ **Configurable Reset Timer**: Automatically resets search history after a configurable period
 - 📦 **Modular Design**: Modern codebase with separated concerns for easier maintenance
-- 🌐 **Web Interface**: Real-time log viewer with day/night mode (new!)
+- 🌐 **Web Interface**: Real-time log viewer with day/night mode
+- 🔮 **Future Episode Skipping**: Skip processing episodes with future air dates
+- 💾 **Reduced Disk Activity**: Option to skip series refresh before processing
 
 ## Indexers Approving of Huntarr:
 * https://ninjacentral.co.za
@@ -72,11 +74,13 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 2. **Missing Episodes**: 
    - Identifies shows with missing episodes
    - Randomly selects shows to process (up to configurable limit)
-   - Refreshes metadata and triggers searches
+   - Refreshes metadata (optional) and triggers searches
+   - Skips episodes with future air dates (configurable)
 3. **Quality Upgrades**:
    - Finds episodes that don't meet your quality cutoff settings
    - Processes them in configurable batches
    - Uses smart pagination to handle large libraries
+   - Skips episodes with future air dates (configurable)
 4. **State Management**:
    - Tracks which shows and episodes have been processed
    - Automatically resets this tracking after a configurable time period
@@ -112,12 +116,14 @@ The following environment variables can be configured:
 | `API_TIMEOUT`                 | Timeout in seconds for API requests to Sonarr                            | 60         |
 | `MONITORED_ONLY`              | Only process monitored shows/episodes                                    | true       |
 | `HUNT_MISSING_SHOWS`          | Maximum missing shows to process per cycle                               | 1          |
-| `HUNT_UPGRADE_EPISODES`       | Maximum upgrade episodes to process per cycle                            | 0          |
+| `HUNT_UPGRADE_EPISODES`       | Maximum upgrade episodes to process per cycle                            | 5          |
 | `SLEEP_DURATION`              | Seconds to wait after completing a cycle (900 = 15 minutes)              | 900        |
 | `RANDOM_SELECTION`            | Use random selection (`true`) or sequential (`false`)                    | true       |
 | `STATE_RESET_INTERVAL_HOURS`  | Hours which the processed state files reset (168=1 week, 0=never reset)  | 168        |
 | `DEBUG_MODE`                  | Enable detailed debug logging (`true` or `false`)                        | false      |
 | `ENABLE_WEB_UI`               | Enable or disable the web interface (`true` or `false`)                  | true       |
+| `SKIP_FUTURE_EPISODES`        | Skip processing episodes with future air dates (`true` or `false`)       | true       |
+| `SKIP_SERIES_REFRESH`         | Skip refreshing series metadata before processing (`true` or `false`)    | false      |
 
 ### Advanced Options (Optional)
 
@@ -166,6 +172,18 @@ The following environment variables can be configured:
   - When set to `true`, the web interface will be enabled on port 8988.
   - When set to `false`, the web interface will not start, saving resources.
   - Default is `true` for convenient monitoring.
+
+- **SKIP_FUTURE_EPISODES**
+  - When set to `true`, the script will skip processing episodes with future air dates.
+  - This helps avoid unnecessary searches for content that isn't available yet.
+  - Works for both missing episodes and quality upgrade processing.
+  - Default is `true` to optimize search efficiency.
+
+- **SKIP_SERIES_REFRESH**
+  - When set to `true`, the script will skip refreshing series metadata before searching.
+  - This can significantly reduce disk activity on your Sonarr server.
+  - Default is `false` to maintain compatibility with previous behavior.
+  - Set to `true` if you notice excessive disk activity during Huntarr cycles.
 
 - **COMMAND_WAIT_DELAY**
   - Certain operations like refreshing and searching happen asynchronously.  
@@ -242,14 +260,17 @@ docker run -d --name huntarr-sonarr \
   -p 8988:8988 \  # Can be removed if ENABLE_WEB_UI=false
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
+  -e API_TIMEOUT="60" \
   -e MONITORED_ONLY="true" \
   -e HUNT_MISSING_SHOWS="1" \
-  -e HUNT_UPGRADE_EPISODES="0" \
+  -e HUNT_UPGRADE_EPISODES="5" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
   -e ENABLE_WEB_UI="true" \
+  -e SKIP_FUTURE_EPISODES="true" \
+  -e SKIP_SERIES_REFRESH="false" \
   huntarr/4sonarr:latest
   
   # Optional advanced settings
@@ -282,12 +303,14 @@ services:
       API_TIMEOUT: "60"
       MONITORED_ONLY: "true"
       HUNT_MISSING_SHOWS: "1"
-      HUNT_UPGRADE_EPISODES: "0"
+      HUNT_UPGRADE_EPISODES: "5"
       SLEEP_DURATION: "900"
       RANDOM_SELECTION: "true"
       STATE_RESET_INTERVAL_HOURS: "168"
       DEBUG_MODE: "false"
       ENABLE_WEB_UI: "true"
+      SKIP_FUTURE_EPISODES: "true"
+      SKIP_SERIES_REFRESH: "false"
       
       # Optional advanced settings
       # COMMAND_WAIT_DELAY: "1"
@@ -314,12 +337,14 @@ docker run -d --name huntarr-sonarr \
   -e API_TIMEOUT="60" \
   -e MONITORED_ONLY="true" \
   -e HUNT_MISSING_SHOWS="1" \
-  -e HUNT_UPGRADE_EPISODES="0" \
+  -e HUNT_UPGRADE_EPISODES="5" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
   -e ENABLE_WEB_UI="true" \
+  -e SKIP_FUTURE_EPISODES="true" \
+  -e SKIP_SERIES_REFRESH="false" \
   huntarr/4sonarr:latest
   
   # Optional advanced settings
@@ -349,11 +374,14 @@ Environment="API_URL=http://localhost:8989"
 Environment="API_TIMEOUT=60"
 Environment="MONITORED_ONLY=true"
 Environment="HUNT_MISSING_SHOWS=1"
-Environment="HUNT_UPGRADE_EPISODES=0"
+Environment="HUNT_UPGRADE_EPISODES=5"
 Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
 Environment="STATE_RESET_INTERVAL_HOURS=168"
 Environment="DEBUG_MODE=false"
+Environment="ENABLE_WEB_UI=true"
+Environment="SKIP_FUTURE_EPISODES=true"
+Environment="SKIP_SERIES_REFRESH=false"
 ExecStart=/usr/local/bin/huntarr.sh
 Restart=on-failure
 RestartSec=10
@@ -377,6 +405,8 @@ sudo systemctl start huntarr
 - **Background Service**: Run it in the background to continuously maintain your library
 - **Smart Rotation**: With state tracking, ensures all content gets attention over time
 - **Real-time Monitoring**: Use the web interface to see what's happening at any time
+- **Disk Usage Optimization**: Skip refreshing metadata to reduce disk wear and tear
+- **Efficient Searching**: Skip processing episodes with future air dates to save resources
 
 ## Tips
 
@@ -389,6 +419,8 @@ sudo systemctl start huntarr
 - **Port Conflicts**: If port 8988 is already in use, map to a different host port (e.g., `-p 9000:8988`)
 - **Disable Web UI**: Set `ENABLE_WEB_UI=false` if you don't need the interface to save resources
 - **Debugging Issues**: Enable `DEBUG_MODE=true` temporarily to see detailed logs when troubleshooting
+- **Hard Drive Saving**: Enable `SKIP_SERIES_REFRESH=true` to reduce disk activity
+- **Search Efficiency**: Keep `SKIP_FUTURE_EPISODES=true` to avoid searching for unavailable content
 
 ## Troubleshooting
 
@@ -399,6 +431,7 @@ sudo systemctl start huntarr
 - **Logs**: Check the container logs with `docker logs huntarr-sonarr` if running in Docker
 - **Debug Mode**: Enable `DEBUG_MODE=true` to see detailed API responses and process flow
 - **State Files**: The script stores state in `/tmp/huntarr-state/` - if something seems stuck, you can try deleting these files
+- **Excessive Disk Activity**: If you notice high disk usage, try enabling `SKIP_SERIES_REFRESH=true`
 
 ---
 
