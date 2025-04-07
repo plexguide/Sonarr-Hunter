@@ -9,7 +9,7 @@
 </table>
 
 
-**NOTE**: This utilizes Sonarr API Version - `5`.
+**NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
 
 ## Table of Contents
 - [Overview](#overview)
