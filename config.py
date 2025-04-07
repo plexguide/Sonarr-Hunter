@@ -70,6 +70,14 @@ except ValueError:
     MINIMUM_DOWNLOAD_QUEUE_SIZE = -1
     print(f"Warning: Invalid MINIMUM_DOWNLOAD_QUEUE_SIZE value, using default: {MINIMUM_DOWNLOAD_QUEUE_SIZE}")
 
+# New Options
+
+# Skip processing episodes with air dates in the future (default true)
+SKIP_FUTURE_EPISODES = os.environ.get("SKIP_FUTURE_EPISODES", "true").lower() == "true"
+
+# Skip refreshing series metadata before processing (default false)
+SKIP_SERIES_REFRESH = os.environ.get("SKIP_SERIES_REFRESH", "false").lower() == "true"
+
 # Selection Settings
 RANDOM_SELECTION = os.environ.get("RANDOM_SELECTION", "true").lower() == "true"
 MONITORED_ONLY = os.environ.get("MONITORED_ONLY", "true").lower() == "true"
@@ -92,5 +100,6 @@ def log_configuration(logger):
     logger.info(f"MONITORED_ONLY={MONITORED_ONLY}, RANDOM_SELECTION={RANDOM_SELECTION}")
     logger.info(f"HUNT_MODE={HUNT_MODE}, SLEEP_DURATION={SLEEP_DURATION}s")
     logger.info(f"COMMAND_WAIT_DELAY={COMMAND_WAIT_DELAY}, COMMAND_WAIT_ATTEMPTS={COMMAND_WAIT_ATTEMPTS}")
+    logger.info(f"SKIP_FUTURE_EPISODES={SKIP_FUTURE_EPISODES}, SKIP_SERIES_REFRESH={SKIP_SERIES_REFRESH}")
     logger.info(f"ENABLE_WEB_UI={ENABLE_WEB_UI}")
     logger.debug(f"API_KEY={API_KEY}")

@@ -6,9 +6,16 @@ Handles searching for missing episodes in Sonarr
 
 import random
 import time
+import datetime
 from typing import List
 from utils.logger import logger
-from config import HUNT_MISSING_SHOWS, MONITORED_ONLY, RANDOM_SELECTION
+from config import (
+    HUNT_MISSING_SHOWS, 
+    MONITORED_ONLY, 
+    RANDOM_SELECTION, 
+    SKIP_FUTURE_EPISODES,
+    SKIP_SERIES_REFRESH
+)
 from api import (
     get_episodes_for_series, 
     refresh_series, 
@@ -60,6 +67,9 @@ def process_missing_episodes() -> bool:
     if RANDOM_SELECTION:
         random.shuffle(shows_with_missing)
 
+    # Get current date for future episode filtering
+    current_date = datetime.datetime.now().date()
+
     for show in shows_with_missing:
         if shows_processed >= HUNT_MISSING_SHOWS:
             break
@@ -88,16 +98,52 @@ def process_missing_episodes() -> bool:
             logger.info(f"No missing monitored episodes found for '{show_title}' — skipping.")
             continue
 
+        # Skip future episodes if SKIP_FUTURE_EPISODES is enabled
+        if SKIP_FUTURE_EPISODES:
+            # Get episodes that don't have a future air date
+            current_or_past_episodes = []
+            future_episode_count = 0
+            
+            for ep in monitored_missing_episodes:
+                air_date_str = ep.get("airDateUtc")
+                
+                # If no air date, include it (can't determine if it's future)
+                if not air_date_str:
+                    current_or_past_episodes.append(ep)
+                    continue
+                
+                try:
+                    # Parse the UTC date string
+                    air_date = datetime.datetime.fromisoformat(air_date_str.replace('Z', '+00:00')).date()
+                    if air_date <= current_date:
+                        current_or_past_episodes.append(ep)
+                    else:
+                        future_episode_count += 1
+                except (ValueError, TypeError):
+                    # If date parsing fails, include it anyway
+                    current_or_past_episodes.append(ep)
+            
+            if future_episode_count > 0:
+                logger.info(f"Skipped {future_episode_count} future episodes for '{show_title}'")
+            
+            monitored_missing_episodes = current_or_past_episodes
+            
+            if not monitored_missing_episodes:
+                logger.info(f"All missing episodes for '{show_title}' are future episodes - skipping.")
+                continue
+
         logger.info(f"Found {len(monitored_missing_episodes)} missing monitored episode(s) for '{show_title}'.")
 
-        # Refresh the series
-        logger.info(f" - Refreshing series (ID: {series_id})...")
-        refresh_res = refresh_series(series_id)
-        if not refresh_res:
-            logger.warning(f"WARNING: Refresh command failed for {show_title}. Skipping.")
-            continue
-
-        logger.info(f"Refresh command completed successfully.")
+        # Refresh the series only if SKIP_SERIES_REFRESH is not enabled
+        if not SKIP_SERIES_REFRESH:
+            logger.info(f" - Refreshing series (ID: {series_id})...")
+            refresh_res = refresh_series(series_id)
+            if not refresh_res:
+                logger.warning(f"WARNING: Refresh command failed for {show_title}. Skipping.")
+                continue
+            logger.info(f"Refresh command completed successfully.")
+        else:
+            logger.info(f" - Skipping series refresh (SKIP_SERIES_REFRESH=true)")
 
         # Search specifically for these missing + monitored episodes
         episode_ids = [ep["id"] for ep in monitored_missing_episodes]
