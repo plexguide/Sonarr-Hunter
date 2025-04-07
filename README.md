@@ -201,8 +201,6 @@ The following environment variables can be configured:
 ## Web Interface
 
 Huntarr-Sonarr includes a real-time log viewer web interface that allows you to monitor its operation directly from your browser.
-
-Huntarr-Sonarr includes a real-time log viewer web interface that allows you to monitor its operation directly from your browser.
 <table>
   <tr>
     <td colspan="2">
