@@ -23,11 +23,17 @@ jobs:
       - name: List files in directory
         run: ls -la
       
-      # 3) Set up Docker Buildx
+      # 3) Set up QEMU for multi-architecture builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64,amd64
+      
+      # 4) Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       
-      # 4) Log in to Docker Hub
+      # 5) Log in to Docker Hub
       - name: Log in to Docker Hub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
@@ -35,49 +41,53 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
-      # 5) Extract version from tag if it's a tag push
+      # 6) Extract version from tag if it's a tag push
       - name: Extract version from tag
         if: startsWith(github.ref, 'refs/tags/')
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       
-      # 6a) Build & Push if on 'main' branch
+      # 7a) Build & Push if on 'main' branch
       - name: Build and Push (main)
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             huntarr/4sonarr:latest
             huntarr/4sonarr:${{ github.sha }}
       
-      # 6b) Build & Push if on 'dev' branch
+      # 7b) Build & Push if on 'dev' branch
       - name: Build and Push (dev)
         if: github.ref == 'refs/heads/dev' && github.event_name != 'pull_request'
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             huntarr/4sonarr:dev
             huntarr/4sonarr:${{ github.sha }}
       
-      # 6c) Build & Push if it's a tag/release
+      # 7c) Build & Push if it's a tag/release
       - name: Build and Push (release)
         if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             huntarr/4sonarr:${{ steps.get_version.outputs.VERSION }}
             huntarr/4sonarr:latest
       
-      # 6d) Just build on pull requests
+      # 7d) Just build on pull requests
       - name: Build (PR)
         if: github.event_name == 'pull_request'
         uses: docker/build-push-action@v3
         with:
           context: .
           push: false
+          platforms: linux/amd64,linux/arm64
