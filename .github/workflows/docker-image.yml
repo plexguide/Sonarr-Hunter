@@ -2,8 +2,7 @@ name: Docker Build and Push
 on:
   push:
     branches:
-      - main
-      - dev
+      - '*'  # This will trigger on any branch push
     tags:
       - "*"  # This will trigger on any tag push
   pull_request:
@@ -41,11 +40,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
-      # 6) Extract version from tag if it's a tag push
-      - name: Extract version from tag
-        if: startsWith(github.ref, 'refs/tags/')
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      # 6) Extract metadata (version, branch name, etc.)
+      - name: Extract metadata
+        id: meta
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "IS_TAG=true" >> $GITHUB_OUTPUT
+          else
+            echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+            echo "IS_TAG=false" >> $GITHUB_OUTPUT
+          fi
       
       # 7a) Build & Push if on 'main' branch
       - name: Build and Push (main)
@@ -73,17 +78,29 @@ jobs:
       
       # 7c) Build & Push if it's a tag/release
       - name: Build and Push (release)
-        if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
+        if: steps.meta.outputs.IS_TAG == 'true' && github.event_name != 'pull_request'
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            huntarr/4sonarr:${{ steps.get_version.outputs.VERSION }}
+            huntarr/4sonarr:${{ steps.meta.outputs.VERSION }}
             huntarr/4sonarr:latest
       
-      # 7d) Just build on pull requests
+      # 7d) Build & Push for any other branch
+      - name: Build and Push (feature branch)
+        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/dev' && steps.meta.outputs.IS_TAG != 'true' && github.event_name != 'pull_request'
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            huntarr/4sonarr:${{ steps.meta.outputs.BRANCH }}
+            huntarr/4sonarr:${{ github.sha }}
+      
+      # 7e) Just build on pull requests
       - name: Build (PR)
         if: github.event_name == 'pull_request'
         uses: docker/build-push-action@v3
