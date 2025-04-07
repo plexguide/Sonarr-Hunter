@@ -8,7 +8,6 @@
   </tr>
 </table>
 
-
 **NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
 
 ---
@@ -202,6 +201,12 @@ The following environment variables can be configured:
 ## Web Interface
 
 Huntarr-Sonarr includes a real-time log viewer web interface that allows you to monitor its operation directly from your browser.
+
+<table>
+  <tr>
+    <td colspan="2"><img src=https://github.com/user-attachments/assets/34264f2e-928d-44e5-adb7-0dbd08fadfd0" width="100%"/></td>
+  </tr>
+</table>
 
 ### Features
 
