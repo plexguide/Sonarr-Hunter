@@ -6,8 +6,15 @@ Handles searching for episodes that need quality upgrades in Sonarr
 
 import random
 import time
+import datetime
 from utils.logger import logger
-from config import HUNT_UPGRADE_EPISODES, MONITORED_ONLY, RANDOM_SELECTION
+from config import (
+    HUNT_UPGRADE_EPISODES, 
+    MONITORED_ONLY, 
+    RANDOM_SELECTION,
+    SKIP_FUTURE_EPISODES,
+    SKIP_SERIES_REFRESH
+)
 from api import get_cutoff_unmet, get_cutoff_unmet_total_pages, refresh_series, episode_search_episodes, sonarr_request
 from state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_UPGRADE_FILE
 
@@ -34,6 +41,9 @@ def process_cutoff_upgrades() -> bool:
     processed_upgrade_ids = load_processed_ids(PROCESSED_UPGRADE_FILE)
     episodes_processed = 0
     processing_done = False
+
+    # Get current date for future episode filtering
+    current_date = datetime.datetime.now().date()
 
     page = 1
     while True:
@@ -83,6 +93,20 @@ def process_cutoff_upgrades() -> bool:
                 else:
                     series_title = "Unknown Series"
 
+            # Skip future episodes if SKIP_FUTURE_EPISODES is enabled
+            if SKIP_FUTURE_EPISODES:
+                air_date_str = ep_obj.get("airDateUtc")
+                if air_date_str:
+                    try:
+                        # Parse the UTC date string
+                        air_date = datetime.datetime.fromisoformat(air_date_str.replace('Z', '+00:00')).date()
+                        if air_date > current_date:
+                            logger.info(f"Skipping future episode '{series_title}' - S{season_num}E{ep_num} - '{ep_title}' (airs on {air_date})")
+                            continue
+                    except (ValueError, TypeError):
+                        # If date parsing fails, proceed with the episode
+                        pass
+
             logger.info(f"Processing upgrade for \"{series_title}\" - S{season_num}E{ep_num} - \"{ep_title}\" (Episode ID: {episode_id})")
 
             # If MONITORED_ONLY, ensure both series & episode are monitored
@@ -100,14 +124,16 @@ def process_cutoff_upgrades() -> bool:
                     logger.info("Skipping unmonitored episode or series.")
                     continue
 
-            # Refresh the series
-            logger.info(" - Refreshing series information...")
-            refresh_res = refresh_series(series_id)
-            if not refresh_res:
-                logger.warning("WARNING: Refresh command failed. Skipping this episode.")
-                continue
-            
-            logger.info(f"Refresh command completed successfully.")
+            # Refresh the series only if SKIP_SERIES_REFRESH is not enabled
+            if not SKIP_SERIES_REFRESH:
+                logger.info(" - Refreshing series information...")
+                refresh_res = refresh_series(series_id)
+                if not refresh_res:
+                    logger.warning("WARNING: Refresh command failed. Skipping this episode.")
+                    continue
+                logger.info(f"Refresh command completed successfully.")
+            else:
+                logger.info(" - Skipping series refresh (SKIP_SERIES_REFRESH=true)")
 
             # Search for the episode (upgrade)
             logger.info(" - Searching for quality upgrade...")
