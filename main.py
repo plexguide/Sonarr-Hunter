@@ -6,6 +6,7 @@ Main entry point for the application
 
 import time
 import sys
+import os
 from utils.logger import logger
 from config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, log_configuration
 from missing import process_missing_episodes
@@ -15,6 +16,12 @@ from api import get_download_queue_size
 
 def main_loop() -> None:
     """Main processing loop for Huntarr-Sonarr"""
+    
+    # Log welcome message for web interface
+    logger.info("=== Huntarr [Sonarr Edition] Starting ===")
+    logger.info("Web interface available at http://YOUR_SERVER_IP:8988")
+    logger.info("GitHub: https://github.com/plexguide/huntarr-sonarr")
+    
     while True:
         # Check if state files need to be reset
         check_state_reset()
@@ -38,7 +45,7 @@ def main_loop() -> None:
                     processing_done = True
 
         else:
-            logger.info(f"Download queue size ({download_queue_size}) is above the minimum threshold ({MINIMUM_DOWNLOAD_QUEUE_SIZE}).  Skipped processing.")
+            logger.info(f"Download queue size ({download_queue_size}) is above the minimum threshold ({MINIMUM_DOWNLOAD_QUEUE_SIZE}). Skipped processing.")
 
         # Calculate time until the next reset
         calculate_reset_time()
@@ -46,7 +53,20 @@ def main_loop() -> None:
         # Sleep at the end of the cycle only
         logger.info(f"Cycle complete. Sleeping {SLEEP_DURATION}s before next cycle...")
         logger.info("⭐ Tool Great? Donate @ https://donate.plex.one for Daughter's College Fund!")
-        time.sleep(SLEEP_DURATION)
+        logger.info("Web interface available at http://YOUR_SERVER_IP:8988")
+        
+        # Sleep with progress updates for the web interface
+        sleep_start = time.time()
+        sleep_end = sleep_start + SLEEP_DURATION
+        
+        while time.time() < sleep_end:
+            # Sleep in smaller chunks for more responsive shutdown
+            time.sleep(min(10, sleep_end - time.time()))
+            
+            # Every minute, log the remaining sleep time for web interface visibility
+            if int((time.time() - sleep_start) % 60) == 0 and time.time() < sleep_end - 10:
+                remaining = int(sleep_end - time.time())
+                logger.debug(f"Sleeping... {remaining}s remaining until next cycle")
 
 if __name__ == "__main__":
     # Log configuration settings
