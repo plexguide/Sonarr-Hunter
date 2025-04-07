@@ -32,10 +32,15 @@ ENV API_KEY="your-api-key" \
     STATE_RESET_INTERVAL_HOURS=168 \
     RANDOM_SELECTION="true" \
     MONITORED_ONLY="true" \
-    DEBUG_MODE="false"
+    DEBUG_MODE="false" \
+    ENABLE_WEB_UI="true"
 
 # Expose web interface port
 EXPOSE 8988
 
-# Run the application with web interface
-CMD ["sh", "-c", "python web_server.py & python main.py"]
+# Add startup script that conditionally starts the web UI
+COPY start.sh .
+RUN chmod +x start.sh
+
+# Run the startup script which will decide what to launch
+CMD ["./start.sh"]

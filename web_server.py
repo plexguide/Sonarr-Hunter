@@ -8,8 +8,15 @@ import os
 import time
 import datetime
 import pathlib
+import socket
 from flask import Flask, render_template, Response, stream_with_context
 import logging
+from config import ENABLE_WEB_UI
+
+# Check if web UI is enabled
+if not ENABLE_WEB_UI:
+    print("Web UI is disabled. Exiting web server.")
+    exit(0)
 
 # Disable Flask default logging
 log = logging.getLogger('werkzeug')
@@ -54,11 +61,23 @@ def stream_logs():
     return Response(stream_with_context(generate()), 
                    mimetype='text/event-stream')
 
+def get_ip_address():
+    """Get the host's IP address or hostname for display"""
+    try:
+        hostname = socket.gethostname()
+        ip = socket.gethostbyname(hostname)
+        return ip
+    except:
+        return "localhost"
+
 if __name__ == "__main__":
     # Create a basic log entry at startup
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ip_address = get_ip_address()
+    
     with open(LOG_FILE, 'a') as f:
         f.write(f"{timestamp} - huntarr-web - INFO - Web server starting on port 8988\n")
+        f.write(f"{timestamp} - huntarr-web - INFO - Web interface available at http://{ip_address}:8988\n")
     
     # Run the Flask app
     app.run(host='0.0.0.0', port=8988, debug=False, threaded=True)

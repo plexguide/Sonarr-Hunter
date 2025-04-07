@@ -7,19 +7,36 @@ Main entry point for the application
 import time
 import sys
 import os
+import socket
 from utils.logger import logger
-from config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, log_configuration
+from config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, ENABLE_WEB_UI, log_configuration
 from missing import process_missing_episodes
 from upgrade import process_cutoff_upgrades
 from state import check_state_reset, calculate_reset_time
 from api import get_download_queue_size
+
+def get_ip_address():
+    """Get the host's IP address or hostname for display"""
+    try:
+        # Try to get the container's hostname
+        hostname = socket.gethostname()
+        # Try to get the container's IP
+        ip = socket.gethostbyname(hostname)
+        return ip
+    except:
+        return "YOUR_SERVER_IP"
 
 def main_loop() -> None:
     """Main processing loop for Huntarr-Sonarr"""
     
     # Log welcome message for web interface
     logger.info("=== Huntarr [Sonarr Edition] Starting ===")
-    logger.info("Web interface available at http://YOUR_SERVER_IP:8988")
+    
+    # Log web UI information if enabled
+    if ENABLE_WEB_UI:
+        server_ip = get_ip_address()
+        logger.info(f"Web interface available at http://{server_ip}:8988")
+    
     logger.info("GitHub: https://github.com/plexguide/huntarr-sonarr")
     
     while True:
@@ -53,7 +70,11 @@ def main_loop() -> None:
         # Sleep at the end of the cycle only
         logger.info(f"Cycle complete. Sleeping {SLEEP_DURATION}s before next cycle...")
         logger.info("⭐ Tool Great? Donate @ https://donate.plex.one for Daughter's College Fund!")
-        logger.info("Web interface available at http://YOUR_SERVER_IP:8988")
+        
+        # Log web UI information if enabled
+        if ENABLE_WEB_UI:
+            server_ip = get_ip_address()
+            logger.info(f"Web interface available at http://{server_ip}:8988")
         
         # Sleep with progress updates for the web interface
         sleep_start = time.time()
