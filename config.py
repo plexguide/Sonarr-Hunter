@@ -7,6 +7,9 @@ Handles all environment variables and configuration settings
 import os
 import logging
 
+# Web UI Configuration
+ENABLE_WEB_UI = os.environ.get("ENABLE_WEB_UI", "true").lower() == "true"
+
 # API Configuration
 API_KEY = os.environ.get("API_KEY", "your-api-key")
 API_URL = os.environ.get("API_URL", "http://your-sonarr-address:8989")
@@ -89,4 +92,5 @@ def log_configuration(logger):
     logger.info(f"MONITORED_ONLY={MONITORED_ONLY}, RANDOM_SELECTION={RANDOM_SELECTION}")
     logger.info(f"HUNT_MODE={HUNT_MODE}, SLEEP_DURATION={SLEEP_DURATION}s")
     logger.info(f"COMMAND_WAIT_DELAY={COMMAND_WAIT_DELAY}, COMMAND_WAIT_ATTEMPTS={COMMAND_WAIT_ATTEMPTS}")
+    logger.info(f"ENABLE_WEB_UI={ENABLE_WEB_UI}")
     logger.debug(f"API_KEY={API_KEY}")
