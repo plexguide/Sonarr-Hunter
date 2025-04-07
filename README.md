@@ -263,7 +263,7 @@ docker run -d --name huntarr-sonarr \
   -e API_TIMEOUT="60" \
   -e MONITORED_ONLY="true" \
   -e HUNT_MISSING_SHOWS="1" \
-  -e HUNT_UPGRADE_EPISODES="5" \
+  -e HUNT_UPGRADE_EPISODES="0" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
@@ -303,7 +303,7 @@ services:
       API_TIMEOUT: "60"
       MONITORED_ONLY: "true"
       HUNT_MISSING_SHOWS: "1"
-      HUNT_UPGRADE_EPISODES: "5"
+      HUNT_UPGRADE_EPISODES: "0"
       SLEEP_DURATION: "900"
       RANDOM_SELECTION: "true"
       STATE_RESET_INTERVAL_HOURS: "168"
@@ -337,7 +337,7 @@ docker run -d --name huntarr-sonarr \
   -e API_TIMEOUT="60" \
   -e MONITORED_ONLY="true" \
   -e HUNT_MISSING_SHOWS="1" \
-  -e HUNT_UPGRADE_EPISODES="5" \
+  -e HUNT_UPGRADE_EPISODES="0" \
   -e SLEEP_DURATION="900" \
   -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
@@ -374,7 +374,7 @@ Environment="API_URL=http://localhost:8989"
 Environment="API_TIMEOUT=60"
 Environment="MONITORED_ONLY=true"
 Environment="HUNT_MISSING_SHOWS=1"
-Environment="HUNT_UPGRADE_EPISODES=5"
+Environment="HUNT_UPGRADE_EPISODES=0"
 Environment="SLEEP_DURATION=900"
 Environment="RANDOM_SELECTION=true"
 Environment="STATE_RESET_INTERVAL_HOURS=168"
