@@ -204,7 +204,7 @@ Huntarr-Sonarr includes a real-time log viewer web interface that allows you to 
 
 <table>
   <tr>
-    <td colspan="2"><img src=https://github.com/user-attachments/assets/14fee34f-a6e5-4f77-81fa-f50fd3edf9c1" width="100%"/></td>
+    <td colspan="2"><img src=https://github.com/user-attachments/assets/14fee34f-a6e5-4f77-81fa-f50fd3edf9c1" width="30%"/></td>
   </tr>
 </table>
 
