@@ -231,34 +231,20 @@ body {
     color: var(--debug-color);
 }
 
-.donation-banner {
-    padding: 10px 20px;
-    background-color: var(--donation-banner-bg);
-    border-top: 1px solid var(--donation-banner-border);
-    text-align: center;
-    font-size: 14px;
-}
-
-.donation-banner a {
-    color: var(--button-bg);
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.donation-banner a:hover {
-    text-decoration: underline;
-}
-
 .footer {
     text-align: center;
-    padding: 20px 0;
+    padding: 15px 0;
     font-size: 14px;
-    opacity: 0.7;
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    border-radius: 10px;
+    margin-top: 20px;
 }
 
 .footer a {
-    color: var(--text-color);
+    color: var(--button-bg);
     text-decoration: none;
+    font-weight: bold;
 }
 
 .footer a:hover {
