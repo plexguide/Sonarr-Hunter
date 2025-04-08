@@ -237,4 +237,38 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (event.data.includes(' - WARNING - ')) {
                 logEntry.classList.add('log-warning');
             } else if (event.data.includes(' - ERROR - ')) {
-                logEntry.classList.ad
+                logEntry.classList.add('log-error');
+            } else if (event.data.includes(' - DEBUG - ')) {
+                logEntry.classList.add('log-debug');
+            }
+            
+            logEntry.textContent = event.data;
+            logsElement.appendChild(logEntry);
+            
+            // Auto-scroll to bottom if enabled
+            scrollToBottom();
+        };
+    }
+    
+    // Observe scroll event to detect manual scrolling
+    logsElement.addEventListener('scroll', function() {
+        // If we're at the bottom or near it (within 20px), ensure auto-scroll stays on
+        const atBottom = (logsElement.scrollHeight - logsElement.scrollTop - logsElement.clientHeight) < 20;
+        if (!atBottom && autoScrollCheckbox.checked) {
+            // User manually scrolled up, disable auto-scroll
+            autoScrollCheckbox.checked = false;
+        }
+    });
+    
+    // Re-enable auto-scroll when checkbox is checked
+    autoScrollCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            scrollToBottom();
+        }
+    });
+    
+    // Initialize
+    loadTheme();
+    updateSleepDurationDisplay();
+    connectEventSource();
+});
