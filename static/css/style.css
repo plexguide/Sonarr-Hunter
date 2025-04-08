@@ -80,6 +80,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    justify-content: space-between; /* Distribute space better */
 }
 
 .header {
@@ -148,6 +149,7 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    margin-bottom: 20px; /* Add margin to separate from footer */
 }
 
 .log-controls {
@@ -207,7 +209,8 @@ body {
     font-family: monospace;
     white-space: pre-wrap;
     word-wrap: break-word;
-    max-height: 60vh; /* Fixed height for logs container */
+    height: calc(65vh - 120px); /* Adjust height to fill available space */
+    min-height: 300px; /* Minimum height so it's not too small */
 }
 
 .log-entry {
@@ -238,7 +241,7 @@ body {
     background-color: var(--header-bg);
     color: var(--header-text);
     border-radius: 10px;
-    margin-top: 20px;
+    margin-top: 0; /* Remove top margin to close the gap */
 }
 
 .footer a {
