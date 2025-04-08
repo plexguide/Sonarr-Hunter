@@ -89,3 +89,48 @@ HUNT_MODE = os.environ.get("HUNT_MODE", "both")
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "false").lower() == "true"
 
 def refresh_settings():
+    """Refresh configuration settings from the settings manager."""
+    global HUNT_MISSING_SHOWS, HUNT_UPGRADE_EPISODES, SLEEP_DURATION
+    global STATE_RESET_INTERVAL_HOURS, MONITORED_ONLY, RANDOM_SELECTION
+    global SKIP_FUTURE_EPISODES, SKIP_SERIES_REFRESH
+    
+    # Load settings directly from settings manager
+    settings = settings_manager.get_all_settings()
+    huntarr_settings = settings.get("huntarr", {})
+    
+    # Update global variables with fresh values
+    HUNT_MISSING_SHOWS = huntarr_settings.get("hunt_missing_shows", HUNT_MISSING_SHOWS)
+    HUNT_UPGRADE_EPISODES = huntarr_settings.get("hunt_upgrade_episodes", HUNT_UPGRADE_EPISODES)
+    SLEEP_DURATION = huntarr_settings.get("sleep_duration", SLEEP_DURATION)
+    STATE_RESET_INTERVAL_HOURS = huntarr_settings.get("state_reset_interval_hours", STATE_RESET_INTERVAL_HOURS)
+    MONITORED_ONLY = huntarr_settings.get("monitored_only", MONITORED_ONLY)
+    RANDOM_SELECTION = huntarr_settings.get("random_selection", RANDOM_SELECTION)
+    SKIP_FUTURE_EPISODES = huntarr_settings.get("skip_future_episodes", SKIP_FUTURE_EPISODES)
+    SKIP_SERIES_REFRESH = huntarr_settings.get("skip_series_refresh", SKIP_SERIES_REFRESH)
+    
+    # Log the refresh for debugging
+    import logging
+    logger = logging.getLogger("huntarr-sonarr")
+    logger.debug(f"Settings refreshed: SLEEP_DURATION={SLEEP_DURATION}, HUNT_MISSING_SHOWS={HUNT_MISSING_SHOWS}")
+
+def log_configuration(logger):
+    """Log the current configuration settings"""
+    # Refresh settings from the settings manager
+    refresh_settings()
+    
+    logger.info("=== Huntarr [Sonarr Edition] Starting ===")
+    logger.info(f"API URL: {API_URL}")
+    logger.info(f"API Timeout: {API_TIMEOUT}s")
+    logger.info(f"Missing Content Configuration: HUNT_MISSING_SHOWS={HUNT_MISSING_SHOWS}")
+    logger.info(f"Upgrade Configuration: HUNT_UPGRADE_EPISODES={HUNT_UPGRADE_EPISODES}")
+    logger.info(f"State Reset Interval: {STATE_RESET_INTERVAL_HOURS} hours")
+    logger.info(f"Minimum Download Queue Size: {MINIMUM_DOWNLOAD_QUEUE_SIZE}")
+    logger.info(f"MONITORED_ONLY={MONITORED_ONLY}, RANDOM_SELECTION={RANDOM_SELECTION}")
+    logger.info(f"HUNT_MODE={HUNT_MODE}, SLEEP_DURATION={SLEEP_DURATION}s")
+    logger.info(f"COMMAND_WAIT_DELAY={COMMAND_WAIT_DELAY}, COMMAND_WAIT_ATTEMPTS={COMMAND_WAIT_ATTEMPTS}")
+    logger.info(f"SKIP_FUTURE_EPISODES={SKIP_FUTURE_EPISODES}, SKIP_SERIES_REFRESH={SKIP_SERIES_REFRESH}")
+    logger.info(f"ENABLE_WEB_UI={ENABLE_WEB_UI}")
+    logger.debug(f"API_KEY={API_KEY}")
+
+# Initial refresh of settings
+refresh_settings()
