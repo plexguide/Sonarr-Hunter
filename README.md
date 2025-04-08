@@ -209,7 +209,7 @@ Huntarr-Sonarr includes a real-time log viewer and settings management web inter
 <table>
   <tr>
     <td colspan="2"> 
-      <img width="75%" alt="image" src="https://github.com/user-attachments/assets/a076ea7e-9a7a-4e9b-a631-fa672068851d" />
+      <img width="100%" alt="image" src="https://github.com/user-attachments/assets/a076ea7e-9a7a-4e9b-a631-fa672068851d" />
       <p align="center"><em>Logger UI</em></p>
     </td>
   </tr>
@@ -238,6 +238,15 @@ The URL will be displayed in the logs when Huntarr starts, using the same hostna
 ### Web UI Settings
 
 The web interface allows you to configure all of Huntarr's settings without having to restart the container:
+
+<table>
+  <tr>
+    <td colspan="2"> 
+      <img width="930" alt="image" src="https://github.com/user-attachments/assets/19aa9f3c-7641-4b82-8867-22ca2e47536b" />
+      <p align="center"><em>Settings UI</em></p>
+    </td>
+  </tr>
+</table>
 
 - **Hunt Settings**
   - **Hunt Missing Shows**: Maximum number of missing shows to process per cycle
