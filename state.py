@@ -12,7 +12,7 @@ from utils.logger import logger
 from config import STATE_RESET_INTERVAL_HOURS
 
 # State directory setup
-STATE_DIR = pathlib.Path("/tmp/huntarr-state")
+STATE_DIR = pathlib.Path("/config/stateful")
 STATE_DIR.mkdir(parents=True, exist_ok=True)
 
 PROCESSED_MISSING_FILE = STATE_DIR / "processed_missing_ids.txt"
