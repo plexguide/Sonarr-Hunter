@@ -83,6 +83,9 @@ def main_loop() -> None:
         # Calculate time until the next reset
         calculate_reset_time()
         
+        # Refresh settings before sleep to get the latest sleep_duration
+        refresh_settings()
+        
         # Sleep at the end of the cycle only
         logger.info(f"Cycle complete. Sleeping {SLEEP_DURATION}s before next cycle...")
         logger.info("⭐ Tool Great? Donate @ https://donate.plex.one for Daughter's College Fund!")
