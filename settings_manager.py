@@ -1,3 +1,4 @@
+cat > settings_manager.py << 'EOF'
 #!/usr/bin/env python3
 """
 Settings manager for Huntarr-Sonarr
@@ -7,8 +8,12 @@ Handles loading, saving, and providing settings from a JSON file
 import os
 import json
 import pathlib
+import logging
 from typing import Dict, Any, Optional
-from utils.logger import logger
+
+# Create a simple logger for settings_manager
+logging.basicConfig(level=logging.INFO)
+settings_logger = logging.getLogger("settings_manager")
 
 # Settings directory setup
 SETTINGS_DIR = pathlib.Path("/config/settings")
@@ -39,15 +44,15 @@ def load_settings() -> Dict[str, Any]:
         if SETTINGS_FILE.exists():
             with open(SETTINGS_FILE, 'r') as f:
                 settings = json.load(f)
-                logger.info("Settings loaded from configuration file")
+                settings_logger.info("Settings loaded from configuration file")
                 return settings
         else:
-            logger.info("No settings file found, creating with default values")
+            settings_logger.info("No settings file found, creating with default values")
             save_settings(DEFAULT_SETTINGS)
             return DEFAULT_SETTINGS
     except Exception as e:
-        logger.error(f"Error loading settings: {e}")
-        logger.info("Using default settings due to error")
+        settings_logger.error(f"Error loading settings: {e}")
+        settings_logger.info("Using default settings due to error")
         return DEFAULT_SETTINGS
 
 def save_settings(settings: Dict[str, Any]) -> bool:
@@ -55,10 +60,10 @@ def save_settings(settings: Dict[str, Any]) -> bool:
     try:
         with open(SETTINGS_FILE, 'w') as f:
             json.dump(settings, f, indent=2)
-        logger.info("Settings saved successfully")
+        settings_logger.info("Settings saved successfully")
         return True
     except Exception as e:
-        logger.error(f"Error saving settings: {e}")
+        settings_logger.error(f"Error saving settings: {e}")
         return False
 
 def update_setting(category: str, key: str, value: Any) -> bool:
@@ -76,7 +81,7 @@ def update_setting(category: str, key: str, value: Any) -> bool:
         # Save the updated settings
         return save_settings(settings)
     except Exception as e:
-        logger.error(f"Error updating setting {category}.{key}: {e}")
+        settings_logger.error(f"Error updating setting {category}.{key}: {e}")
         return False
 
 def get_setting(category: str, key: str, default: Any = None) -> Any:
@@ -85,7 +90,7 @@ def get_setting(category: str, key: str, default: Any = None) -> Any:
         settings = load_settings()
         return settings.get(category, {}).get(key, default)
     except Exception as e:
-        logger.error(f"Error getting setting {category}.{key}: {e}")
+        settings_logger.error(f"Error getting setting {category}.{key}: {e}")
         return default
 
 def get_all_settings() -> Dict[str, Any]:
@@ -95,3 +100,10 @@ def get_all_settings() -> Dict[str, Any]:
 # Initialize settings file if it doesn't exist
 if not SETTINGS_FILE.exists():
     save_settings(DEFAULT_SETTINGS)
+EOF
+
+# Copy the new file to the container
+docker cp settings_manager.py huntarr-sonarr:/app/
+
+# Start the container again
+docker start huntarr-sonarr
