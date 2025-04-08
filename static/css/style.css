@@ -1,0 +1,484 @@
+:root {
+    --background-color: #f5f5f5;
+    --text-color: #333;
+    --header-bg: #2c3e50;
+    --header-text: #ecf0f1;
+    --button-bg: #3498db;
+    --button-text: #fff;
+    --button-hover: #2980b9;
+    --log-background: #fff;
+    --log-border: #e0e0e0;
+    --log-text: #333;
+    --info-color: #2980b9;
+    --warning-color: #f39c12;
+    --error-color: #e74c3c;
+    --debug-color: #7f8c8d;
+    --switch-bg: #ccc;
+    --switch-on: #3498db;
+    --container-border: #ddd;
+    --input-border: #ccc;
+    --input-bg: #fff;
+    --settings-bg: #f9f9f9;
+    --settings-border: #e0e0e0;
+    --save-button-bg: #27ae60;
+    --save-button-hover: #219955;
+    --reset-button-bg: #e74c3c;
+    --reset-button-hover: #c0392b;
+    --donation-banner-bg: #f8f9fa;
+    --donation-banner-border: #dee2e6;
+}
+
+.dark-theme {
+    --background-color: #2c3e50;
+    --text-color: #ecf0f1;
+    --header-bg: #1a2530;
+    --header-text: #ecf0f1;
+    --button-bg: #3498db;
+    --button-text: #fff;
+    --button-hover: #2980b9;
+    --log-background: #34495e;
+    --log-border: #2c3e50;
+    --log-text: #ecf0f1;
+    --info-color: #3498db;
+    --warning-color: #f39c12;
+    --error-color: #e74c3c;
+    --debug-color: #95a5a6;
+    --switch-bg: #7f8c8d;
+    --switch-on: #3498db;
+    --container-border: #2c3e50;
+    --input-border: #7f8c8d;
+    --input-bg: #34495e;
+    --settings-bg: #34495e;
+    --settings-border: #2c3e50;
+    --save-button-bg: #27ae60;
+    --save-button-hover: #219955;
+    --reset-button-bg: #e74c3c;
+    --reset-button-hover: #c0392b;
+    --donation-banner-bg: #2c3e50;
+    --donation-banner-border: #1a2530;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1px;
+    flex-wrap: wrap;
+}
+
+.header h1 {
+    font-size: 24px;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.title-link {
+    color: var(--header-text);
+    text-decoration: none;
+}
+
+.title-link:hover {
+    text-decoration: underline;
+}
+
+.edition {
+    font-weight: normal;
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.buttons button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.buttons button:hover {
+    background-color: var(--button-hover);
+}
+
+.buttons button.active {
+    background-color: var(--button-hover);
+    font-weight: bold;
+}
+
+.content-section {
+    flex: 1;
+    background-color: var(--log-background);
+    border: 1px solid var(--container-border);
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.log-controls {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: var(--log-background);
+    border-bottom: 1px solid var(--log-border);
+    align-items: center;
+}
+
+.connection-status {
+    font-size: 14px;
+}
+
+.status-connected {
+    color: var(--save-button-bg);
+    font-weight: bold;
+}
+
+.status-disconnected {
+    color: var(--reset-button-bg);
+    font-weight: bold;
+}
+
+.auto-scroll {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.auto-scroll input {
+    margin-right: 5px;
+}
+
+.clear-button {
+    background-color: var(--reset-button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s;
+}
+
+.clear-button:hover {
+    background-color: var(--reset-button-hover);
+}
+
+.logs {
+    height: 800px; /* Fixed height */
+    padding: 20px;
+    overflow-y: auto;
+    background-color: var(--log-background);
+    color: var(--log-text);
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.log-entry {
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.log-info {
+    color: var(--info-color);
+}
+
+.log-warning {
+    color: var(--warning-color);
+}
+
+.log-error {
+    color: var(--error-color);
+}
+
+.log-debug {
+    color: var(--debug-color);
+}
+
+.footer {
+    text-align: center;
+    padding: 15px 0;
+    font-size: 14px;
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    border-radius: 10px;
+}
+
+.footer a {
+    color: var(--button-bg);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* Theme toggle styles */
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--switch-bg);
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: var(--switch-on);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+#themeLabel {
+    font-size: 14px;
+}
+
+/* Settings page styles */
+.settings-form {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+}
+
+.settings-group {
+    background-color: var(--settings-bg);
+    border: 1px solid var(--settings-border);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.settings-group h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    border-bottom: 1px solid var(--settings-border);
+    padding-bottom: 8px;
+}
+
+.setting-item {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.setting-item label {
+    width: 220px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.setting-item input[type="number"] {
+    width: 100px;
+    padding: 8px;
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.duration-input {
+    display: flex;
+    align-items: center;
+}
+
+#sleep_duration_hours {
+    margin-left: 10px;
+    font-size: 14px;
+    color: var(--info-color);
+}
+
+.setting-help {
+    width: 100%;
+    margin-top: 5px;
+    margin-left: 220px;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.settings-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.save-button {
+    background-color: var(--save-button-bg);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.save-button:hover {
+    background-color: var(--save-button-hover);
+}
+
+.reset-button {
+    background-color: var(--reset-button-bg);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.reset-button:hover {
+    background-color: var(--reset-button-hover);
+}
+
+/* Toggle switch for boolean settings */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+/* Fixed width toggle button - this is the key fix */
+.setting-item .toggle-switch {
+    width: 50px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    width: 50px; /* Fixed width */
+    bottom: 0;
+    background-color: var(--switch-bg);
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--switch-on);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .theme-toggle {
+        margin-left: 0;
+    }
+    
+    .setting-item label {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .setting-help {
+        margin-left: 0;
+    }
+}

@@ -8,7 +8,6 @@
   </tr>
 </table>
 
-
 **NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
 
 ---
@@ -198,10 +197,18 @@ The following environment variables can be configured:
   - The minimum number of items in the download queue before a new hunt is initiated.  For example if set to `5` then a new hunt will only start when there are 5 or less items marked as `downloading` in the queue.
   - This helps prevent overwhelming the queue with too many download requests at once and avoids creating a massive backlog of downloads.
   - Set to `-1` to disable this check.
-
+ 
 ## Web Interface
 
 Huntarr-Sonarr includes a real-time log viewer web interface that allows you to monitor its operation directly from your browser.
+<table>
+  <tr>
+    <td colspan="2">
+      <img src="https://github.com/user-attachments/assets/37c052cb-df00-4d61-aaa2-be8c0dd3c10e" width="100%"/>
+      <p align="center"><em>Demo Logger UI</em></p>
+    </td>
+  </tr>
+</table>
 
 ### Features
 
@@ -257,7 +264,7 @@ The simplest way to run Huntarr is via Docker:
 ```bash
 docker run -d --name huntarr-sonarr \
   --restart always \
-  -p 8988:8988 \  # Can be removed if ENABLE_WEB_UI=false
+  -p 8988:8988 \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e API_TIMEOUT="60" \
@@ -296,7 +303,7 @@ services:
     container_name: huntarr-sonarr
     restart: always
     ports:
-      - "8988:8988"  # Can be removed if ENABLE_WEB_UI=false
+      - "8988:8988"
     environment:
       API_KEY: "your-api-key"
       API_URL: "http://your-sonarr-address:8989"
@@ -331,7 +338,7 @@ Run this from Command Line in Unraid:
 ```bash
 docker run -d --name huntarr-sonarr \
   --restart always \
-  -p 8988:8988 \  # Can be removed if ENABLE_WEB_UI=false
+  -p 8988:8988 \
   -e API_KEY="your-api-key" \
   -e API_URL="http://your-sonarr-address:8989" \
   -e API_TIMEOUT="60" \
@@ -382,6 +389,7 @@ Environment="DEBUG_MODE=false"
 Environment="ENABLE_WEB_UI=true"
 Environment="SKIP_FUTURE_EPISODES=true"
 Environment="SKIP_SERIES_REFRESH=false"
+ExecStartPre=/bin/sleep 30
 ExecStart=/usr/local/bin/huntarr.sh
 Restart=on-failure
 RestartSec=10
@@ -441,5 +449,5 @@ This script helps automate the tedious process of finding missing episodes and q
 
 Thanks to: 
 
-[IntensiveCareCub](https://www.reddit.com/user/IntensiveCareCub/) for the Hunter to Huntarr idea!
-[ZPatten](https://github.com/zpatten) for adding the Queue Size and Delay Commands!
+* [IntensiveCareCub](https://www.reddit.com/user/IntensiveCareCub/) for the Hunter to Huntarr idea!
+* [ZPatten](https://github.com/zpatten) for adding the Queue Size and Delay Commands!
