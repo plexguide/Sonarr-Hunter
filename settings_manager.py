@@ -1,4 +1,3 @@
-cat > settings_manager.py << 'EOF'
 #!/usr/bin/env python3
 """
 Settings manager for Huntarr-Sonarr
@@ -100,10 +99,3 @@ def get_all_settings() -> Dict[str, Any]:
 # Initialize settings file if it doesn't exist
 if not SETTINGS_FILE.exists():
     save_settings(DEFAULT_SETTINGS)
-EOF
-
-# Copy the new file to the container
-docker cp settings_manager.py huntarr-sonarr:/app/
-
-# Start the container again
-docker start huntarr-sonarr
