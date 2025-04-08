@@ -382,6 +382,11 @@ input:checked + .slider:before {
     justify-content: flex-end;
 }
 
+.top-buttons {
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+
 .save-button {
     background-color: var(--save-button-bg);
     color: white;

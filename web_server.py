@@ -89,7 +89,7 @@ def update_settings():
         if "huntarr" in data:
             old_settings = settings_manager.get_setting("huntarr", None, {})
             for key, value in data["huntarr"].items():
-                old_value = old_settings.get(key, None)
+                old_value = old_settings.get(key, "Default")  # Use "Default" instead of None for display
                 if old_value != value:
                     changes_log.append(f"Changed {key} from {old_value} to {value}")
                 settings_manager.update_setting("huntarr", key, value)
@@ -98,7 +98,7 @@ def update_settings():
         if "ui" in data:
             old_settings = settings_manager.get_setting("ui", None, {})
             for key, value in data["ui"].items():
-                old_value = old_settings.get(key, None)
+                old_value = old_settings.get(key, "Default")  # Use "Default" instead of None for display
                 if old_value != value:
                     changes_log.append(f"Changed UI.{key} from {old_value} to {value}")
                 settings_manager.update_setting("ui", key, value)

@@ -21,8 +21,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const randomSelectionInput = document.getElementById('random_selection');
     const skipFutureEpisodesInput = document.getElementById('skip_future_episodes');
     const skipSeriesRefreshInput = document.getElementById('skip_series_refresh');
+    
+    // Button elements for saving and resetting settings
     const saveSettingsButton = document.getElementById('saveSettings');
     const resetSettingsButton = document.getElementById('resetSettings');
+    const saveSettingsBottomButton = document.getElementById('saveSettingsBottom');
+    const resetSettingsBottomButton = document.getElementById('resetSettingsBottom');
     
     // Update sleep duration display
     function updateSleepDurationDisplay() {
@@ -135,8 +139,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading settings:', error));
     }
     
-    // Save settings to API
-    saveSettingsButton.addEventListener('click', function() {
+    // Function to save settings
+    function saveSettings() {
         const settings = {
             huntarr: {
                 hunt_missing_shows: parseInt(huntMissingShowsInput.value) || 0,
@@ -169,10 +173,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error saving settings:', error);
             alert('Error saving settings: ' + error.message);
         });
-    });
+    }
     
-    // Reset settings to defaults
-    resetSettingsButton.addEventListener('click', function() {
+    // Function to reset settings
+    function resetSettings() {
         if (confirm('Are you sure you want to reset all settings to default values?')) {
             fetch('/api/settings/reset', {
                 method: 'POST'
@@ -191,7 +195,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Error resetting settings: ' + error.message);
             });
         }
-    });
+    }
+    
+    // Add event listeners to both button sets
+    saveSettingsButton.addEventListener('click', saveSettings);
+    resetSettingsButton.addEventListener('click', resetSettings);
+    
+    saveSettingsBottomButton.addEventListener('click', saveSettings);
+    resetSettingsBottomButton.addEventListener('click', resetSettings);
     
     // Event source for logs
     let eventSource;

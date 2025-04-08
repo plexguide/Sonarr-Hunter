@@ -83,8 +83,13 @@ def main_loop() -> None:
         # Calculate time until the next reset
         calculate_reset_time()
         
+        # Refresh settings before sleep to get the latest sleep_duration
+        refresh_settings()
+        # Import it directly from the settings manager to ensure latest value
+        from config import SLEEP_DURATION as CURRENT_SLEEP_DURATION
+        
         # Sleep at the end of the cycle only
-        logger.info(f"Cycle complete. Sleeping {SLEEP_DURATION}s before next cycle...")
+        logger.info(f"Cycle complete. Sleeping {CURRENT_SLEEP_DURATION}s before next cycle...")
         logger.info("⭐ Tool Great? Donate @ https://donate.plex.one for Daughter's College Fund!")
         
         # Log web UI information if enabled
@@ -94,7 +99,7 @@ def main_loop() -> None:
         
         # Sleep with progress updates for the web interface
         sleep_start = time.time()
-        sleep_end = sleep_start + SLEEP_DURATION
+        sleep_end = sleep_start + CURRENT_SLEEP_DURATION
         
         while time.time() < sleep_end:
             # Sleep in smaller chunks for more responsive shutdown
