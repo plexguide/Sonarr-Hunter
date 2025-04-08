@@ -155,13 +155,28 @@ def update_theme():
         return jsonify({"success": False, "message": str(e)}), 500
 
 def get_ip_address():
-    """Get the host's IP address or hostname for display"""
+    """Get the host's IP address from API_URL for display"""
     try:
-        hostname = socket.gethostname()
-        ip = socket.gethostbyname(hostname)
-        return ip
-    except:
-        return "localhost"
+        from urllib.parse import urlparse
+        from config import API_URL
+        
+        # Extract the hostname/IP from the API_URL
+        parsed_url = urlparse(API_URL)
+        hostname = parsed_url.netloc
+        
+        # Remove port if present
+        if ':' in hostname:
+            hostname = hostname.split(':')[0]
+            
+        return hostname
+    except Exception as e:
+        # Fallback to the current method if there's an issue
+        try:
+            hostname = socket.gethostname()
+            ip = socket.gethostbyname(hostname)
+            return ip
+        except:
+            return "localhost"
 
 if __name__ == "__main__":
     # Create a basic log entry at startup
