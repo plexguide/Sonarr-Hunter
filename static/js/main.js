@@ -107,6 +107,13 @@ document.addEventListener('DOMContentLoaded', function() {
         logsElement.innerHTML = '';
     });
     
+    // Auto-scroll function
+    function scrollToBottom() {
+        if (autoScrollCheckbox.checked) {
+            logsElement.scrollTop = logsElement.scrollHeight;
+        }
+    }
+    
     // Load settings from API
     function loadSettings() {
         fetch('/api/settings')
@@ -115,8 +122,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const huntarr = data.huntarr || {};
                 
                 // Fill form with current settings
-                huntMissingShowsInput.value = huntarr.hunt_missing_shows || 1;
-                huntUpgradeEpisodesInput.value = huntarr.hunt_upgrade_episodes || 5;
+                huntMissingShowsInput.value = huntarr.hunt_missing_shows !== undefined ? huntarr.hunt_missing_shows : 1;
+                huntUpgradeEpisodesInput.value = huntarr.hunt_upgrade_episodes !== undefined ? huntarr.hunt_upgrade_episodes : 5;
                 sleepDurationInput.value = huntarr.sleep_duration || 900;
                 updateSleepDurationDisplay();
                 stateResetIntervalInput.value = huntarr.state_reset_interval_hours || 168;
@@ -228,11 +235,26 @@ document.addEventListener('DOMContentLoaded', function() {
             logsElement.appendChild(logEntry);
             
             // Auto-scroll to bottom if enabled
-            if (autoScrollCheckbox.checked) {
-                logsElement.scrollTop = logsElement.scrollHeight;
-            }
+            scrollToBottom();
         };
     }
+    
+    // Observe scroll event to detect manual scrolling
+    logsElement.addEventListener('scroll', function() {
+        // If we're at the bottom or near it (within 20px), ensure auto-scroll stays on
+        const atBottom = (logsElement.scrollHeight - logsElement.scrollTop - logsElement.clientHeight) < 20;
+        if (!atBottom && autoScrollCheckbox.checked) {
+            // User manually scrolled up, disable auto-scroll
+            autoScrollCheckbox.checked = false;
+        }
+    });
+    
+    // Re-enable auto-scroll when checkbox is checked
+    autoScrollCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            scrollToBottom();
+        }
+    });
     
     // Initialize
     loadTheme();

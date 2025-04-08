@@ -207,6 +207,7 @@ body {
     font-family: monospace;
     white-space: pre-wrap;
     word-wrap: break-word;
+    max-height: 60vh; /* Fixed height for logs container */
 }
 
 .log-entry {
@@ -434,6 +435,11 @@ input:checked + .slider:before {
     flex-shrink: 0;
 }
 
+/* Fixed width toggle button - this is the key fix */
+.setting-item .toggle-switch {
+    width: 50px;
+}
+
 .toggle-switch input {
     opacity: 0;
     width: 0;
@@ -445,7 +451,7 @@ input:checked + .slider:before {
     cursor: pointer;
     top: 0;
     left: 0;
-    right: 0;
+    width: 50px; /* Fixed width */
     bottom: 0;
     background-color: var(--switch-bg);
     transition: .4s;
