@@ -24,6 +24,8 @@
     --save-button-hover: #219955;
     --reset-button-bg: #e74c3c;
     --reset-button-hover: #c0392b;
+    --donation-banner-bg: #f8f9fa;
+    --donation-banner-border: #dee2e6;
 }
 
 .dark-theme {
@@ -52,6 +54,8 @@
     --save-button-hover: #219955;
     --reset-button-bg: #e74c3c;
     --reset-button-hover: #c0392b;
+    --donation-banner-bg: #2c3e50;
+    --donation-banner-border: #1a2530;
 }
 
 * {
@@ -94,6 +98,15 @@ body {
     font-size: 24px;
     margin: 0;
     white-space: nowrap;
+}
+
+.title-link {
+    color: var(--header-text);
+    text-decoration: none;
+}
+
+.title-link:hover {
+    text-decoration: underline;
 }
 
 .edition {
@@ -215,6 +228,24 @@ body {
 
 .log-debug {
     color: var(--debug-color);
+}
+
+.donation-banner {
+    padding: 10px 20px;
+    background-color: var(--donation-banner-bg);
+    border-top: 1px solid var(--donation-banner-border);
+    text-align: center;
+    font-size: 14px;
+}
+
+.donation-banner a {
+    color: var(--button-bg);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.donation-banner a:hover {
+    text-decoration: underline;
 }
 
 .footer {
@@ -340,6 +371,17 @@ input:checked + .slider:before {
     color: var(--text-color);
 }
 
+.duration-input {
+    display: flex;
+    align-items: center;
+}
+
+#sleep_duration_hours {
+    margin-left: 10px;
+    font-size: 14px;
+    color: var(--info-color);
+}
+
 .setting-help {
     width: 100%;
     margin-top: 5px;
@@ -389,6 +431,7 @@ input:checked + .slider:before {
     display: inline-block;
     width: 50px;
     height: 24px;
+    flex-shrink: 0;
 }
 
 .toggle-switch input {

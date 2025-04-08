@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Huntarr <span class="edition">[Sonarr Edition]</span></h1>
+            <h1><a href="https://github.com/plexguide/huntarr-sonarr" target="_blank" class="title-link">Huntarr <span class="edition">[Sonarr Edition]</span></a></h1>
             <div class="buttons">
                 <button id="logsButton" class="active">Logs</button>
                 <button id="settingsButton">Settings</button>
@@ -38,6 +38,9 @@
                 <button id="clearLogs" class="clear-button">Clear Logs</button>
             </div>
             <div id="logs" class="logs"></div>
+            <div class="donation-banner">
+                <p>⭐ Tool Great? <a href="https://donate.plex.one" target="_blank">Donate @ donate.plex.one</a> for Daughter's College Fund! Also, please <a href="https://github.com/plexguide/huntarr-sonarr" target="_blank">star the project on GitHub</a> if you find it useful!</p>
+            </div>
         </div>
 
         <div id="settingsContainer" class="content-section" style="display: none;">
@@ -61,8 +64,11 @@
                     <h3>Timing Settings</h3>
                     <div class="setting-item">
                         <label for="sleep_duration">Sleep Duration (seconds):</label>
-                        <input type="number" id="sleep_duration" min="60" step="60">
-                        <p class="setting-help">Time to wait between cycles in seconds (min: 60)</p>
+                        <div class="duration-input">
+                            <input type="number" id="sleep_duration" min="60" step="60">
+                            <span id="sleep_duration_hours">≈ 15 minutes</span>
+                        </div>
+                        <p class="setting-help">Time to wait between cycles in seconds (minimum 60 seconds)</p>
                     </div>
                     <div class="setting-item">
                         <label for="state_reset_interval_hours">State Reset Interval (hours):</label>
