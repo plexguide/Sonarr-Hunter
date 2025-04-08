@@ -209,7 +209,7 @@ Huntarr-Sonarr includes a real-time log viewer and settings management web inter
 <table>
   <tr>
     <td colspan="2"> 
-      <img width="931" alt="image" src="https://github.com/user-attachments/assets/a076ea7e-9a7a-4e9b-a631-fa672068851d" />
+      <img width="75%" alt="image" src="https://github.com/user-attachments/assets/a076ea7e-9a7a-4e9b-a631-fa672068851d" />
       <p align="center"><em>Logger UI</em></p>
     </td>
   </tr>
