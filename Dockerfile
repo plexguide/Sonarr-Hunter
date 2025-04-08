@@ -6,16 +6,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install Flask for the web interface
 RUN pip install --no-cache-dir flask
 # Copy application files
-COPY main.py config.py api.py state.py ./
-COPY missing.py upgrade.py ./
-COPY web_server.py ./
+COPY *.py ./
 COPY utils/ ./utils/
+COPY web_server.py ./
 # Create templates directory and copy index.html
 RUN mkdir -p templates static/css static/js
 COPY templates/ ./templates/
 COPY static/ ./static/
 # Create required directories
-RUN mkdir -p /tmp/huntarr-logs
 RUN mkdir -p /config/stateful /config/settings
 # Default environment variables
 ENV API_KEY="your-api-key" \
