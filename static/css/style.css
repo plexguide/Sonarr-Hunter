@@ -199,7 +199,7 @@ body {
 }
 
 .logs {
-    height: 500px; /* Fixed height */
+    height: 800px; /* Fixed height */
     padding: 20px;
     overflow-y: auto;
     background-color: var(--log-background);
