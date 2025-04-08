@@ -1,6 +1,10 @@
 #!/bin/sh
 # Startup script for Huntarr-Sonarr that conditionally starts the web UI
 
+# Ensure the configuration directories exist and have proper permissions
+mkdir -p /config/settings /config/stateful
+chmod -R 755 /config
+
 # Convert to lowercase
 ENABLE_WEB_UI=$(echo "${ENABLE_WEB_UI:-true}" | tr '[:upper:]' '[:lower:]')
 

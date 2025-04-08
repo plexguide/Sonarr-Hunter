@@ -197,7 +197,7 @@ The following environment variables can be configured:
   - The minimum number of items in the download queue before a new hunt is initiated.  For example if set to `5` then a new hunt will only start when there are 5 or less items marked as `downloading` in the queue.
   - This helps prevent overwhelming the queue with too many download requests at once and avoids creating a massive backlog of downloads.
   - Set to `-1` to disable this check.
-
+ 
 ## Web Interface
 
 Huntarr-Sonarr includes a real-time log viewer web interface that allows you to monitor its operation directly from your browser.

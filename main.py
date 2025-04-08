@@ -9,7 +9,7 @@ import sys
 import os
 import socket
 from utils.logger import logger
-from config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, ENABLE_WEB_UI, log_configuration
+from config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, ENABLE_WEB_UI, log_configuration, refresh_settings
 from missing import process_missing_episodes
 from upgrade import process_cutoff_upgrades
 from state import check_state_reset, calculate_reset_time
@@ -40,6 +40,9 @@ def main_loop() -> None:
     logger.info("GitHub: https://github.com/plexguide/huntarr-sonarr")
     
     while True:
+        # Refresh settings from the settings manager before each cycle
+        refresh_settings()
+        
         # Check if state files need to be reset
         check_state_reset()
         
