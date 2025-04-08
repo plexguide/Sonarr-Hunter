@@ -16,15 +16,28 @@ from state import check_state_reset, calculate_reset_time
 from api import get_download_queue_size
 
 def get_ip_address():
-    """Get the host's IP address or hostname for display"""
+    """Get the host's IP address from API_URL for display"""
     try:
-        # Try to get the container's hostname
-        hostname = socket.gethostname()
-        # Try to get the container's IP
-        ip = socket.gethostbyname(hostname)
-        return ip
-    except:
-        return "YOUR_SERVER_IP"
+        from urllib.parse import urlparse
+        from config import API_URL
+        
+        # Extract the hostname/IP from the API_URL
+        parsed_url = urlparse(API_URL)
+        hostname = parsed_url.netloc
+        
+        # Remove port if present
+        if ':' in hostname:
+            hostname = hostname.split(':')[0]
+            
+        return hostname
+    except Exception as e:
+        # Fallback to the current method if there's an issue
+        try:
+            hostname = socket.gethostname()
+            ip = socket.gethostbyname(hostname)
+            return ip
+        except:
+            return "YOUR_SERVER_IP"
 
 def main_loop() -> None:
     """Main processing loop for Huntarr-Sonarr"""
