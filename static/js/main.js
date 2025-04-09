@@ -1,506 +1,387 @@
-:root {
-    --background-color: #f5f5f5;
-    --text-color: #333;
-    --header-bg: #2c3e50;
-    --header-text: #ecf0f1;
-    --button-bg: #3498db;
-    --button-text: #fff;
-    --button-hover: #2980b9;
-    --log-background: #fff;
-    --log-border: #e0e0e0;
-    --log-text: #333;
-    --info-color: #2980b9;
-    --warning-color: #f39c12;
-    --error-color: #e74c3c;
-    --debug-color: #7f8c8d;
-    --switch-bg: #ccc;
-    --switch-on: #3498db;
-    --container-border: #ddd;
-    --input-border: #ccc;
-    --input-bg: #fff;
-    --settings-bg: #f9f9f9;
-    --settings-border: #e0e0e0;
-    --save-button-bg: #27ae60;
-    --save-button-hover: #219955;
-    --reset-button-bg: #e74c3c;
-    --reset-button-hover: #c0392b;
-    --donation-banner-bg: #f8f9fa;
-    --donation-banner-border: #dee2e6;
-}
-
-.dark-theme {
-    --background-color: #2c3e50;
-    --text-color: #ecf0f1;
-    --header-bg: #1a2530;
-    --header-text: #ecf0f1;
-    --button-bg: #3498db;
-    --button-text: #fff;
-    --button-hover: #2980b9;
-    --log-background: #34495e;
-    --log-border: #2c3e50;
-    --log-text: #ecf0f1;
-    --info-color: #3498db;
-    --warning-color: #f39c12;
-    --error-color: #e74c3c;
-    --debug-color: #95a5a6;
-    --switch-bg: #7f8c8d;
-    --switch-on: #3498db;
-    --container-border: #2c3e50;
-    --input-border: #7f8c8d;
-    --input-bg: #34495e;
-    --settings-bg: #34495e;
-    --settings-border: #2c3e50;
-    --save-button-bg: #27ae60;
-    --save-button-hover: #219955;
-    --reset-button-bg: #e74c3c;
-    --reset-button-hover: #c0392b;
-    --donation-banner-bg: #2c3e50;
-    --donation-banner-border: #1a2530;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    line-height: 1.6;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-.container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.header {
-    background-color: var(--header-bg);
-    color: var(--header-text);
-    padding: 20px;
-    border-radius: 10px 10px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1px;
-    flex-wrap: wrap;
-}
-
-.header h1 {
-    font-size: 24px;
-    margin: 0;
-    white-space: nowrap;
-}
-
-.title-link {
-    color: var(--header-text);
-    text-decoration: none;
-}
-
-.title-link:hover {
-    text-decoration: underline;
-}
-
-.edition {
-    font-weight: normal;
-    font-style: italic;
-    opacity: 0.8;
-}
-
-.buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.buttons button {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s;
-}
-
-.buttons button:hover {
-    background-color: var(--button-hover);
-}
-
-.buttons button.active {
-    background-color: var(--button-hover);
-    font-weight: bold;
-}
-
-.content-section {
-    flex: 1;
-    background-color: var(--log-background);
-    border: 1px solid var(--container-border);
-    border-radius: 0 0 10px 10px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
-}
-
-.log-controls {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 20px;
-    background-color: var(--log-background);
-    border-bottom: 1px solid var(--log-border);
-    align-items: center;
-}
-
-.connection-status {
-    font-size: 14px;
-}
-
-.status-connected {
-    color: var(--save-button-bg);
-    font-weight: bold;
-}
-
-.status-disconnected {
-    color: var(--reset-button-bg);
-    font-weight: bold;
-}
-
-.auto-scroll {
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-}
-
-.auto-scroll input {
-    margin-right: 5px;
-}
-
-.clear-button {
-    background-color: var(--reset-button-bg);
-    color: var(--button-text);
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.3s;
-}
-
-.clear-button:hover {
-    background-color: var(--reset-button-hover);
-}
-
-.logs {
-    height: 800px; /* Fixed height */
-    padding: 20px;
-    overflow-y: auto;
-    background-color: var(--log-background);
-    color: var(--log-text);
-    font-family: monospace;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-.log-entry {
-    margin-bottom: 5px;
-    line-height: 1.4;
-}
-
-.log-info {
-    color: var(--info-color);
-}
-
-.log-warning {
-    color: var(--warning-color);
-}
-
-.log-error {
-    color: var(--error-color);
-}
-
-.log-debug {
-    color: var(--debug-color);
-}
-
-.footer {
-    text-align: center;
-    padding: 15px 0;
-    font-size: 14px;
-    background-color: var(--header-bg);
-    color: var(--header-text);
-    border-radius: 10px;
-}
-
-.footer a {
-    color: var(--button-bg);
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.footer a:hover {
-    text-decoration: underline;
-}
-
-/* Theme toggle styles */
-.theme-toggle {
-    display: flex;
-    align-items: center;
-    margin-left: 15px;
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-    margin-right: 10px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--switch-bg);
-    transition: .4s;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-}
-
-input:checked + .slider {
-    background-color: var(--switch-on);
-}
-
-input:checked + .slider:before {
-    transform: translateX(26px);
-}
-
-.slider.round {
-    border-radius: 24px;
-}
-
-.slider.round:before {
-    border-radius: 50%;
-}
-
-#themeLabel {
-    font-size: 14px;
-}
-
-/* Settings page styles */
-.settings-form {
-    padding: 20px;
-    overflow-y: auto;
-    max-height: calc(100vh - 200px);
-}
-
-.settings-group {
-    background-color: var(--settings-bg);
-    border: 1px solid var(--settings-border);
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 20px;
-}
-
-.settings-group h3 {
-    margin-bottom: 15px;
-    font-size: 18px;
-    border-bottom: 1px solid var(--settings-border);
-    padding-bottom: 8px;
-}
-
-.setting-item {
-    margin-bottom: 15px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.setting-item label {
-    width: 220px;
-    font-weight: bold;
-    margin-right: 10px;
-}
-
-.setting-item input[type="number"] {
-    width: 100px;
-    padding: 8px;
-    border: 1px solid var(--input-border);
-    border-radius: 5px;
-    background-color: var(--input-bg);
-    color: var(--text-color);
-}
-
-.duration-input {
-    display: flex;
-    align-items: center;
-}
-
-#sleep_duration_hours {
-    margin-left: 10px;
-    font-size: 14px;
-    color: var(--info-color);
-}
-
-.setting-help {
-    width: 100%;
-    margin-top: 5px;
-    margin-left: 220px;
-    font-size: 12px;
-    opacity: 0.7;
-}
-
-.settings-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    justify-content: flex-end;
-}
-
-.top-buttons {
-    margin-bottom: 20px;
-    margin-top: 10px;
-}
-
-.save-button {
-    background-color: var(--save-button-bg);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.save-button:hover {
-    background-color: var(--save-button-hover);
-}
-
-.reset-button {
-    background-color: var(--reset-button-bg);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.reset-button:hover {
-    background-color: var(--reset-button-hover);
-}
-
-/* Toggle switch for boolean settings */
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-    flex-shrink: 0;
-}
-
-/* Fixed width toggle button - this is the key fix */
-.setting-item .toggle-switch {
-    width: 50px;
-}
-
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    width: 50px; /* Fixed width */
-    bottom: 0;
-    background-color: var(--switch-bg);
-    transition: .4s;
-    border-radius: 24px;
-}
-
-.toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .toggle-slider {
-    background-color: var(--switch-on);
-}
-
-input:checked + .toggle-slider:before {
-    transform: translateX(26px);
-}
-
-/* Disabled button styles */
-.disabled-button {
-    background-color: #cccccc !important;
-    color: #666666 !important;
-    cursor: not-allowed !important;
-    opacity: 0.7;
-}
-
-/* Adjust the existing save button styles to ensure they work with the disabled state */
-.save-button:hover:not(.disabled-button) {
-    background-color: var(--save-button-hover);
-}
-
-.reset-button:hover:not(.disabled-button) {
-    background-color: var(--reset-button-hover);
-}
-
-@media (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const logsButton = document.getElementById('logsButton');
+    const settingsButton = document.getElementById('settingsButton');
+    const logsContainer = document.getElementById('logsContainer');
+    const settingsContainer = document.getElementById('settingsContainer');
+    const logsElement = document.getElementById('logs');
+    const statusElement = document.getElementById('status');
+    const clearLogsButton = document.getElementById('clearLogs');
+    const autoScrollCheckbox = document.getElementById('autoScroll');
+    const themeToggle = document.getElementById('themeToggle');
+    const themeLabel = document.getElementById('themeLabel');
+    
+    // Settings form elements - Basic settings
+    const huntMissingShowsInput = document.getElementById('hunt_missing_shows');
+    const huntUpgradeEpisodesInput = document.getElementById('hunt_upgrade_episodes');
+    const sleepDurationInput = document.getElementById('sleep_duration');
+    const sleepDurationHoursSpan = document.getElementById('sleep_duration_hours');
+    const stateResetIntervalInput = document.getElementById('state_reset_interval_hours');
+    const monitoredOnlyInput = document.getElementById('monitored_only');
+    const randomMissingInput = document.getElementById('random_missing');
+    const randomUpgradesInput = document.getElementById('random_upgrades');
+    const skipFutureEpisodesInput = document.getElementById('skip_future_episodes');
+    const skipSeriesRefreshInput = document.getElementById('skip_series_refresh');
+    
+    // Settings form elements - Advanced settings
+    const apiTimeoutInput = document.getElementById('api_timeout');
+    const debugModeInput = document.getElementById('debug_mode');
+    const commandWaitDelayInput = document.getElementById('command_wait_delay');
+    const commandWaitAttemptsInput = document.getElementById('command_wait_attempts');
+    const minimumDownloadQueueSizeInput = document.getElementById('minimum_download_queue_size');
+    
+    // Button elements for saving and resetting settings
+    const saveSettingsButton = document.getElementById('saveSettings');
+    const resetSettingsButton = document.getElementById('resetSettings');
+    const saveSettingsBottomButton = document.getElementById('saveSettingsBottom');
+    const resetSettingsBottomButton = document.getElementById('resetSettingsBottom');
+    
+    // Store original settings values
+    let originalSettings = {};
+    
+    // Update sleep duration display
+    function updateSleepDurationDisplay() {
+        const seconds = parseInt(sleepDurationInput.value) || 900;
+        let displayText = '';
+        
+        if (seconds < 60) {
+            displayText = `${seconds} seconds`;
+        } else if (seconds < 3600) {
+            const minutes = Math.floor(seconds / 60);
+            displayText = `≈ ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+        } else {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            if (minutes === 0) {
+                displayText = `≈ ${hours} hour${hours !== 1 ? 's' : ''}`;
+            } else {
+                displayText = `≈ ${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+            }
+        }
+        
+        sleepDurationHoursSpan.textContent = displayText;
     }
     
-    .theme-toggle {
-        margin-left: 0;
+    sleepDurationInput.addEventListener('input', function() {
+        updateSleepDurationDisplay();
+        checkForChanges();
+    });
+    
+    // Theme management
+    function loadTheme() {
+        fetch('/api/settings/theme')
+            .then(response => response.json())
+            .then(data => {
+                const isDarkMode = data.dark_mode || false;
+                setTheme(isDarkMode);
+                themeToggle.checked = isDarkMode;
+                themeLabel.textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
+            })
+            .catch(error => console.error('Error loading theme:', error));
     }
     
-    .setting-item label {
-        width: 100%;
-        margin-bottom: 5px;
+    function setTheme(isDark) {
+        if (isDark) {
+            document.body.classList.add('dark-theme');
+            themeLabel.textContent = 'Dark Mode';
+        } else {
+            document.body.classList.remove('dark-theme');
+            themeLabel.textContent = 'Light Mode';
+        }
     }
     
-    .setting-help {
-        margin-left: 0;
+    themeToggle.addEventListener('change', function() {
+        const isDarkMode = this.checked;
+        setTheme(isDarkMode);
+        
+        fetch('/api/settings/theme', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ dark_mode: isDarkMode })
+        })
+        .catch(error => console.error('Error saving theme:', error));
+    });
+    
+    // Tab switching
+    logsButton.addEventListener('click', function() {
+        logsContainer.style.display = 'flex';
+        settingsContainer.style.display = 'none';
+        logsButton.classList.add('active');
+        settingsButton.classList.remove('active');
+    });
+    
+    settingsButton.addEventListener('click', function() {
+        logsContainer.style.display = 'none';
+        settingsContainer.style.display = 'flex';
+        settingsButton.classList.add('active');
+        logsButton.classList.remove('active');
+        loadSettings();
+    });
+    
+    // Log management
+    clearLogsButton.addEventListener('click', function() {
+        logsElement.innerHTML = '';
+    });
+    
+    // Auto-scroll function
+    function scrollToBottom() {
+        if (autoScrollCheckbox.checked) {
+            logsElement.scrollTop = logsElement.scrollHeight;
+        }
     }
-}
+    
+    // Function to check if settings have changed from original values
+    function checkForChanges() {
+        if (!originalSettings.huntarr) return; // Don't check if original settings not loaded
+        
+        let hasChanges = false;
+        
+        // Check Basic Settings
+        if (parseInt(huntMissingShowsInput.value) !== originalSettings.huntarr.hunt_missing_shows) hasChanges = true;
+        if (parseInt(huntUpgradeEpisodesInput.value) !== originalSettings.huntarr.hunt_upgrade_episodes) hasChanges = true;
+        if (parseInt(sleepDurationInput.value) !== originalSettings.huntarr.sleep_duration) hasChanges = true;
+        if (parseInt(stateResetIntervalInput.value) !== originalSettings.huntarr.state_reset_interval_hours) hasChanges = true;
+        if (monitoredOnlyInput.checked !== originalSettings.huntarr.monitored_only) hasChanges = true;
+        if (skipFutureEpisodesInput.checked !== originalSettings.huntarr.skip_future_episodes) hasChanges = true;
+        if (skipSeriesRefreshInput.checked !== originalSettings.huntarr.skip_series_refresh) hasChanges = true;
+        
+        // Check Advanced Settings
+        if (parseInt(apiTimeoutInput.value) !== originalSettings.advanced.api_timeout) hasChanges = true;
+        if (debugModeInput.checked !== originalSettings.advanced.debug_mode) hasChanges = true;
+        if (parseInt(commandWaitDelayInput.value) !== originalSettings.advanced.command_wait_delay) hasChanges = true;
+        if (parseInt(commandWaitAttemptsInput.value) !== originalSettings.advanced.command_wait_attempts) hasChanges = true;
+        if (parseInt(minimumDownloadQueueSizeInput.value) !== originalSettings.advanced.minimum_download_queue_size) hasChanges = true;
+        if (randomMissingInput.checked !== originalSettings.advanced.random_missing) hasChanges = true;
+        if (randomUpgradesInput.checked !== originalSettings.advanced.random_upgrades) hasChanges = true;
+        
+        // Enable/disable save buttons based on whether there are changes
+        saveSettingsButton.disabled = !hasChanges;
+        saveSettingsBottomButton.disabled = !hasChanges;
+        
+        // Apply visual indicator based on disabled state
+        if (hasChanges) {
+            saveSettingsButton.classList.remove('disabled-button');
+            saveSettingsBottomButton.classList.remove('disabled-button');
+        } else {
+            saveSettingsButton.classList.add('disabled-button');
+            saveSettingsBottomButton.classList.add('disabled-button');
+        }
+        
+        return hasChanges;
+    }
+    
+    // Add change event listeners to all form elements
+    [huntMissingShowsInput, huntUpgradeEpisodesInput, stateResetIntervalInput, 
+     apiTimeoutInput, commandWaitDelayInput, commandWaitAttemptsInput, 
+     minimumDownloadQueueSizeInput].forEach(input => {
+        input.addEventListener('input', checkForChanges);
+    });
+    
+    [monitoredOnlyInput, randomMissingInput, randomUpgradesInput, 
+     skipFutureEpisodesInput, skipSeriesRefreshInput, debugModeInput].forEach(checkbox => {
+        checkbox.addEventListener('change', checkForChanges);
+    });
+    
+    // Load settings from API
+    function loadSettings() {
+        fetch('/api/settings')
+            .then(response => response.json())
+            .then(data => {
+                const huntarr = data.huntarr || {};
+                const advanced = data.advanced || {};
+                
+                // Store original settings for comparison
+                originalSettings = JSON.parse(JSON.stringify(data));
+                
+                // Fill form with current settings - Basic settings
+                huntMissingShowsInput.value = huntarr.hunt_missing_shows !== undefined ? huntarr.hunt_missing_shows : 1;
+                huntUpgradeEpisodesInput.value = huntarr.hunt_upgrade_episodes !== undefined ? huntarr.hunt_upgrade_episodes : 5;
+                sleepDurationInput.value = huntarr.sleep_duration || 900;
+                updateSleepDurationDisplay();
+                stateResetIntervalInput.value = huntarr.state_reset_interval_hours || 168;
+                monitoredOnlyInput.checked = huntarr.monitored_only !== false;
+                skipFutureEpisodesInput.checked = huntarr.skip_future_episodes !== false;
+                skipSeriesRefreshInput.checked = huntarr.skip_series_refresh === true;
+                
+                // Fill form with current settings - Advanced settings
+                apiTimeoutInput.value = advanced.api_timeout || 60;
+                debugModeInput.checked = advanced.debug_mode === true;
+                commandWaitDelayInput.value = advanced.command_wait_delay || 1;
+                commandWaitAttemptsInput.value = advanced.command_wait_attempts || 600;
+                minimumDownloadQueueSizeInput.value = advanced.minimum_download_queue_size || -1;
+                
+                // Handle random settings
+                randomMissingInput.checked = advanced.random_missing !== false;
+                randomUpgradesInput.checked = advanced.random_upgrades !== false;
+                
+                // Initialize save buttons state
+                saveSettingsButton.disabled = true;
+                saveSettingsBottomButton.disabled = true;
+                saveSettingsButton.classList.add('disabled-button');
+                saveSettingsBottomButton.classList.add('disabled-button');
+            })
+            .catch(error => console.error('Error loading settings:', error));
+    }
+    
+    // Function to save settings
+    function saveSettings() {
+        if (!checkForChanges()) {
+            // If no changes, don't do anything
+            return;
+        }
+        
+        const settings = {
+            huntarr: {
+                hunt_missing_shows: parseInt(huntMissingShowsInput.value) || 0,
+                hunt_upgrade_episodes: parseInt(huntUpgradeEpisodesInput.value) || 0,
+                sleep_duration: parseInt(sleepDurationInput.value) || 900,
+                state_reset_interval_hours: parseInt(stateResetIntervalInput.value) || 168,
+                monitored_only: monitoredOnlyInput.checked,
+                skip_future_episodes: skipFutureEpisodesInput.checked,
+                skip_series_refresh: skipSeriesRefreshInput.checked
+            },
+            advanced: {
+                api_timeout: parseInt(apiTimeoutInput.value) || 60,
+                debug_mode: debugModeInput.checked,
+                command_wait_delay: parseInt(commandWaitDelayInput.value) || 1,
+                command_wait_attempts: parseInt(commandWaitAttemptsInput.value) || 600,
+                minimum_download_queue_size: parseInt(minimumDownloadQueueSizeInput.value) || -1,
+                random_missing: randomMissingInput.checked,
+                random_upgrades: randomUpgradesInput.checked
+            }
+        };
+        
+        fetch('/api/settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update original settings after successful save
+                originalSettings = JSON.parse(JSON.stringify(settings));
+                
+                // Disable save buttons
+                saveSettingsButton.disabled = true;
+                saveSettingsBottomButton.disabled = true;
+                saveSettingsButton.classList.add('disabled-button');
+                saveSettingsBottomButton.classList.add('disabled-button');
+                
+                // Show success message
+                if (data.changes_made) {
+                    alert('Settings saved successfully and cycle restarted to apply changes!');
+                } else {
+                    alert('No changes detected.');
+                }
+            } else {
+                alert('Error saving settings: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error saving settings:', error);
+            alert('Error saving settings: ' + error.message);
+        });
+    }
+    
+    // Function to reset settings
+    function resetSettings() {
+        if (confirm('Are you sure you want to reset all settings to default values?')) {
+            fetch('/api/settings/reset', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Settings reset to defaults and cycle restarted.');
+                    loadSettings();
+                } else {
+                    alert('Error resetting settings: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error resetting settings:', error);
+                alert('Error resetting settings: ' + error.message);
+            });
+        }
+    }
+    
+    // Add event listeners to both button sets
+    saveSettingsButton.addEventListener('click', saveSettings);
+    resetSettingsButton.addEventListener('click', resetSettings);
+    
+    saveSettingsBottomButton.addEventListener('click', saveSettings);
+    resetSettingsBottomButton.addEventListener('click', resetSettings);
+    
+    // Event source for logs
+    let eventSource;
+    
+    function connectEventSource() {
+        if (eventSource) {
+            eventSource.close();
+        }
+        
+        eventSource = new EventSource('/logs');
+        
+        eventSource.onopen = function() {
+            statusElement.textContent = 'Connected';
+            statusElement.className = 'status-connected';
+        };
+        
+        eventSource.onerror = function() {
+            statusElement.textContent = 'Disconnected';
+            statusElement.className = 'status-disconnected';
+            
+            // Attempt to reconnect after 5 seconds
+            setTimeout(connectEventSource, 5000);
+        };
+        
+        eventSource.onmessage = function(event) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            
+            // Add appropriate class for log level
+            if (event.data.includes(' - INFO - ')) {
+                logEntry.classList.add('log-info');
+            } else if (event.data.includes(' - WARNING - ')) {
+                logEntry.classList.add('log-warning');
+            } else if (event.data.includes(' - ERROR - ')) {
+                logEntry.classList.add('log-error');
+            } else if (event.data.includes(' - DEBUG - ')) {
+                logEntry.classList.add('log-debug');
+            }
+            
+            logEntry.textContent = event.data;
+            logsElement.appendChild(logEntry);
+            
+            // Auto-scroll to bottom if enabled
+            scrollToBottom();
+        };
+    }
+    
+    // Observe scroll event to detect manual scrolling
+    logsElement.addEventListener('scroll', function() {
+        // If we're at the bottom or near it (within 20px), ensure auto-scroll stays on
+        const atBottom = (logsElement.scrollHeight - logsElement.scrollTop - logsElement.clientHeight) < 20;
+        if (!atBottom && autoScrollCheckbox.checked) {
+            // User manually scrolled up, disable auto-scroll
+            autoScrollCheckbox.checked = false;
+        }
+    });
+    
+    // Re-enable auto-scroll when checkbox is checked
+    autoScrollCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            scrollToBottom();
+        }
+    });
+    
+    // Initialize
+    loadTheme();
+    updateSleepDurationDisplay();
+    connectEventSource();
+});
