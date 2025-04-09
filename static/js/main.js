@@ -127,18 +127,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Sync random selection master with specific random options
-    randomSelectionInput.addEventListener('change', function() {
-        // If master is unchecked, disable the specific random options
-        if (!this.checked) {
-            randomMissingInput.disabled = true;
-            randomUpgradesInput.disabled = true;
-        } else {
-            randomMissingInput.disabled = false;
-            randomUpgradesInput.disabled = false;
-        }
-    });
-    
     // Load settings from API
     function loadSettings() {
         fetch('/api/settings')
@@ -164,17 +152,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 commandWaitDelayInput.value = advanced.command_wait_delay || 1;
                 commandWaitAttemptsInput.value = advanced.command_wait_attempts || 600;
                 minimumDownloadQueueSizeInput.value = advanced.minimum_download_queue_size || -1;
-                randomMissingInput.checked = advanced.random_missing !== false;
-                randomUpgradesInput.checked = advanced.random_upgrades !== false;
                 
-                // Sync random selection master with specific random options
-                if (!randomSelectionInput.checked) {
-                    randomMissingInput.disabled = true;
-                    randomUpgradesInput.disabled = true;
-                } else {
-                    randomMissingInput.disabled = false;
-                    randomUpgradesInput.disabled = false;
-                }
+                // Handle random_missing and random_upgrades
+                // If these aren't in the settings yet, default to the value of random_selection
+                randomMissingInput.checked = advanced.random_missing !== undefined 
+                    ? advanced.random_missing 
+                    : randomSelectionInput.checked;
+                    
+                randomUpgradesInput.checked = advanced.random_upgrades !== undefined 
+                    ? advanced.random_upgrades 
+                    : randomSelectionInput.checked;
             })
             .catch(error => console.error('Error loading settings:', error));
     }

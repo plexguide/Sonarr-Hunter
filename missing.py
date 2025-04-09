@@ -64,14 +64,13 @@ def process_missing_episodes() -> bool:
     shows_processed = 0
     processing_done = False
 
-    # Optionally randomize show order - use RANDOM_MISSING setting
-    # First honor the legacy RANDOM_SELECTION, then the specific RANDOM_MISSING 
-    should_randomize = RANDOM_SELECTION and RANDOM_MISSING
-    if should_randomize:
-        logger.info("Using random selection for missing shows")
+    # Use the specific RANDOM_MISSING setting 
+    # (no longer dependent on the master RANDOM_SELECTION setting)
+    if RANDOM_MISSING:
+        logger.info("Using random selection for missing shows (RANDOM_MISSING=true)")
         random.shuffle(shows_with_missing)
     else:
-        logger.info("Using sequential selection for missing shows")
+        logger.info("Using sequential selection for missing shows (RANDOM_MISSING=false)")
 
     # Get current date for future episode filtering
     current_date = datetime.datetime.now().date()

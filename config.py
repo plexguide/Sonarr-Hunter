@@ -85,9 +85,10 @@ except ValueError:
 # Debug Settings
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "false").lower() == "true"
 
-# Random selection for missing and upgrades
-RANDOM_MISSING = True  # Will be overridden by settings
-RANDOM_UPGRADES = True  # Will be overridden by settings
+# Random selection for missing and upgrades - default to RANDOM_SELECTION for backward compatibility
+# These can be overridden by environment variables or settings
+RANDOM_MISSING = os.environ.get("RANDOM_MISSING", str(RANDOM_SELECTION)).lower() == "true"
+RANDOM_UPGRADES = os.environ.get("RANDOM_UPGRADES", str(RANDOM_SELECTION)).lower() == "true"
 
 # Hunt mode: "missing", "upgrade", or "both"
 HUNT_MODE = os.environ.get("HUNT_MODE", "both")
@@ -121,14 +122,25 @@ def refresh_settings():
     COMMAND_WAIT_DELAY = advanced_settings.get("command_wait_delay", COMMAND_WAIT_DELAY)
     COMMAND_WAIT_ATTEMPTS = advanced_settings.get("command_wait_attempts", COMMAND_WAIT_ATTEMPTS)
     MINIMUM_DOWNLOAD_QUEUE_SIZE = advanced_settings.get("minimum_download_queue_size", MINIMUM_DOWNLOAD_QUEUE_SIZE)
-    RANDOM_MISSING = advanced_settings.get("random_missing", RANDOM_MISSING)
-    RANDOM_UPGRADES = advanced_settings.get("random_upgrades", RANDOM_UPGRADES)
+    
+    # Get the specific random settings - default to RANDOM_SELECTION for backward compatibility
+    # but only if not explicitly set in the advanced settings
+    if "random_missing" in advanced_settings:
+        RANDOM_MISSING = advanced_settings.get("random_missing")
+    else:
+        RANDOM_MISSING = RANDOM_SELECTION
+        
+    if "random_upgrades" in advanced_settings:
+        RANDOM_UPGRADES = advanced_settings.get("random_upgrades")
+    else:
+        RANDOM_UPGRADES = RANDOM_SELECTION
     
     # Log the refresh for debugging
     import logging
     logger = logging.getLogger("huntarr-sonarr")
     logger.debug(f"Settings refreshed: SLEEP_DURATION={SLEEP_DURATION}, HUNT_MISSING_SHOWS={HUNT_MISSING_SHOWS}")
     logger.debug(f"Advanced settings refreshed: API_TIMEOUT={API_TIMEOUT}, DEBUG_MODE={DEBUG_MODE}")
+    logger.debug(f"Random settings: RANDOM_SELECTION={RANDOM_SELECTION}, RANDOM_MISSING={RANDOM_MISSING}, RANDOM_UPGRADES={RANDOM_UPGRADES}")
 
 def log_configuration(logger):
     """Log the current configuration settings"""

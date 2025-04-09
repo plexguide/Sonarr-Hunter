@@ -46,14 +46,14 @@ def process_cutoff_upgrades() -> bool:
     # Get current date for future episode filtering
     current_date = datetime.datetime.now().date()
 
-    # Determine if we should use random selection for upgrades
-    # First honor the legacy RANDOM_SELECTION, then the specific RANDOM_UPGRADES
-    should_use_random = RANDOM_SELECTION and RANDOM_UPGRADES
+    # Use the specific RANDOM_UPGRADES setting
+    # (no longer dependent on the master RANDOM_SELECTION setting)
+    should_use_random = RANDOM_UPGRADES
     
     if should_use_random:
-        logger.info("Using random selection for quality upgrades")
+        logger.info("Using random selection for quality upgrades (RANDOM_UPGRADES=true)")
     else:
-        logger.info("Using sequential selection for quality upgrades")
+        logger.info("Using sequential selection for quality upgrades (RANDOM_UPGRADES=false)")
         page = 1
 
     while True:
@@ -171,11 +171,9 @@ def process_cutoff_upgrades() -> bool:
         # Move to the next page if using sequential mode
         if not should_use_random:
             page += 1
-        else:
-            # In random mode, we just handle one random page this iteration,
-            # then either break or keep looping until we hit HUNT_UPGRADE_EPISODES.
-            pass
-
+        # In random mode, we just handle one random page this iteration,
+        # then check if we've processed enough episodes or continue to another random page
+    
     logger.info(f"Completed processing {episodes_processed} upgrade episodes for this cycle.")
     truncate_processed_list(PROCESSED_UPGRADE_FILE)
     
