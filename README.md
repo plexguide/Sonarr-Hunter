@@ -1,4 +1,4 @@
-## Huntarr [Sonarr Edition] - Hunt Missing and Upgrade Episodes
+<h2 align="center">Huntarr [Sonarr Edition] - Hunt Missing and Upgrade Episodes</h2> 
 
 <p align="center">
   <img src="https://github.com/plexguide/Huntarr-Sonarr/blob/main/logo/128.png?raw=true" alt="Huntarr Logo" width="100" height="100">
