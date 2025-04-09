@@ -1,4 +1,4 @@
-<h2 align="center">Huntarr - Hunt Missing and Upgrade Media Items</h2> 
+<h2 align="center">Huntarr - Find Missing & Upgrade Media Items</h2> 
 
 <p align="center">
   <img src="https://github.com/plexguide/Huntarr-Sonarr/blob/main/logo/128.png?raw=true" alt="Huntarr Logo" width="100" height="100">
