@@ -5,7 +5,7 @@
 </p>
 
 ---
-**NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
+<h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2> 
 
 <table>
   <tr>
@@ -16,9 +16,6 @@
 **NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
 
 ---
-
-<h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2> 
-
 
 **Change Log:**
 Visit: https://github.com/plexguide/Huntarr-Sonarr/releases/
