@@ -10,6 +10,8 @@ import datetime
 import pathlib
 import socket
 import json
+import signal
+import sys
 from flask import Flask, render_template, Response, stream_with_context, request, jsonify, send_from_directory
 import logging
 from config import ENABLE_WEB_UI
@@ -32,6 +34,24 @@ app = Flask(__name__)
 LOG_FILE = "/tmp/huntarr-logs/huntarr.log"
 LOG_DIR = pathlib.Path("/tmp/huntarr-logs")
 LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+# Get the PID of the main process
+def get_main_process_pid():
+    try:
+        # Try to find the main.py process
+        for proc in os.listdir('/proc'):
+            if not proc.isdigit():
+                continue
+            try:
+                with open(f'/proc/{proc}/cmdline', 'r') as f:
+                    cmdline = f.read().replace('\0', ' ')
+                    if 'python' in cmdline and 'main.py' in cmdline:
+                        return int(proc)
+            except (IOError, ProcessLookupError):
+                continue
+        return None
+    except:
+        return None
 
 @app.route('/')
 def index():
@@ -76,60 +96,96 @@ def get_settings():
 
 @app.route('/api/settings', methods=['POST'])
 def update_settings():
-    """Update settings"""
+    """Update settings and restart the main process to apply them immediately"""
     try:
         data = request.json
         if not data:
             return jsonify({"success": False, "message": "No data provided"}), 400
         
-        # Log the settings changes
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        changes_log = []
+        # Get current settings to compare
+        old_settings = settings_manager.get_all_settings()
+        old_huntarr = old_settings.get("huntarr", {})
+        old_advanced = old_settings.get("advanced", {})
+        old_ui = old_settings.get("ui", {})
         
-        # Update huntarr settings
+        # Find changes
+        huntarr_changes = {}
+        advanced_changes = {}
+        ui_changes = {}
+        
+        # Track if any real changes were made
+        changes_made = False
+        
+        # Update huntarr settings and track changes
         if "huntarr" in data:
-            old_settings = settings_manager.get_setting("huntarr", None, {})
             for key, value in data["huntarr"].items():
-                old_value = old_settings.get(key)
+                old_value = old_huntarr.get(key)
                 if old_value != value:
-                    # Remove the "from Default" text - just log the new value
-                    changes_log.append(f"Changed {key} to {value}")
+                    huntarr_changes[key] = {"old": old_value, "new": value}
+                    changes_made = True
                 settings_manager.update_setting("huntarr", key, value)
         
-        # Update UI settings
+        # Update UI settings and track changes
         if "ui" in data:
-            old_settings = settings_manager.get_setting("ui", None, {})
             for key, value in data["ui"].items():
-                old_value = old_settings.get(key)
+                old_value = old_ui.get(key)
                 if old_value != value:
-                    # Remove the "from Default" text - just log the new value
-                    changes_log.append(f"Changed UI.{key} to {value}")
+                    ui_changes[key] = {"old": old_value, "new": value}
+                    changes_made = True
                 settings_manager.update_setting("ui", key, value)
         
-        # Update advanced settings
+        # Update advanced settings and track changes
         if "advanced" in data:
-            old_settings = settings_manager.get_setting("advanced", None, {})
             for key, value in data["advanced"].items():
-                old_value = old_settings.get(key)
+                old_value = old_advanced.get(key)
                 if old_value != value:
-                    changes_log.append(f"Changed advanced.{key} to {value}")
+                    advanced_changes[key] = {"old": old_value, "new": value}
+                    changes_made = True
                 settings_manager.update_setting("advanced", key, value)
                 
                 # Special handling for debug_mode setting
                 if key == "debug_mode" and old_value != value:
                     # Reconfigure the logger with new debug mode setting
                     setup_logger(value)
-                    changes_log.append(f"Reconfigured logger with DEBUG_MODE={value}")
         
-        # Write changes to log file
-        if changes_log:
+        # Log changes if any were made
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        if changes_made:
             with open(LOG_FILE, 'a') as f:
                 f.write(f"{timestamp} - huntarr-web - INFO - Settings updated by user\n")
-                for change in changes_log:
-                    f.write(f"{timestamp} - huntarr-web - INFO - {change}\n")
+                
+                # Log huntarr changes
+                for key, change in huntarr_changes.items():
+                    f.write(f"{timestamp} - huntarr-web - INFO - Changed {key} from {change['old']} to {change['new']}\n")
+                
+                # Log advanced changes
+                for key, change in advanced_changes.items():
+                    f.write(f"{timestamp} - huntarr-web - INFO - Changed advanced.{key} from {change['old']} to {change['new']}\n")
+                
+                # Log UI changes
+                for key, change in ui_changes.items():
+                    f.write(f"{timestamp} - huntarr-web - INFO - Changed UI.{key} from {change['old']} to {change['new']}\n")
+                
                 f.write(f"{timestamp} - huntarr-web - INFO - Settings saved successfully\n")
-        
-        return jsonify({"success": True})
+                f.write(f"{timestamp} - huntarr-web - INFO - Restarting current cycle to apply new settings immediately\n")
+            
+            # Try to signal the main process to restart the cycle
+            main_pid = get_main_process_pid()
+            if main_pid:
+                try:
+                    # Send a SIGUSR1 signal which we'll handle in main.py to restart the cycle
+                    os.kill(main_pid, signal.SIGUSR1)
+                    return jsonify({"success": True, "message": "Settings saved and cycle restarted", "changes_made": True})
+                except:
+                    # If signaling fails, just return success for the settings save
+                    return jsonify({"success": True, "message": "Settings saved, but cycle not restarted", "changes_made": True})
+            else:
+                return jsonify({"success": True, "message": "Settings saved, but main process not found", "changes_made": True})
+        else:
+            # No changes were made
+            return jsonify({"success": True, "message": "No changes detected", "changes_made": False})
+            
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
@@ -137,14 +193,31 @@ def update_settings():
 def reset_settings():
     """Reset settings to defaults"""
     try:
+        # Get current settings to compare
+        old_settings = settings_manager.get_all_settings()
+        
+        # Reset settings
         settings_manager.save_settings(settings_manager.DEFAULT_SETTINGS)
         
         # Log the reset
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(LOG_FILE, 'a') as f:
             f.write(f"{timestamp} - huntarr-web - INFO - Settings reset to defaults by user\n")
+            f.write(f"{timestamp} - huntarr-web - INFO - Restarting current cycle to apply new settings immediately\n")
         
-        return jsonify({"success": True})
+        # Try to signal the main process to restart the cycle
+        main_pid = get_main_process_pid()
+        if main_pid:
+            try:
+                # Send a SIGUSR1 signal which we'll handle in main.py to restart the cycle
+                os.kill(main_pid, signal.SIGUSR1)
+                return jsonify({"success": True, "message": "Settings reset and cycle restarted"})
+            except:
+                # If signaling fails, just return success for the settings reset
+                return jsonify({"success": True, "message": "Settings reset, but cycle not restarted"})
+        else:
+            return jsonify({"success": True, "message": "Settings reset, but main process not found"})
+        
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 

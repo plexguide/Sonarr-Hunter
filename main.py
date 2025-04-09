@@ -8,12 +8,26 @@ import time
 import sys
 import os
 import socket
+import signal
 from utils.logger import logger
 from config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, ENABLE_WEB_UI, log_configuration, refresh_settings
 from missing import process_missing_episodes
 from upgrade import process_cutoff_upgrades
 from state import check_state_reset, calculate_reset_time
 from api import get_download_queue_size
+
+# Flag to indicate if cycle should restart
+restart_cycle = False
+
+def signal_handler(signum, frame):
+    """Handle signals from the web UI for cycle restart"""
+    global restart_cycle
+    if signum == signal.SIGUSR1:
+        logger.info("Received restart signal from web UI. Restarting cycle...")
+        restart_cycle = True
+
+# Register signal handler for SIGUSR1
+signal.signal(signal.SIGUSR1, signal_handler)
 
 def get_ip_address():
     """Get the host's IP address from API_URL for display"""
@@ -41,6 +55,7 @@ def get_ip_address():
 
 def main_loop() -> None:
     """Main processing loop for Huntarr-Sonarr"""
+    global restart_cycle
     
     # Log welcome message for web interface
     logger.info("=== Huntarr [Sonarr Edition] Starting ===")
@@ -53,6 +68,9 @@ def main_loop() -> None:
     logger.info("GitHub: https://github.com/plexguide/huntarr-sonarr")
     
     while True:
+        # Set restart_cycle flag to False at the beginning of each cycle
+        restart_cycle = False
+        
         # Refresh settings from the settings manager before each cycle
         refresh_settings()
         
@@ -72,10 +90,20 @@ def main_loop() -> None:
             if HUNT_MODE in ["missing", "both"]:
                 if process_missing_episodes():
                     processing_done = True
+                
+                # Check if restart signal received
+                if restart_cycle:
+                    logger.info("Restarting cycle due to settings change...")
+                    continue
                     
             if HUNT_MODE in ["upgrade", "both"]:
                 if process_cutoff_upgrades():
                     processing_done = True
+                
+                # Check if restart signal received
+                if restart_cycle:
+                    logger.info("Restarting cycle due to settings change...")
+                    continue
 
         else:
             logger.info(f"Download queue size ({download_queue_size}) is above the minimum threshold ({MINIMUM_DOWNLOAD_QUEUE_SIZE}). Skipped processing.")
@@ -101,14 +129,19 @@ def main_loop() -> None:
         sleep_start = time.time()
         sleep_end = sleep_start + CURRENT_SLEEP_DURATION
         
-        while time.time() < sleep_end:
-            # Sleep in smaller chunks for more responsive shutdown
-            time.sleep(min(10, sleep_end - time.time()))
+        while time.time() < sleep_end and not restart_cycle:
+            # Sleep in smaller chunks for more responsive shutdown and restart
+            time.sleep(min(5, sleep_end - time.time()))
             
             # Every minute, log the remaining sleep time for web interface visibility
             if int((time.time() - sleep_start) % 60) == 0 and time.time() < sleep_end - 10:
                 remaining = int(sleep_end - time.time())
                 logger.debug(f"Sleeping... {remaining}s remaining until next cycle")
+            
+            # Check if restart signal received
+            if restart_cycle:
+                logger.info("Sleep interrupted due to settings change. Restarting cycle immediately...")
+                break
 
 if __name__ == "__main__":
     # Log configuration settings
