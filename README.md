@@ -54,7 +54,7 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 
 - 🔄 **Continuous Operation**: Runs indefinitely until manually stopped
 - 🎯 **Dual Targeting System**: Targets both missing episodes and quality upgrades
-- 🎲 **Random Selection**: By default, selects shows and episodes randomly to distribute searches across your library
+- 🎲 **Separate Random Controls**: Separate toggles for random missing shows and random upgrades
 - ⏱️ **Throttled Searches**: Includes configurable delays to prevent overloading indexers
 - 📊 **Status Reporting**: Provides clear feedback about what it's doing and which shows it's searching for
 - 🛡️ **Error Handling**: Gracefully handles connection issues and API failures
@@ -66,6 +66,7 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 - 💾 **Reduced Disk Activity**: Option to skip series refresh before processing
 - 💿 **Persistent Configuration**: All settings are saved to disk and persist across container restarts
 - 📝 **Stateful Operation**: Processed state is now permanently saved between restarts
+- ⚙️ **Advanced Settings**: Control API timeout, command wait parameters, and more
 
 ## Indexers Approving of Huntarr:
 * https://ninjacentral.co.za
@@ -75,13 +76,14 @@ My 12-year-old daughter is passionate about singing, dancing, and exploring STEM
 1. **Initialization**: Connects to your Sonarr instance and analyzes your library
 2. **Missing Episodes**: 
    - Identifies shows with missing episodes
-   - Randomly selects shows to process (up to configurable limit)
+   - Randomly or sequentially selects shows to process (configurable)
    - Refreshes metadata (optional) and triggers searches
    - Skips episodes with future air dates (configurable)
 3. **Quality Upgrades**:
    - Finds episodes that don't meet your quality cutoff settings
    - Processes them in configurable batches
    - Uses smart pagination to handle large libraries
+   - Can operate in random or sequential mode (configurable)
    - Skips episodes with future air dates (configurable)
 4. **State Management**:
    - Tracks which shows and episodes have been processed
@@ -121,7 +123,8 @@ The following environment variables can be configured:
 | `HUNT_MISSING_SHOWS`          | Maximum missing shows to process per cycle                               | 1          |
 | `HUNT_UPGRADE_EPISODES`       | Maximum upgrade episodes to process per cycle                            | 5          |
 | `SLEEP_DURATION`              | Seconds to wait after completing a cycle (900 = 15 minutes)              | 900        |
-| `RANDOM_SELECTION`            | Use random selection (`true`) or sequential (`false`)                    | true       |
+| `RANDOM_MISSING`              | Select missing shows randomly instead of sequentially                    | true       |
+| `RANDOM_UPGRADES`             | Select upgrade episodes randomly instead of sequentially                 | true       |
 | `STATE_RESET_INTERVAL_HOURS`  | Hours which the processed state files reset (168=1 week, 0=never reset)  | 168        |
 | `DEBUG_MODE`                  | Enable detailed debug logging (`true` or `false`)                        | false      |
 | `ENABLE_WEB_UI`               | Enable or disable the web interface (`true` or `false`)                  | true       |
@@ -155,9 +158,13 @@ The following environment variables can be configured:
   - When this limit is reached, the upgrade portion of the cycle stops.
   - Set to `0` to disable quality upgrade processing completely.
 
-- **RANDOM_SELECTION**
-  - When `true`, selects shows and episodes randomly, which helps distribute searches across your library.
-  - When `false`, processes items sequentially, which can be more predictable and methodical.
+- **RANDOM_MISSING**
+  - When `true`, selects missing shows randomly, which helps distribute searches across your library.
+  - When `false`, processes missing shows sequentially, which can be more predictable and methodical.
+
+- **RANDOM_UPGRADES**
+  - When `true`, selects episodes for quality upgrades randomly from different pages.
+  - When `false`, processes episodes sequentially beginning from page 1.
 
 - **STATE_RESET_INTERVAL_HOURS**  
   - Controls how often the script "forgets" which items it has already processed.  
@@ -258,9 +265,17 @@ The web interface allows you to configure all of Huntarr's settings without havi
 
 - **Processing Options**
   - **Monitored Only**: Only process monitored shows and episodes
-  - **Random Selection**: Select shows and episodes randomly instead of sequentially
+  - **Random Missing Shows**: Select missing shows randomly instead of sequentially 
+  - **Random Upgrades**: Select upgrade episodes randomly instead of sequentially
   - **Skip Future Episodes**: Skip processing episodes with future air dates
   - **Skip Series Refresh**: Skip refreshing series metadata before processing
+
+- **Advanced Settings**
+  - **API Timeout**: Timeout in seconds for API requests to Sonarr
+  - **Debug Mode**: Enable detailed debug logging
+  - **Command Wait Delay**: Delay between checking command status
+  - **Command Wait Attempts**: Number of attempts before giving up
+  - **Minimum Queue Size**: Minimum download queue size threshold
 
 ### Port Configuration Explained
 
@@ -332,18 +347,17 @@ docker run -d --name huntarr-sonarr \
   -e HUNT_MISSING_SHOWS="1" \
   -e HUNT_UPGRADE_EPISODES="0" \
   -e SLEEP_DURATION="900" \
-  -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
   -e ENABLE_WEB_UI="true" \
   -e SKIP_FUTURE_EPISODES="true" \
   -e SKIP_SERIES_REFRESH="false" \
+  -e COMMAND_WAIT_DELAY="1" \
+  -e COMMAND_WAIT_ATTEMPTS="600" \
+  -e MINIMUM_DOWNLOAD_QUEUE_SIZE="-1" \
+  -e RANDOM_MISSING="true" \
+  -e RANDOM_UPGRADES="true" \
   huntarr/4sonarr:latest
-  
-  # Optional advanced settings
-  # -e COMMAND_WAIT_DELAY="1" \
-  # -e COMMAND_WAIT_ATTEMPTS="600" \
-  # -e MINIMUM_DOWNLOAD_QUEUE_SIZE="-1" \
 ```
 
 To check on the status of the program, you can use the web interface at http://YOUR_SERVER_IP:8988 or check the logs with:
@@ -374,17 +388,16 @@ services:
       HUNT_MISSING_SHOWS: "1"
       HUNT_UPGRADE_EPISODES: "0"
       SLEEP_DURATION: "900"
-      RANDOM_SELECTION: "true"
       STATE_RESET_INTERVAL_HOURS: "168"
       DEBUG_MODE: "false"
       ENABLE_WEB_UI: "true"
       SKIP_FUTURE_EPISODES: "true"
       SKIP_SERIES_REFRESH: "false"
-      
-      # Optional advanced settings
-      # COMMAND_WAIT_DELAY: "1"
-      # COMMAND_WAIT_ATTEMPTS: "600"
-      # MINIMUM_DOWNLOAD_QUEUE_SIZE: "-1"
+      COMMAND_WAIT_DELAY: "1"
+      COMMAND_WAIT_ATTEMPTS: "600"
+      MINIMUM_DOWNLOAD_QUEUE_SIZE: "-1"
+      RANDOM_MISSING: "true"
+      RANDOM_UPGRADES: "true"
 ```
 
 Then run:
@@ -409,18 +422,17 @@ docker run -d --name huntarr-sonarr \
   -e HUNT_MISSING_SHOWS="1" \
   -e HUNT_UPGRADE_EPISODES="0" \
   -e SLEEP_DURATION="900" \
-  -e RANDOM_SELECTION="true" \
   -e STATE_RESET_INTERVAL_HOURS="168" \
   -e DEBUG_MODE="false" \
   -e ENABLE_WEB_UI="true" \
   -e SKIP_FUTURE_EPISODES="true" \
   -e SKIP_SERIES_REFRESH="false" \
+  -e COMMAND_WAIT_DELAY="1" \
+  -e COMMAND_WAIT_ATTEMPTS="600" \
+  -e MINIMUM_DOWNLOAD_QUEUE_SIZE="-1" \
+  -e RANDOM_MISSING="true" \
+  -e RANDOM_UPGRADES="true" \
   huntarr/4sonarr:latest
-  
-  # Optional advanced settings
-  # -e COMMAND_WAIT_DELAY="1" \
-  # -e COMMAND_WAIT_ATTEMPTS="600" \
-  # -e MINIMUM_DOWNLOAD_QUEUE_SIZE="-1" \
 ```
 
 ### SystemD Service
@@ -446,12 +458,16 @@ Environment="MONITORED_ONLY=true"
 Environment="HUNT_MISSING_SHOWS=1"
 Environment="HUNT_UPGRADE_EPISODES=0"
 Environment="SLEEP_DURATION=900"
-Environment="RANDOM_SELECTION=true"
 Environment="STATE_RESET_INTERVAL_HOURS=168"
 Environment="DEBUG_MODE=false"
 Environment="ENABLE_WEB_UI=true"
 Environment="SKIP_FUTURE_EPISODES=true"
 Environment="SKIP_SERIES_REFRESH=false"
+Environment="COMMAND_WAIT_DELAY=1"
+Environment="COMMAND_WAIT_ATTEMPTS=600"
+Environment="MINIMUM_DOWNLOAD_QUEUE_SIZE=-1"
+Environment="RANDOM_MISSING=true"
+Environment="RANDOM_UPGRADES=true"
 ExecStartPre=/bin/sleep 30
 ExecStart=/usr/local/bin/huntarr.sh
 Restart=on-failure
@@ -497,6 +513,7 @@ sudo systemctl start huntarr
 - **Persistent Storage**: Make sure to map the `/config` volume to preserve settings and state
 - **Dark Mode**: Toggle between light and dark themes in the web interface for comfortable viewing
 - **Settings Persistence**: Any settings changed in the web UI are saved immediately and permanently
+- **Random vs Sequential**: Configure `RANDOM_MISSING` and `RANDOM_UPGRADES` based on your preference for processing style
 
 ## Troubleshooting
 
@@ -510,6 +527,7 @@ sudo systemctl start huntarr
 - **State Files**: The script stores state in `/config/stateful/` - if something seems stuck, you can try deleting these files
 - **Excessive Disk Activity**: If you notice high disk usage, try enabling `SKIP_SERIES_REFRESH=true`
 - **Web UI URL Issues**: The web interface URL shown in logs is now derived from your API_URL setting
+- **API Timeout Errors**: For large libraries, try increasing the `API_TIMEOUT` value to 120 or higher
 
 ---
 
