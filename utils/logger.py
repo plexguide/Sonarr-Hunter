@@ -7,7 +7,6 @@ import logging
 import sys
 import os
 import pathlib
-from config import DEBUG_MODE as CONFIG_DEBUG_MODE
 
 # Create log directory
 LOG_DIR = pathlib.Path("/tmp/huntarr-logs")
@@ -28,8 +27,12 @@ def setup_logger(debug_mode=None):
     """
     global logger
     
-    # Use the provided debug_mode if given, otherwise use the config value
-    use_debug_mode = debug_mode if debug_mode is not None else CONFIG_DEBUG_MODE
+    # Get DEBUG_MODE from config, but only if we haven't been given a value
+    if debug_mode is None:
+        from config import DEBUG_MODE as CONFIG_DEBUG_MODE
+        use_debug_mode = CONFIG_DEBUG_MODE
+    else:
+        use_debug_mode = debug_mode
     
     if logger is None:
         # First-time setup

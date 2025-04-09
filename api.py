@@ -71,7 +71,7 @@ def get_series() -> List[Dict]:
         debug_log("Raw series API response sample:", series_list[:2] if len(series_list) > 2 else series_list)
     return series_list or []
 
-def refresh_series(series_id: int) -> Optional[Dict]:
+def refresh_series(series_id: int) -> bool:
     """
     POST /api/v3/command
     {
@@ -84,9 +84,11 @@ def refresh_series(series_id: int) -> Optional[Dict]:
         "seriesId": series_id
     }
     response = sonarr_request("command", method="POST", data=data)
+    if not response or 'id' not in response:
+        return False
     return wait_for_command(response['id'])
 
-def episode_search_episodes(episode_ids: List[int]) -> Optional[Dict]:
+def episode_search_episodes(episode_ids: List[int]) -> bool:
     """
     POST /api/v3/command
     {
@@ -99,14 +101,19 @@ def episode_search_episodes(episode_ids: List[int]) -> Optional[Dict]:
         "episodeIds": episode_ids
     }
     response = sonarr_request("command", method="POST", data=data)
+    if not response or 'id' not in response:
+        return False
     return wait_for_command(response['id'])
 
-def get_download_queue_size() -> Optional[int]:
+def get_download_queue_size() -> int:
     """
     GET /api/v3/queue
     Returns total number of items in the queue with the status 'downloading'.
     """
     response = sonarr_request("queue?status=downloading")
+    if not response:
+        return 0
+        
     total_records = response.get("totalRecords", 0)
     if not isinstance(total_records, int):
         total_records = 0

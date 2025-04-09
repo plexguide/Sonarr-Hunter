@@ -171,4 +171,3 @@ def process_missing_episodes() -> bool:
     truncate_processed_list(PROCESSED_MISSING_FILE)
     
     return processing_done
-                air_date_str = ep.get("
