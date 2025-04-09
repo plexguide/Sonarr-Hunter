@@ -1,9 +1,9 @@
-# Huntarr [Sonarr Edition]
-
 <h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2> 
 
+# Huntarr [Sonarr Edition]
+
 <p align="center">
-  <img src="https://github.com/plexguide/Huntarr-Sonarr/blob/main/logo/128.png?raw=true" alt="Huntarr Logo" width="128" height="128">
+  <img src="https://github.com/plexguide/Huntarr-Sonarr/blob/main/logo/128.png?raw=true" alt="Huntarr Logo" width="100" height="100">
 </p>
 ---
 <table>
