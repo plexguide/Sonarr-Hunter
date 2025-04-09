@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveSettingsBottomButton = document.getElementById('saveSettingsBottom');
     const resetSettingsBottomButton = document.getElementById('resetSettingsBottom');
     
+    // Store original settings values
+    let originalSettings = {};
+    
     // Update sleep duration display
     function updateSleepDurationDisplay() {
         const seconds = parseInt(sleepDurationInput.value) || 900;
@@ -59,7 +62,10 @@ document.addEventListener('DOMContentLoaded', function() {
         sleepDurationHoursSpan.textContent = displayText;
     }
     
-    sleepDurationInput.addEventListener('input', updateSleepDurationDisplay);
+    sleepDurationInput.addEventListener('input', function() {
+        updateSleepDurationDisplay();
+        checkForChanges();
+    });
     
     // Theme management
     function loadTheme() {
@@ -126,6 +132,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Function to check if settings have changed from original values
+    function checkForChanges() {
+        if (!originalSettings.huntarr) return; // Don't check if original settings not loaded
+        
+        let hasChanges = false;
+        
+        // Check Basic Settings
+        if (parseInt(huntMissingShowsInput.value) !== originalSettings.huntarr.hunt_missing_shows) hasChanges = true;
+        if (parseInt(huntUpgradeEpisodesInput.value) !== originalSettings.huntarr.hunt_upgrade_episodes) hasChanges = true;
+        if (parseInt(sleepDurationInput.value) !== originalSettings.huntarr.sleep_duration) hasChanges = true;
+        if (parseInt(stateResetIntervalInput.value) !== originalSettings.huntarr.state_reset_interval_hours) hasChanges = true;
+        if (monitoredOnlyInput.checked !== originalSettings.huntarr.monitored_only) hasChanges = true;
+        if (skipFutureEpisodesInput.checked !== originalSettings.huntarr.skip_future_episodes) hasChanges = true;
+        if (skipSeriesRefreshInput.checked !== originalSettings.huntarr.skip_series_refresh) hasChanges = true;
+        
+        // Check Advanced Settings
+        if (parseInt(apiTimeoutInput.value) !== originalSettings.advanced.api_timeout) hasChanges = true;
+        if (debugModeInput.checked !== originalSettings.advanced.debug_mode) hasChanges = true;
+        if (parseInt(commandWaitDelayInput.value) !== originalSettings.advanced.command_wait_delay) hasChanges = true;
+        if (parseInt(commandWaitAttemptsInput.value) !== originalSettings.advanced.command_wait_attempts) hasChanges = true;
+        if (parseInt(minimumDownloadQueueSizeInput.value) !== originalSettings.advanced.minimum_download_queue_size) hasChanges = true;
+        if (randomMissingInput.checked !== originalSettings.advanced.random_missing) hasChanges = true;
+        if (randomUpgradesInput.checked !== originalSettings.advanced.random_upgrades) hasChanges = true;
+        
+        // Enable/disable save buttons based on whether there are changes
+        saveSettingsButton.disabled = !hasChanges;
+        saveSettingsBottomButton.disabled = !hasChanges;
+        
+        // Apply visual indicator based on disabled state
+        if (hasChanges) {
+            saveSettingsButton.classList.remove('disabled-button');
+            saveSettingsBottomButton.classList.remove('disabled-button');
+        } else {
+            saveSettingsButton.classList.add('disabled-button');
+            saveSettingsBottomButton.classList.add('disabled-button');
+        }
+        
+        return hasChanges;
+    }
+    
+    // Add change event listeners to all form elements
+    [huntMissingShowsInput, huntUpgradeEpisodesInput, stateResetIntervalInput, 
+     apiTimeoutInput, commandWaitDelayInput, commandWaitAttemptsInput, 
+     minimumDownloadQueueSizeInput].forEach(input => {
+        input.addEventListener('input', checkForChanges);
+    });
+    
+    [monitoredOnlyInput, randomMissingInput, randomUpgradesInput, 
+     skipFutureEpisodesInput, skipSeriesRefreshInput, debugModeInput].forEach(checkbox => {
+        checkbox.addEventListener('change', checkForChanges);
+    });
+    
     // Load settings from API
     function loadSettings() {
         fetch('/api/settings')
@@ -133,6 +191,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 const huntarr = data.huntarr || {};
                 const advanced = data.advanced || {};
+                
+                // Store original settings for comparison
+                originalSettings = JSON.parse(JSON.stringify(data));
                 
                 // Fill form with current settings - Basic settings
                 huntMissingShowsInput.value = huntarr.hunt_missing_shows !== undefined ? huntarr.hunt_missing_shows : 1;
@@ -154,12 +215,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Handle random settings
                 randomMissingInput.checked = advanced.random_missing !== false;
                 randomUpgradesInput.checked = advanced.random_upgrades !== false;
+                
+                // Initialize save buttons state
+                saveSettingsButton.disabled = true;
+                saveSettingsBottomButton.disabled = true;
+                saveSettingsButton.classList.add('disabled-button');
+                saveSettingsBottomButton.classList.add('disabled-button');
             })
             .catch(error => console.error('Error loading settings:', error));
     }
     
     // Function to save settings
     function saveSettings() {
+        if (!checkForChanges()) {
+            // If no changes, don't do anything
+            return;
+        }
+        
         const settings = {
             huntarr: {
                 hunt_missing_shows: parseInt(huntMissingShowsInput.value) || 0,
@@ -191,7 +263,21 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Settings saved successfully!');
+                // Update original settings after successful save
+                originalSettings = JSON.parse(JSON.stringify(settings));
+                
+                // Disable save buttons
+                saveSettingsButton.disabled = true;
+                saveSettingsBottomButton.disabled = true;
+                saveSettingsButton.classList.add('disabled-button');
+                saveSettingsBottomButton.classList.add('disabled-button');
+                
+                // Show success message
+                if (data.changes_made) {
+                    alert('Settings saved successfully and cycle restarted to apply changes!');
+                } else {
+                    alert('No changes detected.');
+                }
             } else {
                 alert('Error saving settings: ' + (data.message || 'Unknown error'));
             }
@@ -211,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Settings reset to defaults.');
+                    alert('Settings reset to defaults and cycle restarted.');
                     loadSettings();
                 } else {
                     alert('Error resetting settings: ' + (data.message || 'Unknown error'));

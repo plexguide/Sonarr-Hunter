@@ -467,6 +467,23 @@ input:checked + .toggle-slider:before {
     transform: translateX(26px);
 }
 
+/* Disabled button styles */
+.disabled-button {
+    background-color: #cccccc !important;
+    color: #666666 !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+
+/* Adjust the existing save button styles to ensure they work with the disabled state */
+.save-button:hover:not(.disabled-button) {
+    background-color: var(--save-button-hover);
+}
+
+.reset-button:hover:not(.disabled-button) {
+    background-color: var(--reset-button-hover);
+}
+
 @media (max-width: 768px) {
     .header {
         flex-direction: column;
