@@ -23,7 +23,7 @@ def signal_handler(signum, frame):
     """Handle signals from the web UI for cycle restart"""
     global restart_cycle
     if signum == signal.SIGUSR1:
-        logger.info("Received restart signal from web UI. Immediately aborting current operations...")
+        logger.warning("⚠️ Received restart signal from web UI. Immediately aborting current operations... ⚠️")
         restart_cycle = True
 
 # Register signal handler for SIGUSR1
@@ -71,7 +71,7 @@ def force_reload_all_modules():
         config.refresh_settings()
         
         # Log the reloaded settings for verification
-        logger.info("Settings reloaded from JSON file after restart signal")
+        logger.warning("⚠️ Settings reloaded from JSON file after restart signal ⚠️")
         config.log_configuration(logger)
         
         return True
@@ -118,7 +118,7 @@ def main_loop() -> None:
         
             # Process shows/episodes based on HUNT_MODE
             if restart_cycle:
-                logger.info("Restarting cycle due to settings change...")
+                logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
                 continue
                 
             if HUNT_MODE in ["missing", "both"] and HUNT_MISSING_SHOWS > 0:
@@ -127,7 +127,7 @@ def main_loop() -> None:
                 
                 # Check if restart signal received
                 if restart_cycle:
-                    logger.info("Restarting cycle due to settings change...")
+                    logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
                     continue
                     
             if HUNT_MODE in ["upgrade", "both"] and HUNT_UPGRADE_EPISODES > 0:
@@ -138,7 +138,7 @@ def main_loop() -> None:
                 
                 # Check if restart signal received
                 if restart_cycle:
-                    logger.info("Restarting cycle due to settings change...")
+                    logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
                     continue
 
         else:
@@ -176,7 +176,7 @@ def main_loop() -> None:
             
             # Check if restart signal received
             if restart_cycle:
-                logger.info("Sleep interrupted due to settings change. Restarting cycle immediately...")
+                logger.warning("⚠️ Sleep interrupted due to settings change. Restarting cycle immediately... ⚠️")
                 break
 
 if __name__ == "__main__":
