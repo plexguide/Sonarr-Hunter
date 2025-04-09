@@ -1,5 +1,11 @@
-# Huntarr [Sonarr Edition] - Force Sonarr to Hunt Missing Shows & Upgrade Episode Qualities
- 
+<h2 align="center">Huntarr [Sonarr Edition] - Hunt Missing and Upgrade Episodes</h2> 
+
+<p align="center">
+  <img src="https://github.com/plexguide/Huntarr-Sonarr/blob/main/logo/128.png?raw=true" alt="Huntarr Logo" width="100" height="100">
+</p>
+
+---
+
 <h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2> 
 
 <table>
@@ -9,8 +15,6 @@
 </table>
 
 **NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
-
----
 
 **Change Log:**
 Visit: https://github.com/plexguide/Huntarr-Sonarr/releases/
