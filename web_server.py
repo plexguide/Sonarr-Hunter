@@ -14,8 +14,9 @@ from flask import Flask, render_template, Response, stream_with_context, request
 import logging
 from config import ENABLE_WEB_UI
 import settings_manager
+from utils.logger import setup_logger
 
-# Check if web UI is enabled
+# Check if web UI is disabled
 if not ENABLE_WEB_UI:
     print("Web UI is disabled. Exiting web server.")
     exit(0)
@@ -104,6 +105,21 @@ def update_settings():
                     # Remove the "from Default" text - just log the new value
                     changes_log.append(f"Changed UI.{key} to {value}")
                 settings_manager.update_setting("ui", key, value)
+        
+        # Update advanced settings
+        if "advanced" in data:
+            old_settings = settings_manager.get_setting("advanced", None, {})
+            for key, value in data["advanced"].items():
+                old_value = old_settings.get(key)
+                if old_value != value:
+                    changes_log.append(f"Changed advanced.{key} to {value}")
+                settings_manager.update_setting("advanced", key, value)
+                
+                # Special handling for debug_mode setting
+                if key == "debug_mode" and old_value != value:
+                    # Reconfigure the logger with new debug mode setting
+                    setup_logger(value)
+                    changes_log.append(f"Reconfigured logger with DEBUG_MODE={value}")
         
         # Write changes to log file
         if changes_log:

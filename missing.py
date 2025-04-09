@@ -12,7 +12,8 @@ from utils.logger import logger
 from config import (
     HUNT_MISSING_SHOWS, 
     MONITORED_ONLY, 
-    RANDOM_SELECTION, 
+    RANDOM_SELECTION,
+    RANDOM_MISSING,
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
 )
@@ -63,9 +64,14 @@ def process_missing_episodes() -> bool:
     shows_processed = 0
     processing_done = False
 
-    # Optionally randomize show order
-    if RANDOM_SELECTION:
+    # Optionally randomize show order - use RANDOM_MISSING setting
+    # First honor the legacy RANDOM_SELECTION, then the specific RANDOM_MISSING 
+    should_randomize = RANDOM_SELECTION and RANDOM_MISSING
+    if should_randomize:
+        logger.info("Using random selection for missing shows")
         random.shuffle(shows_with_missing)
+    else:
+        logger.info("Using sequential selection for missing shows")
 
     # Get current date for future episode filtering
     current_date = datetime.datetime.now().date()
@@ -165,3 +171,4 @@ def process_missing_episodes() -> bool:
     truncate_processed_list(PROCESSED_MISSING_FILE)
     
     return processing_done
+                air_date_str = ep.get("

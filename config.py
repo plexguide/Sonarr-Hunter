@@ -15,7 +15,7 @@ ENABLE_WEB_UI = os.environ.get("ENABLE_WEB_UI", "true").lower() == "true"
 API_KEY = os.environ.get("API_KEY", "your-api-key")
 API_URL = os.environ.get("API_URL", "http://your-sonarr-address:8989")
 
-# API timeout in seconds
+# API timeout in seconds - load from environment first, will be overridden by settings if they exist
 try:
     API_TIMEOUT = int(os.environ.get("API_TIMEOUT", "60"))
 except ValueError:
@@ -61,7 +61,7 @@ MONITORED_ONLY = os.environ.get("MONITORED_ONLY", "true").lower() == "true"
 SKIP_FUTURE_EPISODES = os.environ.get("SKIP_FUTURE_EPISODES", "true").lower() == "true"
 SKIP_SERIES_REFRESH = os.environ.get("SKIP_SERIES_REFRESH", "false").lower() == "true"
 
-# Delay in seconds between checking the status of a command (default 1 second)
+# Advanced settings - load from environment first, will be overridden by settings if they exist
 try:
     COMMAND_WAIT_DELAY = int(os.environ.get("COMMAND_WAIT_DELAY", "1"))
 except ValueError:
@@ -82,21 +82,28 @@ except ValueError:
     MINIMUM_DOWNLOAD_QUEUE_SIZE = -1
     print(f"Warning: Invalid MINIMUM_DOWNLOAD_QUEUE_SIZE value, using default: {MINIMUM_DOWNLOAD_QUEUE_SIZE}")
 
-# Hunt mode: "missing", "upgrade", or "both"
-HUNT_MODE = os.environ.get("HUNT_MODE", "both")
-
 # Debug Settings
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "false").lower() == "true"
+
+# Random selection for missing and upgrades
+RANDOM_MISSING = True  # Will be overridden by settings
+RANDOM_UPGRADES = True  # Will be overridden by settings
+
+# Hunt mode: "missing", "upgrade", or "both"
+HUNT_MODE = os.environ.get("HUNT_MODE", "both")
 
 def refresh_settings():
     """Refresh configuration settings from the settings manager."""
     global HUNT_MISSING_SHOWS, HUNT_UPGRADE_EPISODES, SLEEP_DURATION
     global STATE_RESET_INTERVAL_HOURS, MONITORED_ONLY, RANDOM_SELECTION
     global SKIP_FUTURE_EPISODES, SKIP_SERIES_REFRESH
+    global API_TIMEOUT, DEBUG_MODE, COMMAND_WAIT_DELAY, COMMAND_WAIT_ATTEMPTS
+    global MINIMUM_DOWNLOAD_QUEUE_SIZE, RANDOM_MISSING, RANDOM_UPGRADES
     
     # Load settings directly from settings manager
     settings = settings_manager.get_all_settings()
     huntarr_settings = settings.get("huntarr", {})
+    advanced_settings = settings.get("advanced", {})
     
     # Update global variables with fresh values
     HUNT_MISSING_SHOWS = huntarr_settings.get("hunt_missing_shows", HUNT_MISSING_SHOWS)
@@ -108,10 +115,20 @@ def refresh_settings():
     SKIP_FUTURE_EPISODES = huntarr_settings.get("skip_future_episodes", SKIP_FUTURE_EPISODES)
     SKIP_SERIES_REFRESH = huntarr_settings.get("skip_series_refresh", SKIP_SERIES_REFRESH)
     
+    # Advanced settings
+    API_TIMEOUT = advanced_settings.get("api_timeout", API_TIMEOUT)
+    DEBUG_MODE = advanced_settings.get("debug_mode", DEBUG_MODE)
+    COMMAND_WAIT_DELAY = advanced_settings.get("command_wait_delay", COMMAND_WAIT_DELAY)
+    COMMAND_WAIT_ATTEMPTS = advanced_settings.get("command_wait_attempts", COMMAND_WAIT_ATTEMPTS)
+    MINIMUM_DOWNLOAD_QUEUE_SIZE = advanced_settings.get("minimum_download_queue_size", MINIMUM_DOWNLOAD_QUEUE_SIZE)
+    RANDOM_MISSING = advanced_settings.get("random_missing", RANDOM_MISSING)
+    RANDOM_UPGRADES = advanced_settings.get("random_upgrades", RANDOM_UPGRADES)
+    
     # Log the refresh for debugging
     import logging
     logger = logging.getLogger("huntarr-sonarr")
     logger.debug(f"Settings refreshed: SLEEP_DURATION={SLEEP_DURATION}, HUNT_MISSING_SHOWS={HUNT_MISSING_SHOWS}")
+    logger.debug(f"Advanced settings refreshed: API_TIMEOUT={API_TIMEOUT}, DEBUG_MODE={DEBUG_MODE}")
 
 def log_configuration(logger):
     """Log the current configuration settings"""
@@ -126,10 +143,11 @@ def log_configuration(logger):
     logger.info(f"State Reset Interval: {STATE_RESET_INTERVAL_HOURS} hours")
     logger.info(f"Minimum Download Queue Size: {MINIMUM_DOWNLOAD_QUEUE_SIZE}")
     logger.info(f"MONITORED_ONLY={MONITORED_ONLY}, RANDOM_SELECTION={RANDOM_SELECTION}")
+    logger.info(f"RANDOM_MISSING={RANDOM_MISSING}, RANDOM_UPGRADES={RANDOM_UPGRADES}")
     logger.info(f"HUNT_MODE={HUNT_MODE}, SLEEP_DURATION={SLEEP_DURATION}s")
     logger.info(f"COMMAND_WAIT_DELAY={COMMAND_WAIT_DELAY}, COMMAND_WAIT_ATTEMPTS={COMMAND_WAIT_ATTEMPTS}")
     logger.info(f"SKIP_FUTURE_EPISODES={SKIP_FUTURE_EPISODES}, SKIP_SERIES_REFRESH={SKIP_SERIES_REFRESH}")
-    logger.info(f"ENABLE_WEB_UI={ENABLE_WEB_UI}")
+    logger.info(f"ENABLE_WEB_UI={ENABLE_WEB_UI}, DEBUG_MODE={DEBUG_MODE}")
     logger.debug(f"API_KEY={API_KEY}")
 
 # Initial refresh of settings

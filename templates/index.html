@@ -97,7 +97,23 @@
                             <input type="checkbox" id="random_selection">
                             <span class="toggle-slider"></span>
                         </label>
-                        <p class="setting-help">Select shows and episodes randomly instead of sequentially</p>
+                        <p class="setting-help">Master switch for random selection (affects both missing and upgrades)</p>
+                    </div>
+                    <div class="setting-item">
+                        <label for="random_missing">Random Missing:</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="random_missing">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <p class="setting-help">Select missing shows randomly instead of sequentially</p>
+                    </div>
+                    <div class="setting-item">
+                        <label for="random_upgrades">Random Upgrades:</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="random_upgrades">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <p class="setting-help">Select upgrade episodes randomly instead of sequentially</p>
                     </div>
                     <div class="setting-item">
                         <label for="skip_future_episodes">Skip Future Episodes:</label>
@@ -114,6 +130,38 @@
                             <span class="toggle-slider"></span>
                         </label>
                         <p class="setting-help">Skip refreshing series metadata before processing (reduces disk activity)</p>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Advanced Settings</h3>
+                    <div class="setting-item">
+                        <label for="api_timeout">API Timeout (seconds):</label>
+                        <input type="number" id="api_timeout" min="10" step="1">
+                        <p class="setting-help">Timeout in seconds for API requests to Sonarr (minimum 10 seconds)</p>
+                    </div>
+                    <div class="setting-item">
+                        <label for="debug_mode">Debug Mode:</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="debug_mode">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <p class="setting-help">Enable detailed debug logging (takes effect immediately)</p>
+                    </div>
+                    <div class="setting-item">
+                        <label for="command_wait_delay">Command Wait Delay:</label>
+                        <input type="number" id="command_wait_delay" min="1" step="1">
+                        <p class="setting-help">Delay in seconds between checking for command status</p>
+                    </div>
+                    <div class="setting-item">
+                        <label for="command_wait_attempts">Command Wait Attempts:</label>
+                        <input type="number" id="command_wait_attempts" min="10" step="1">
+                        <p class="setting-help">Number of attempts to check for command completion before giving up</p>
+                    </div>
+                    <div class="setting-item">
+                        <label for="minimum_download_queue_size">Minimum Queue Size:</label>
+                        <input type="number" id="minimum_download_queue_size" min="-1" step="1">
+                        <p class="setting-help">Minimum items in download queue before starting hunt. Set to -1 to disable check.</p>
                     </div>
                 </div>
                 
