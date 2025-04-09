@@ -89,18 +89,20 @@ def update_settings():
         if "huntarr" in data:
             old_settings = settings_manager.get_setting("huntarr", None, {})
             for key, value in data["huntarr"].items():
-                old_value = old_settings.get(key, "Default")  # Use "Default" instead of None for display
+                old_value = old_settings.get(key)
                 if old_value != value:
-                    changes_log.append(f"Changed {key} from {old_value} to {value}")
+                    # Remove the "from Default" text - just log the new value
+                    changes_log.append(f"Changed {key} to {value}")
                 settings_manager.update_setting("huntarr", key, value)
         
         # Update UI settings
         if "ui" in data:
             old_settings = settings_manager.get_setting("ui", None, {})
             for key, value in data["ui"].items():
-                old_value = old_settings.get(key, "Default")  # Use "Default" instead of None for display
+                old_value = old_settings.get(key)
                 if old_value != value:
-                    changes_log.append(f"Changed UI.{key} from {old_value} to {value}")
+                    # Remove the "from Default" text - just log the new value
+                    changes_log.append(f"Changed UI.{key} to {value}")
                 settings_manager.update_setting("ui", key, value)
         
         # Write changes to log file
@@ -145,10 +147,11 @@ def update_theme():
         if "dark_mode" in data and old_value != data["dark_mode"]:
             settings_manager.update_setting("ui", "dark_mode", data["dark_mode"])
             
-            # Log the theme change
+            # Log the theme change - simplified to remove "from X" text
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             with open(LOG_FILE, 'a') as f:
-                f.write(f"{timestamp} - huntarr-web - INFO - Changed theme from {'Dark' if old_value else 'Light'} to {'Dark' if data['dark_mode'] else 'Light'} Mode\n")
+                new_mode = 'Dark' if data['dark_mode'] else 'Light'
+                f.write(f"{timestamp} - huntarr-web - INFO - Changed theme to {new_mode} Mode\n")
         
         return jsonify({"success": True})
     except Exception as e:
