@@ -1,11 +1,11 @@
 # Huntarr [Sonarr Edition] - Force Sonarr to Hunt Missing Shows & Upgrade Episode Qualities
 
+<h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2> 
+
 <p align="center">
   <img src="https://github.com/plexguide/Huntarr-Sonarr/blob/main/logo/128.png?raw=true" alt="Huntarr Logo" width="128" height="128">
 </p>
  
-<h2 align="center">Want to Help? Click the Star in the Upper-Right Corner! ⭐</h2> 
-
 <table>
   <tr>
     <td colspan="2"><img src="https://github.com/user-attachments/assets/34264f2e-928d-44e5-adb7-0dbd08fadfd0" width="100%"/></td>
