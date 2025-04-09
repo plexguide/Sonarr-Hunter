@@ -9,6 +9,7 @@ import sys
 import os
 import socket
 import signal
+import importlib
 from utils.logger import logger
 from config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, ENABLE_WEB_UI, log_configuration, refresh_settings
 from missing import process_missing_episodes
@@ -53,6 +54,25 @@ def get_ip_address():
         except:
             return "YOUR_SERVER_IP"
 
+def force_reload_config():
+    """Force reload of config module to ensure all settings are freshly loaded"""
+    try:
+        # Force reload the config module
+        import config
+        importlib.reload(config)
+        
+        # Call the refresh function to ensure settings are updated
+        config.refresh_settings()
+        
+        # Log the reloaded settings for verification
+        logger.info("Settings reloaded from JSON file after restart signal")
+        config.log_configuration(logger)
+        
+        return True
+    except Exception as e:
+        logger.error(f"Error reloading config: {e}")
+        return False
+
 def main_loop() -> None:
     """Main processing loop for Huntarr-Sonarr"""
     global restart_cycle
@@ -94,15 +114,23 @@ def main_loop() -> None:
                 # Check if restart signal received
                 if restart_cycle:
                     logger.info("Restarting cycle due to settings change...")
+                    # Force reload all configuration before restarting
+                    force_reload_config()
                     continue
                     
             if HUNT_MODE in ["upgrade", "both"]:
+                # Get the latest HUNT_UPGRADE_EPISODES value directly from config
+                from config import HUNT_UPGRADE_EPISODES
+                logger.info(f"Starting upgrade process with HUNT_UPGRADE_EPISODES={HUNT_UPGRADE_EPISODES}")
+                
                 if process_cutoff_upgrades():
                     processing_done = True
                 
                 # Check if restart signal received
                 if restart_cycle:
                     logger.info("Restarting cycle due to settings change...")
+                    # Force reload all configuration before restarting
+                    force_reload_config()
                     continue
 
         else:
@@ -141,6 +169,8 @@ def main_loop() -> None:
             # Check if restart signal received
             if restart_cycle:
                 logger.info("Sleep interrupted due to settings change. Restarting cycle immediately...")
+                # Force reload all configuration before restarting
+                force_reload_config()
                 break
 
 if __name__ == "__main__":
