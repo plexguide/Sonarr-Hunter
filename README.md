@@ -15,8 +15,6 @@
 
 **NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
 
----
-
 **Change Log:**
 Visit: https://github.com/plexguide/Huntarr-Sonarr/releases/
 
