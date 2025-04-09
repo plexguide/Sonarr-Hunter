@@ -5,6 +5,7 @@
 </p>
 
 ---
+**NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
 
 <table>
   <tr>
