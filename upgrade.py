@@ -50,11 +50,13 @@ def process_cutoff_upgrades() -> bool:
     # (no longer dependent on the master RANDOM_SELECTION setting)
     should_use_random = RANDOM_UPGRADES
     
+    # Initialize page variable for both modes
+    page = 1
+    
     if should_use_random:
         logger.info("Using random selection for quality upgrades (RANDOM_UPGRADES=true)")
     else:
         logger.info("Using sequential selection for quality upgrades (RANDOM_UPGRADES=false)")
-        page = 1
 
     while True:
         if episodes_processed >= HUNT_UPGRADE_EPISODES:
