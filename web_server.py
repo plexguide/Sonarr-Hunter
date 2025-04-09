@@ -14,8 +14,9 @@ from flask import Flask, render_template, Response, stream_with_context, request
 import logging
 from config import ENABLE_WEB_UI
 import settings_manager
+from utils.logger import setup_logger
 
-# Check if web UI is enabled
+# Check if web UI is disabled
 if not ENABLE_WEB_UI:
     print("Web UI is disabled. Exiting web server.")
     exit(0)
@@ -89,19 +90,36 @@ def update_settings():
         if "huntarr" in data:
             old_settings = settings_manager.get_setting("huntarr", None, {})
             for key, value in data["huntarr"].items():
-                old_value = old_settings.get(key, "Default")  # Use "Default" instead of None for display
+                old_value = old_settings.get(key)
                 if old_value != value:
-                    changes_log.append(f"Changed {key} from {old_value} to {value}")
+                    # Remove the "from Default" text - just log the new value
+                    changes_log.append(f"Changed {key} to {value}")
                 settings_manager.update_setting("huntarr", key, value)
         
         # Update UI settings
         if "ui" in data:
             old_settings = settings_manager.get_setting("ui", None, {})
             for key, value in data["ui"].items():
-                old_value = old_settings.get(key, "Default")  # Use "Default" instead of None for display
+                old_value = old_settings.get(key)
                 if old_value != value:
-                    changes_log.append(f"Changed UI.{key} from {old_value} to {value}")
+                    # Remove the "from Default" text - just log the new value
+                    changes_log.append(f"Changed UI.{key} to {value}")
                 settings_manager.update_setting("ui", key, value)
+        
+        # Update advanced settings
+        if "advanced" in data:
+            old_settings = settings_manager.get_setting("advanced", None, {})
+            for key, value in data["advanced"].items():
+                old_value = old_settings.get(key)
+                if old_value != value:
+                    changes_log.append(f"Changed advanced.{key} to {value}")
+                settings_manager.update_setting("advanced", key, value)
+                
+                # Special handling for debug_mode setting
+                if key == "debug_mode" and old_value != value:
+                    # Reconfigure the logger with new debug mode setting
+                    setup_logger(value)
+                    changes_log.append(f"Reconfigured logger with DEBUG_MODE={value}")
         
         # Write changes to log file
         if changes_log:
@@ -145,10 +163,11 @@ def update_theme():
         if "dark_mode" in data and old_value != data["dark_mode"]:
             settings_manager.update_setting("ui", "dark_mode", data["dark_mode"])
             
-            # Log the theme change
+            # Log the theme change - simplified to remove "from X" text
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             with open(LOG_FILE, 'a') as f:
-                f.write(f"{timestamp} - huntarr-web - INFO - Changed theme from {'Dark' if old_value else 'Light'} to {'Dark' if data['dark_mode'] else 'Light'} Mode\n")
+                new_mode = 'Dark' if data['dark_mode'] else 'Light'
+                f.write(f"{timestamp} - huntarr-web - INFO - Changed theme to {new_mode} Mode\n")
         
         return jsonify({"success": True})
     except Exception as e:

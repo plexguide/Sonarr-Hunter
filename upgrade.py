@@ -12,6 +12,7 @@ from config import (
     HUNT_UPGRADE_EPISODES, 
     MONITORED_ONLY, 
     RANDOM_SELECTION,
+    RANDOM_UPGRADES,
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
 )
@@ -45,29 +46,47 @@ def process_cutoff_upgrades() -> bool:
     # Get current date for future episode filtering
     current_date = datetime.datetime.now().date()
 
-    page = 1
+    # Use the specific RANDOM_UPGRADES setting
+    # (no longer dependent on the master RANDOM_SELECTION setting)
+    should_use_random = RANDOM_UPGRADES
+    
+    if should_use_random:
+        logger.info("Using random selection for quality upgrades (RANDOM_UPGRADES=true)")
+    else:
+        logger.info("Using sequential selection for quality upgrades (RANDOM_UPGRADES=false)")
+        page = 1
+
     while True:
         if episodes_processed >= HUNT_UPGRADE_EPISODES:
             logger.info(f"Reached HUNT_UPGRADE_EPISODES={HUNT_UPGRADE_EPISODES} for this cycle.")
             break
 
-        # If random selection, pick a random page each iteration
-        if RANDOM_SELECTION and total_pages > 1:
+        # If random selection is enabled, pick a random page each iteration
+        if should_use_random and total_pages > 1:
             page = random.randint(1, total_pages)
+        # If sequential and we've reached the end, we're done
+        elif not should_use_random and page > total_pages:
+            break
 
         logger.info(f"Retrieving cutoff-unmet episodes (page={page} of {total_pages})...")
         cutoff_data = get_cutoff_unmet(page)
         if not cutoff_data or "records" not in cutoff_data:
             logger.error(f"ERROR: Unable to retrieve cutoff–unmet data from Sonarr on page {page}.")
-            break
+            
+            # In sequential mode, try the next page
+            if not should_use_random:
+                page += 1
+                continue
+            else:
+                break
 
         episodes = cutoff_data["records"]
         total_eps = len(episodes)
         logger.info(f"Found {total_eps} episodes on page {page} that need quality upgrades.")
 
-        # Randomize or sequential indices
+        # Randomize or sequential indices within the page
         indices = list(range(total_eps))
-        if RANDOM_SELECTION:
+        if should_use_random:
             random.shuffle(indices)
 
         for idx in indices:
@@ -149,16 +168,12 @@ def process_cutoff_upgrades() -> bool:
                 logger.warning(f"WARNING: Search command failed for episode ID {episode_id}.")
                 continue
 
-        # Move to the next page if not random
-        if not RANDOM_SELECTION:
+        # Move to the next page if using sequential mode
+        if not should_use_random:
             page += 1
-            if page > total_pages:
-                break
-        else:
-            # In random mode, we just handle one random page this iteration,
-            # then either break or keep looping until we hit HUNT_UPGRADE_EPISODES.
-            pass
-
+        # In random mode, we just handle one random page this iteration,
+        # then check if we've processed enough episodes or continue to another random page
+    
     logger.info(f"Completed processing {episodes_processed} upgrade episodes for this cycle.")
     truncate_processed_list(PROCESSED_UPGRADE_FILE)
     

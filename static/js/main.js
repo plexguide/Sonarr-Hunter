@@ -11,16 +11,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const themeToggle = document.getElementById('themeToggle');
     const themeLabel = document.getElementById('themeLabel');
     
-    // Settings form elements
+    // Settings form elements - Basic settings
     const huntMissingShowsInput = document.getElementById('hunt_missing_shows');
     const huntUpgradeEpisodesInput = document.getElementById('hunt_upgrade_episodes');
     const sleepDurationInput = document.getElementById('sleep_duration');
     const sleepDurationHoursSpan = document.getElementById('sleep_duration_hours');
     const stateResetIntervalInput = document.getElementById('state_reset_interval_hours');
     const monitoredOnlyInput = document.getElementById('monitored_only');
-    const randomSelectionInput = document.getElementById('random_selection');
+    const randomMissingInput = document.getElementById('random_missing');
+    const randomUpgradesInput = document.getElementById('random_upgrades');
     const skipFutureEpisodesInput = document.getElementById('skip_future_episodes');
     const skipSeriesRefreshInput = document.getElementById('skip_series_refresh');
+    
+    // Settings form elements - Advanced settings
+    const apiTimeoutInput = document.getElementById('api_timeout');
+    const debugModeInput = document.getElementById('debug_mode');
+    const commandWaitDelayInput = document.getElementById('command_wait_delay');
+    const commandWaitAttemptsInput = document.getElementById('command_wait_attempts');
+    const minimumDownloadQueueSizeInput = document.getElementById('minimum_download_queue_size');
     
     // Button elements for saving and resetting settings
     const saveSettingsButton = document.getElementById('saveSettings');
@@ -124,17 +132,28 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 const huntarr = data.huntarr || {};
+                const advanced = data.advanced || {};
                 
-                // Fill form with current settings
+                // Fill form with current settings - Basic settings
                 huntMissingShowsInput.value = huntarr.hunt_missing_shows !== undefined ? huntarr.hunt_missing_shows : 1;
                 huntUpgradeEpisodesInput.value = huntarr.hunt_upgrade_episodes !== undefined ? huntarr.hunt_upgrade_episodes : 5;
                 sleepDurationInput.value = huntarr.sleep_duration || 900;
                 updateSleepDurationDisplay();
                 stateResetIntervalInput.value = huntarr.state_reset_interval_hours || 168;
                 monitoredOnlyInput.checked = huntarr.monitored_only !== false;
-                randomSelectionInput.checked = huntarr.random_selection !== false;
                 skipFutureEpisodesInput.checked = huntarr.skip_future_episodes !== false;
                 skipSeriesRefreshInput.checked = huntarr.skip_series_refresh === true;
+                
+                // Fill form with current settings - Advanced settings
+                apiTimeoutInput.value = advanced.api_timeout || 60;
+                debugModeInput.checked = advanced.debug_mode === true;
+                commandWaitDelayInput.value = advanced.command_wait_delay || 1;
+                commandWaitAttemptsInput.value = advanced.command_wait_attempts || 600;
+                minimumDownloadQueueSizeInput.value = advanced.minimum_download_queue_size || -1;
+                
+                // Handle random settings
+                randomMissingInput.checked = advanced.random_missing !== false;
+                randomUpgradesInput.checked = advanced.random_upgrades !== false;
             })
             .catch(error => console.error('Error loading settings:', error));
     }
@@ -148,9 +167,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 sleep_duration: parseInt(sleepDurationInput.value) || 900,
                 state_reset_interval_hours: parseInt(stateResetIntervalInput.value) || 168,
                 monitored_only: monitoredOnlyInput.checked,
-                random_selection: randomSelectionInput.checked,
                 skip_future_episodes: skipFutureEpisodesInput.checked,
                 skip_series_refresh: skipSeriesRefreshInput.checked
+            },
+            advanced: {
+                api_timeout: parseInt(apiTimeoutInput.value) || 60,
+                debug_mode: debugModeInput.checked,
+                command_wait_delay: parseInt(commandWaitDelayInput.value) || 1,
+                command_wait_attempts: parseInt(commandWaitAttemptsInput.value) || 600,
+                minimum_download_queue_size: parseInt(minimumDownloadQueueSizeInput.value) || -1,
+                random_missing: randomMissingInput.checked,
+                random_upgrades: randomUpgradesInput.checked
             }
         };
         
