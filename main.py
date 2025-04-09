@@ -13,7 +13,6 @@ import importlib
 from utils.logger import logger
 from config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, ENABLE_WEB_UI, log_configuration, refresh_settings
 from missing import process_missing_episodes
-from upgrade import process_cutoff_upgrades
 from state import check_state_reset, calculate_reset_time
 from api import get_download_queue_size
 
@@ -24,7 +23,7 @@ def signal_handler(signum, frame):
     """Handle signals from the web UI for cycle restart"""
     global restart_cycle
     if signum == signal.SIGUSR1:
-        logger.info("Received restart signal from web UI. Restarting cycle...")
+        logger.info("Received restart signal from web UI. Immediately aborting current operations...")
         restart_cycle = True
 
 # Register signal handler for SIGUSR1
@@ -54,12 +53,19 @@ def get_ip_address():
         except:
             return "YOUR_SERVER_IP"
 
-def force_reload_config():
-    """Force reload of config module to ensure all settings are freshly loaded"""
+def force_reload_all_modules():
+    """Force reload of all relevant modules to ensure fresh settings"""
     try:
         # Force reload the config module
         import config
         importlib.reload(config)
+        
+        # Reload any modules that might cache config values
+        import missing
+        importlib.reload(missing)
+        
+        import upgrade
+        importlib.reload(upgrade)
         
         # Call the refresh function to ensure settings are updated
         config.refresh_settings()
@@ -70,7 +76,7 @@ def force_reload_config():
         
         return True
     except Exception as e:
-        logger.error(f"Error reloading config: {e}")
+        logger.error(f"Error reloading modules: {e}")
         return False
 
 def main_loop() -> None:
@@ -91,8 +97,12 @@ def main_loop() -> None:
         # Set restart_cycle flag to False at the beginning of each cycle
         restart_cycle = False
         
-        # Refresh settings from the settings manager before each cycle
-        refresh_settings()
+        # Always force reload all modules at the start of each cycle
+        force_reload_all_modules()
+        
+        # Import after reload to ensure we get fresh values
+        from config import HUNT_MODE, HUNT_MISSING_SHOWS, HUNT_UPGRADE_EPISODES
+        from upgrade import process_cutoff_upgrades
         
         # Check if state files need to be reset
         check_state_reset()
@@ -107,20 +117,20 @@ def main_loop() -> None:
         if MINIMUM_DOWNLOAD_QUEUE_SIZE < 0 or (MINIMUM_DOWNLOAD_QUEUE_SIZE >= 0 and download_queue_size <= MINIMUM_DOWNLOAD_QUEUE_SIZE):
         
             # Process shows/episodes based on HUNT_MODE
-            if HUNT_MODE in ["missing", "both"]:
+            if restart_cycle:
+                logger.info("Restarting cycle due to settings change...")
+                continue
+                
+            if HUNT_MODE in ["missing", "both"] and HUNT_MISSING_SHOWS > 0:
                 if process_missing_episodes():
                     processing_done = True
                 
                 # Check if restart signal received
                 if restart_cycle:
                     logger.info("Restarting cycle due to settings change...")
-                    # Force reload all configuration before restarting
-                    force_reload_config()
                     continue
                     
-            if HUNT_MODE in ["upgrade", "both"]:
-                # Get the latest HUNT_UPGRADE_EPISODES value directly from config
-                from config import HUNT_UPGRADE_EPISODES
+            if HUNT_MODE in ["upgrade", "both"] and HUNT_UPGRADE_EPISODES > 0:
                 logger.info(f"Starting upgrade process with HUNT_UPGRADE_EPISODES={HUNT_UPGRADE_EPISODES}")
                 
                 if process_cutoff_upgrades():
@@ -129,8 +139,6 @@ def main_loop() -> None:
                 # Check if restart signal received
                 if restart_cycle:
                     logger.info("Restarting cycle due to settings change...")
-                    # Force reload all configuration before restarting
-                    force_reload_config()
                     continue
 
         else:
@@ -159,7 +167,7 @@ def main_loop() -> None:
         
         while time.time() < sleep_end and not restart_cycle:
             # Sleep in smaller chunks for more responsive shutdown and restart
-            time.sleep(min(5, sleep_end - time.time()))
+            time.sleep(min(1, sleep_end - time.time()))
             
             # Every minute, log the remaining sleep time for web interface visibility
             if int((time.time() - sleep_start) % 60) == 0 and time.time() < sleep_end - 10:
@@ -169,8 +177,6 @@ def main_loop() -> None:
             # Check if restart signal received
             if restart_cycle:
                 logger.info("Sleep interrupted due to settings change. Restarting cycle immediately...")
-                # Force reload all configuration before restarting
-                force_reload_config()
                 break
 
 if __name__ == "__main__":
