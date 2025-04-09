@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const sleepDurationHoursSpan = document.getElementById('sleep_duration_hours');
     const stateResetIntervalInput = document.getElementById('state_reset_interval_hours');
     const monitoredOnlyInput = document.getElementById('monitored_only');
-    const randomSelectionInput = document.getElementById('random_selection');
     const randomMissingInput = document.getElementById('random_missing');
     const randomUpgradesInput = document.getElementById('random_upgrades');
     const skipFutureEpisodesInput = document.getElementById('skip_future_episodes');
@@ -142,7 +141,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateSleepDurationDisplay();
                 stateResetIntervalInput.value = huntarr.state_reset_interval_hours || 168;
                 monitoredOnlyInput.checked = huntarr.monitored_only !== false;
-                randomSelectionInput.checked = huntarr.random_selection !== false;
                 skipFutureEpisodesInput.checked = huntarr.skip_future_episodes !== false;
                 skipSeriesRefreshInput.checked = huntarr.skip_series_refresh === true;
                 
@@ -153,15 +151,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 commandWaitAttemptsInput.value = advanced.command_wait_attempts || 600;
                 minimumDownloadQueueSizeInput.value = advanced.minimum_download_queue_size || -1;
                 
-                // Handle random_missing and random_upgrades
-                // If these aren't in the settings yet, default to the value of random_selection
-                randomMissingInput.checked = advanced.random_missing !== undefined 
-                    ? advanced.random_missing 
-                    : randomSelectionInput.checked;
-                    
-                randomUpgradesInput.checked = advanced.random_upgrades !== undefined 
-                    ? advanced.random_upgrades 
-                    : randomSelectionInput.checked;
+                // Handle random settings
+                randomMissingInput.checked = advanced.random_missing !== false;
+                randomUpgradesInput.checked = advanced.random_upgrades !== false;
             })
             .catch(error => console.error('Error loading settings:', error));
     }
@@ -175,7 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 sleep_duration: parseInt(sleepDurationInput.value) || 900,
                 state_reset_interval_hours: parseInt(stateResetIntervalInput.value) || 168,
                 monitored_only: monitoredOnlyInput.checked,
-                random_selection: randomSelectionInput.checked,
                 skip_future_episodes: skipFutureEpisodesInput.checked,
                 skip_series_refresh: skipSeriesRefreshInput.checked
             },
