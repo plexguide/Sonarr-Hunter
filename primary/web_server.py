@@ -93,11 +93,6 @@ def setup_page():
         f.write(f"{timestamp} - huntarr-web - INFO - Accessed setup page - no user exists yet\n")
     return render_template('setup.html')
 
-@app.route('/reset-password')
-def reset_password_page():
-    """Render the password reset instructions page"""
-    return render_template('reset-password.html')
-
 @app.route('/login', methods=['GET'])
 def login_page():
     """Render the login page"""

@@ -42,9 +42,6 @@
                     {% if needs_2fa %}Verify{% else %}Login{% endif %}
                 </button>
                 <p id="errorMessage" class="error-message" {% if not error %}style="display: none;"{% endif %}>{{ error }}</p>
-                <div class="reset-instructions">
-                    <p>Forgot your username or password? <a href="/reset-password">Reset it</a></p>
-                </div>
             </form>
         </div>
     </div>
