@@ -215,7 +215,7 @@ docker run -d --name huntarr \
   --restart always \
   -p 9705:9705 \
   -v /mnt/user/appdata/huntarr:/config \
-  huntarr/huntarr:latest
+  huntarr/huntarr:dev
 ```
 
 To check on the status of the program, you can use the web interface at http://YOUR_SERVER_IP:9705 or check the logs with:
@@ -231,7 +231,7 @@ For those who prefer Docker Compose, add this to your `docker-compose.yml` file:
 version: "3.8"
 services:
   huntarr:
-    image: huntarr/huntarr:latest
+    image: huntarr/huntarr:dev
     container_name: huntarr
     restart: always
     ports:
@@ -255,7 +255,7 @@ docker run -d --name huntarr \
   --restart always \
   -p 9705:9705 \
   -v /mnt/user/appdata/huntarr:/config \
-  huntarr/huntarr:latest
+  huntarr/huntarr:dev
 ```
 
 ### SystemD Service
