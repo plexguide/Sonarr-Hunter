@@ -1,4 +1,4 @@
-<h2 align="center">Huntarr [Sonarr Edition] - Hunt Missing and Upgrade Episodes</h2> 
+<h2 align="center">Huntarr - Find Missing & Upgrade Media Items</h2> 
 
 <p align="center">
   <img src="https://github.com/plexguide/Huntarr-Sonarr/blob/main/logo/128.png?raw=true" alt="Huntarr Logo" width="100" height="100">
@@ -13,6 +13,14 @@
     <td colspan="2"><img src="https://github.com/user-attachments/assets/34264f2e-928d-44e5-adb7-0dbd08fadfd0" width="100%"/></td>
   </tr>
 </table>
+ 
+**NOTE**: Working to Intergrate Apps into UI and Drop Extra Variables.
+
+* Sonarr [Good]
+* Radarr [Not Incorporated Yet]
+* Lidarr [Not Incorporated Yet]
+* Readarr [ Not Incorporated Yet]
+
 
 **NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
 

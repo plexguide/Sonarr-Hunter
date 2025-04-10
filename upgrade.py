@@ -7,9 +7,9 @@ Handles searching for episodes that need quality upgrades in Sonarr
 import random
 import time
 import datetime
+import importlib
 from utils.logger import logger
 from config import (
-    HUNT_UPGRADE_EPISODES, 
     MONITORED_ONLY, 
     RANDOM_SELECTION,
     RANDOM_UPGRADES,
@@ -19,6 +19,13 @@ from config import (
 from api import get_cutoff_unmet, get_cutoff_unmet_total_pages, refresh_series, episode_search_episodes, sonarr_request
 from state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_UPGRADE_FILE
 
+def get_current_upgrade_limit():
+    """Get the current HUNT_UPGRADE_EPISODES value directly from config"""
+    # Force reload the config module to get the latest value
+    import config
+    importlib.reload(config)
+    return config.HUNT_UPGRADE_EPISODES
+
 def process_cutoff_upgrades() -> bool:
     """
     Process episodes that need quality upgrades (cutoff unmet).
@@ -26,6 +33,9 @@ def process_cutoff_upgrades() -> bool:
     Returns:
         True if any processing was done, False otherwise
     """
+    # Get the current value directly at the start of processing
+    HUNT_UPGRADE_EPISODES = get_current_upgrade_limit()
+    
     logger.info("=== Checking for Quality Upgrades (Cutoff Unmet) ===")
 
     # Skip if HUNT_UPGRADE_EPISODES is set to 0
@@ -59,8 +69,12 @@ def process_cutoff_upgrades() -> bool:
         logger.info("Using sequential selection for quality upgrades (RANDOM_UPGRADES=false)")
 
     while True:
-        if episodes_processed >= HUNT_UPGRADE_EPISODES:
-            logger.info(f"Reached HUNT_UPGRADE_EPISODES={HUNT_UPGRADE_EPISODES} for this cycle.")
+        # Check again to make sure we're using the current limit
+        # This ensures if settings changed during processing, we use the new value
+        current_limit = get_current_upgrade_limit()
+        
+        if episodes_processed >= current_limit:
+            logger.info(f"Reached HUNT_UPGRADE_EPISODES={current_limit} for this cycle.")
             break
 
         # If random selection is enabled, pick a random page each iteration
@@ -92,7 +106,10 @@ def process_cutoff_upgrades() -> bool:
             random.shuffle(indices)
 
         for idx in indices:
-            if episodes_processed >= HUNT_UPGRADE_EPISODES:
+            # Check again for the current limit in case it was changed during processing
+            current_limit = get_current_upgrade_limit()
+            
+            if episodes_processed >= current_limit:
                 break
 
             ep_obj = episodes[idx]
@@ -165,7 +182,10 @@ def process_cutoff_upgrades() -> bool:
                 save_processed_id(PROCESSED_UPGRADE_FILE, episode_id)
                 episodes_processed += 1
                 processing_done = True
-                logger.info(f"Processed {episodes_processed}/{HUNT_UPGRADE_EPISODES} upgrade episodes this cycle.")
+                
+                # Log with the current limit, not the initial one
+                current_limit = get_current_upgrade_limit()
+                logger.info(f"Processed {episodes_processed}/{current_limit} upgrade episodes this cycle.")
             else:
                 logger.warning(f"WARNING: Search command failed for episode ID {episode_id}.")
                 continue
@@ -176,6 +196,8 @@ def process_cutoff_upgrades() -> bool:
         # In random mode, we just handle one random page this iteration,
         # then check if we've processed enough episodes or continue to another random page
     
+    # Log with the current limit, not the initial one
+    current_limit = get_current_upgrade_limit()
     logger.info(f"Completed processing {episodes_processed} upgrade episodes for this cycle.")
     truncate_processed_list(PROCESSED_UPGRADE_FILE)
     
