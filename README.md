@@ -21,7 +21,7 @@
 * Lidarr [Not Incorporated Yet]
 * Readarr [Not Incorporated Yet]
 
-** WARNING
+## WARNING
 
 This uses a new repo `huntarr\huntarr` and does not utilize the env variable and requires the UI. Please read the documentation. To utilize legacy Huntarr-Sonarr, please view this [Backup Page](https://null.com)
 
