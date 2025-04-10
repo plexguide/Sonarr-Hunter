@@ -27,10 +27,6 @@
 
 **SCREENSHOTS:** [[1]](https://github.com/user-attachments/assets/01d1231e-3ed2-4b78-8156-ad0b948a4bc9) [[2]](https://github.com/user-attachments/assets/0cf61655-eb6f-4fdb-8582-fae8b0f99f68) [[3]](https://github.com/user-attachments/assets/8bdeae2f-0274-4c63-8e02-0c33c3bf8060) [[4]](https://github.com/user-attachments/assets/7a09be97-23b0-437a-aa04-2491ab24ab0f)
 
-
-
-
-
 ---
 
 **NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
