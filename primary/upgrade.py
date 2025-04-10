@@ -11,7 +11,6 @@ import importlib
 from primary.utils.logger import logger
 from primary.config import (
     MONITORED_ONLY, 
-    RANDOM_SELECTION,
     RANDOM_UPGRADES,
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
@@ -56,8 +55,7 @@ def process_cutoff_upgrades() -> bool:
     # Get current date for future episode filtering
     current_date = datetime.datetime.now().date()
 
-    # Use the specific RANDOM_UPGRADES setting
-    # (no longer dependent on the master RANDOM_SELECTION setting)
+    # Use RANDOM_UPGRADES setting
     should_use_random = RANDOM_UPGRADES
     
     # Initialize page variable for both modes

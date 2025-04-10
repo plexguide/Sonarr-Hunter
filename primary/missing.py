@@ -12,7 +12,6 @@ from primary.utils.logger import logger
 from primary.config import (
     HUNT_MISSING_SHOWS, 
     MONITORED_ONLY, 
-    RANDOM_SELECTION,
     RANDOM_MISSING,
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
@@ -64,8 +63,7 @@ def process_missing_episodes() -> bool:
     shows_processed = 0
     processing_done = False
 
-    # Use the specific RANDOM_MISSING setting 
-    # (no longer dependent on the master RANDOM_SELECTION setting)
+    # Use RANDOM_MISSING setting
     if RANDOM_MISSING:
         logger.info("Using random selection for missing shows (RANDOM_MISSING=true)")
         random.shuffle(shows_with_missing)
