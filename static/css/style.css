@@ -692,9 +692,9 @@ input:checked + .toggle-slider:before {
     padding-bottom: 0;
 }
 
-/* Login and setup pages */
+/* Login and setup pages - UPDATED */
 .login-container {
-    max-width: 400px;
+    max-width: 480px;  /* Increased from 400px (20% increase) */
     margin: 100px auto;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -781,6 +781,61 @@ input:checked + .toggle-slider:before {
     text-decoration: underline;
 }
 
+/* QR code styles - UPDATED */
+.qr-code-container {
+    margin: 15px auto;
+    text-align: center;
+    max-width: 320px;
+}
+
+.qr-code {
+    max-width: 160px;  /* Reduced QR code size */
+    margin: 0 auto;
+    background-color: white;
+    padding: 8px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.qr-code img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.secret-key {
+    font-family: monospace;
+    padding: 8px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 14px;
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
+
+.verification-code {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.verification-code input {
+    width: 180px;
+    padding: 8px;
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    text-align: center;
+    letter-spacing: 2px;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
 /* User settings page */
 .user-container {
     background-color: var(--log-background);
@@ -865,5 +920,10 @@ input:checked + .toggle-slider:before {
     .app-tab {
         flex: none;
         width: 50%;
+    }
+    
+    .login-container {
+        margin: 50px 20px;
+        max-width: none;
     }
 }
