@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
     const logsButton = document.getElementById('logsButton');
     const settingsButton = document.getElementById('settingsButton');
+    const userButton = document.getElementById('userButton');
     const logsContainer = document.getElementById('logsContainer');
     const settingsContainer = document.getElementById('settingsContainer');
     const logsElement = document.getElementById('logs');
@@ -106,18 +107,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Tab switching
     logsButton.addEventListener('click', function() {
-        logsContainer.style.display = 'flex';
-        settingsContainer.style.display = 'none';
-        logsButton.classList.add('active');
-        settingsButton.classList.remove('active');
+        window.location.href = '/';
     });
     
     settingsButton.addEventListener('click', function() {
-        logsContainer.style.display = 'none';
-        settingsContainer.style.display = 'flex';
-        settingsButton.classList.add('active');
-        logsButton.classList.remove('active');
-        loadSettings();
+        window.location.href = '/settings';
+    });
+    
+    userButton.addEventListener('click', function() {
+        window.location.href = '/user';
     });
     
     // Log management
@@ -173,19 +171,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add change event listeners to all form elements
-    [huntMissingShowsInput, huntUpgradeEpisodesInput, stateResetIntervalInput, 
-     apiTimeoutInput, commandWaitDelayInput, commandWaitAttemptsInput, 
-     minimumDownloadQueueSizeInput].forEach(input => {
-        input.addEventListener('input', checkForChanges);
-    });
+    if (huntMissingShowsInput && huntUpgradeEpisodesInput && stateResetIntervalInput && 
+        apiTimeoutInput && commandWaitDelayInput && commandWaitAttemptsInput && 
+        minimumDownloadQueueSizeInput) {
+        
+        [huntMissingShowsInput, huntUpgradeEpisodesInput, stateResetIntervalInput, 
+         apiTimeoutInput, commandWaitDelayInput, commandWaitAttemptsInput, 
+         minimumDownloadQueueSizeInput].forEach(input => {
+            input.addEventListener('input', checkForChanges);
+        });
+    }
     
-    [monitoredOnlyInput, randomMissingInput, randomUpgradesInput, 
-     skipFutureEpisodesInput, skipSeriesRefreshInput, debugModeInput].forEach(checkbox => {
-        checkbox.addEventListener('change', checkForChanges);
-    });
+    if (monitoredOnlyInput && randomMissingInput && randomUpgradesInput && 
+        skipFutureEpisodesInput && skipSeriesRefreshInput && debugModeInput) {
+        
+        [monitoredOnlyInput, randomMissingInput, randomUpgradesInput, 
+         skipFutureEpisodesInput, skipSeriesRefreshInput, debugModeInput].forEach(checkbox => {
+            checkbox.addEventListener('change', checkForChanges);
+        });
+    }
     
     // Load settings from API
     function loadSettings() {
+        if (!saveSettingsButton) return; // Skip if not on settings page
+        
         fetch('/api/settings')
             .then(response => response.json())
             .then(data => {
@@ -311,16 +320,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add event listeners to both button sets
-    saveSettingsButton.addEventListener('click', saveSettings);
-    resetSettingsButton.addEventListener('click', resetSettings);
-    
-    saveSettingsBottomButton.addEventListener('click', saveSettings);
-    resetSettingsBottomButton.addEventListener('click', resetSettings);
+    if (saveSettingsButton && resetSettingsButton && saveSettingsBottomButton && resetSettingsBottomButton) {
+        saveSettingsButton.addEventListener('click', saveSettings);
+        resetSettingsButton.addEventListener('click', resetSettings);
+        
+        saveSettingsBottomButton.addEventListener('click', saveSettings);
+        resetSettingsBottomButton.addEventListener('click', resetSettings);
+    }
     
     // Event source for logs
     let eventSource;
     
     function connectEventSource() {
+        if (!logsElement) return; // Skip if not on logs page
+        
         if (eventSource) {
             eventSource.close();
         }
@@ -364,24 +377,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Observe scroll event to detect manual scrolling
-    logsElement.addEventListener('scroll', function() {
-        // If we're at the bottom or near it (within 20px), ensure auto-scroll stays on
-        const atBottom = (logsElement.scrollHeight - logsElement.scrollTop - logsElement.clientHeight) < 20;
-        if (!atBottom && autoScrollCheckbox.checked) {
-            // User manually scrolled up, disable auto-scroll
-            autoScrollCheckbox.checked = false;
-        }
-    });
+    if (logsElement) {
+        logsElement.addEventListener('scroll', function() {
+            // If we're at the bottom or near it (within 20px), ensure auto-scroll stays on
+            const atBottom = (logsElement.scrollHeight - logsElement.scrollTop - logsElement.clientHeight) < 20;
+            if (!atBottom && autoScrollCheckbox.checked) {
+                // User manually scrolled up, disable auto-scroll
+                autoScrollCheckbox.checked = false;
+            }
+        });
+    }
     
     // Re-enable auto-scroll when checkbox is checked
-    autoScrollCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            scrollToBottom();
-        }
-    });
+    if (autoScrollCheckbox) {
+        autoScrollCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                scrollToBottom();
+            }
+        });
+    }
     
     // Initialize
     loadTheme();
-    updateSleepDurationDisplay();
-    connectEventSource();
+    if (sleepDurationInput) {
+        updateSleepDurationDisplay();
+    }
+    if (window.location.pathname === '/settings') {
+        loadSettings();
+    }
+    if (logsElement) {
+        connectEventSource();
+    }
 });

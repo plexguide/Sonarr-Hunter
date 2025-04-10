@@ -8,8 +8,8 @@ import random
 import time
 import datetime
 from typing import List
-from utils.logger import logger
-from config import (
+from primary.utils.logger import logger
+from primary.config import (
     HUNT_MISSING_SHOWS, 
     MONITORED_ONLY, 
     RANDOM_SELECTION,
@@ -17,13 +17,13 @@ from config import (
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
 )
-from api import (
+from primary.api import (
     get_episodes_for_series, 
     refresh_series, 
     episode_search_episodes, 
     get_series_with_missing_episodes
 )
-from state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_MISSING_FILE
+from primary.state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_MISSING_FILE
 
 def process_missing_episodes() -> bool:
     """

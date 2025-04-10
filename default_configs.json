@@ -1,0 +1,54 @@
+{
+    "sonarr": {
+      "api_timeout": 60,
+      "monitored_only": true,
+      "hunt_missing_shows": 1,
+      "hunt_upgrade_episodes": 0,
+      "sleep_duration": 900,
+      "state_reset_interval_hours": 168,
+      "debug_mode": false,
+      "skip_future_episodes": true,
+      "skip_series_refresh": false,
+      "command_wait_delay": 1,
+      "command_wait_attempts": 600,
+      "minimum_download_queue_size": -1,
+      "random_missing": true,
+      "random_upgrades": true
+    },
+    "radarr": {
+      "api_timeout": 60,
+      "monitored_only": true,
+      "sleep_duration": 900,
+      "state_reset_interval_hours": 168,
+      "debug_mode": false,
+      "command_wait_delay": 1,
+      "command_wait_attempts": 600,
+      "minimum_download_queue_size": -1,
+      "random_missing": true,
+      "random_upgrades": true
+    },
+    "lidarr": {
+      "api_timeout": 60,
+      "monitored_only": true,
+      "sleep_duration": 900,
+      "state_reset_interval_hours": 168,
+      "debug_mode": false,
+      "command_wait_delay": 1,
+      "command_wait_attempts": 600,
+      "minimum_download_queue_size": -1,
+      "random_missing": true,
+      "random_upgrades": true
+    },
+    "readarr": {
+      "api_timeout": 60,
+      "monitored_only": true,
+      "sleep_duration": 900,
+      "state_reset_interval_hours": 168,
+      "debug_mode": false,
+      "command_wait_delay": 1,
+      "command_wait_attempts": 600,
+      "minimum_download_queue_size": -1,
+      "random_missing": true,
+      "random_upgrades": true
+    }
+  }

@@ -8,21 +8,21 @@ import random
 import time
 import datetime
 import importlib
-from utils.logger import logger
-from config import (
+from primary.utils.logger import logger
+from primary.config import (
     MONITORED_ONLY, 
     RANDOM_SELECTION,
     RANDOM_UPGRADES,
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
 )
-from api import get_cutoff_unmet, get_cutoff_unmet_total_pages, refresh_series, episode_search_episodes, sonarr_request
-from state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_UPGRADE_FILE
+from primary.api import get_cutoff_unmet, get_cutoff_unmet_total_pages, refresh_series, episode_search_episodes, arr_request
+from primary.state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_UPGRADE_FILE
 
 def get_current_upgrade_limit():
     """Get the current HUNT_UPGRADE_EPISODES value directly from config"""
     # Force reload the config module to get the latest value
-    import config
+    from primary import config
     importlib.reload(config)
     return config.HUNT_UPGRADE_EPISODES
 
@@ -125,7 +125,7 @@ def process_cutoff_upgrades() -> bool:
             series_title = ep_obj.get("seriesTitle", None)
             if not series_title:
                 # fallback: request the series
-                series_data = sonarr_request(f"series/{series_id}", method="GET")
+                series_data = arr_request(f"series/{series_id}", method="GET")
                 if series_data:
                     series_title = series_data.get("title", "Unknown Series")
                 else:
@@ -155,7 +155,7 @@ def process_cutoff_upgrades() -> bool:
                     series_monitored = ep_obj["series"].get("monitored", False)
                 else:
                     # retrieve the series
-                    series_data = sonarr_request(f"series/{series_id}", "GET")
+                    series_data = arr_request(f"series/{series_id}", "GET")
                     series_monitored = series_data.get("monitored", False) if series_data else False
 
                 if not ep_monitored or not series_monitored:

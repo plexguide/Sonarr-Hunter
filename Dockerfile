@@ -1,40 +1,31 @@
 FROM python:3.9-slim
 WORKDIR /app
+
 # Install dependencies
-COPY requirements.txt .
+COPY primary/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-# Install Flask for the web interface
-RUN pip install --no-cache-dir flask
+
+# Create directory structure
+RUN mkdir -p /app/primary /app/templates /app/static/css /app/static/js /config/stateful /config/settings /config/user
+
 # Copy application files
-COPY *.py ./
-COPY utils/ ./utils/
-COPY web_server.py ./
-# Create templates directory and copy index.html
-RUN mkdir -p templates static/css static/js
+COPY primary/ ./primary/
 COPY templates/ ./templates/
 COPY static/ ./static/
-# Create required directories
-RUN mkdir -p /config/stateful /config/settings
-# Default environment variables
-ENV API_KEY="your-api-key" \
-API_URL="http://your-sonarr-address:8989" \
-API_TIMEOUT="60" \
-HUNT_MISSING_SHOWS=1 \
-HUNT_UPGRADE_EPISODES=5 \
-SLEEP_DURATION=900 \
-STATE_RESET_INTERVAL_HOURS=168 \
-RANDOM_SELECTION="true" \
-MONITORED_ONLY="true" \
-DEBUG_MODE="false" \
-ENABLE_WEB_UI="true" \
-SKIP_FUTURE_EPISODES="true" \
-SKIP_SERIES_REFRESH="false"
+COPY primary/default_configs.json .
+
+# Default environment variables (minimal set)
+ENV APP_TYPE="sonarr"
+
 # Create volume mount points
 VOLUME ["/config"]
+
 # Expose web interface port
 EXPOSE 8988
-# Add startup script that conditionally starts the web UI
-COPY start.sh .
+
+# Add startup script
+COPY primary/start.sh .
 RUN chmod +x start.sh
-# Run the startup script which will decide what to launch
+
+# Run the startup script
 CMD ["./start.sh"]

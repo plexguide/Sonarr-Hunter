@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Huntarr</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/favicon.ico">
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background-color: var(--log-background);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        .login-button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .login-button:hover {
+            background-color: var(--button-hover);
+        }
+        
+        .error-message {
+            color: var(--error-color);
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Login to Huntarr</h1>
+        </div>
+        <div class="login-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="button" id="loginButton" class="login-button">Login</button>
+            <p id="errorMessage" class="error-message">Invalid username or password</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginButton = document.getElementById('loginButton');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Allow pressing Enter to login
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginButton.click();
+                }
+            });
+            
+            // Login button click handler
+            loginButton.addEventListener('click', function() {
+                const username = usernameInput.value;
+                const password = passwordInput.value;
+                
+                if (!username || !password) {
+                    errorMessage.textContent = 'Username and password are required';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Send login request to API
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect to main page on successful login
+                        window.location.href = '/';
+                    } else {
+                        // Show error message
+                        errorMessage.textContent = data.message || 'Invalid username or password';
+                        errorMessage.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    errorMessage.textContent = 'An error occurred. Please try again.';
+                    errorMessage.style.display = 'block';
+                    console.error('Login error:', error);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Web server for Huntarr-Sonarr
-Provides a web interface to view logs in real-time and manage settings
+Web server for Huntarr
+Provides a web interface to view logs in real-time, manage settings, and includes authentication
 """
 
 import os
@@ -12,28 +12,40 @@ import socket
 import json
 import signal
 import sys
-from flask import Flask, render_template, Response, stream_with_context, request, jsonify, send_from_directory
+import qrcode
+import pyotp
+import base64
+import io
+from flask import Flask, render_template, Response, stream_with_context, request, jsonify, send_from_directory, redirect, session, url_for
 import logging
-from config import ENABLE_WEB_UI
-import settings_manager
-from utils.logger import setup_logger
-
-# Check if web UI is disabled
-if not ENABLE_WEB_UI:
-    print("Web UI is disabled. Exiting web server.")
-    exit(0)
+from primary.config import API_URL
+from primary import settings_manager
+from primary.utils.logger import setup_logger
+from primary.auth import (
+    authenticate_request, user_exists, create_user, verify_user, create_session, 
+    logout, SESSION_COOKIE_NAME, is_2fa_enabled, generate_2fa_secret, 
+    verify_2fa_code, disable_2fa, change_username, change_password
+)
 
 # Disable Flask default logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
 # Create Flask app
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
+app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 
 # Log file location
 LOG_FILE = "/tmp/huntarr-logs/huntarr.log"
 LOG_DIR = pathlib.Path("/tmp/huntarr-logs")
 LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+# Authentication middleware
+@app.before_request
+def before_request():
+    auth_result = authenticate_request()
+    if auth_result:
+        return auth_result
 
 # Get the PID of the main process
 def get_main_process_pid():
@@ -45,7 +57,7 @@ def get_main_process_pid():
             try:
                 with open(f'/proc/{proc}/cmdline', 'r') as f:
                     cmdline = f.read().replace('\0', ' ')
-                    if 'python' in cmdline and 'main.py' in cmdline:
+                    if 'python' in cmdline and 'primary/main.py' in cmdline:
                         return int(proc)
             except (IOError, ProcessLookupError):
                 continue
@@ -58,10 +70,191 @@ def index():
     """Render the main page"""
     return render_template('index.html')
 
+@app.route('/settings')
+def settings_page():
+    """Render the settings page"""
+    return render_template('index.html')
+
+@app.route('/user')
+def user_page():
+    """Render the user settings page"""
+    return render_template('user.html')
+
+@app.route('/setup', methods=['GET'])
+def setup_page():
+    """Render the setup page for first-time users"""
+    if user_exists():
+        return redirect('/')
+    return render_template('setup.html')
+
+@app.route('/login', methods=['GET'])
+def login_page():
+    """Render the login page"""
+    if not user_exists():
+        return redirect('/setup')
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def api_login_form():
+    """Handle form-based login (for 2FA implementation)"""
+    username = request.form.get('username')
+    password = request.form.get('password')
+    otp_code = request.form.get('otp_code')
+    
+    auth_success, needs_2fa = verify_user(username, password, otp_code)
+    
+    if auth_success:
+        # Create a session for the authenticated user
+        session_id = create_session(username)
+        session[SESSION_COOKIE_NAME] = session_id
+        return redirect('/')
+    elif needs_2fa:
+        # Show 2FA input form
+        return render_template('login.html', username=username, password=password, needs_2fa=True)
+    else:
+        # Invalid credentials
+        return render_template('login.html', error="Invalid username or password")
+
+@app.route('/logout')
+def logout_page():
+    """Log out and redirect to login page"""
+    logout()
+    return redirect('/login')
+
+@app.route('/api/setup', methods=['POST'])
+def api_setup():
+    """Create the initial user"""
+    if user_exists():
+        return jsonify({"success": False, "message": "User already exists"}), 400
+        
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    confirm_password = data.get('confirm_password')
+    
+    if not username or not password:
+        return jsonify({"success": False, "message": "Username and password required"}), 400
+        
+    if password != confirm_password:
+        return jsonify({"success": False, "message": "Passwords do not match"}), 400
+        
+    if create_user(username, password):
+        # Create a session for the new user
+        session_id = create_session(username)
+        session[SESSION_COOKIE_NAME] = session_id
+        return jsonify({"success": True})
+    else:
+        return jsonify({"success": False, "message": "Failed to create user"}), 500
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    """Authenticate a user"""
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    otp_code = data.get('otp_code')
+    
+    auth_success, needs_2fa = verify_user(username, password, otp_code)
+    
+    if auth_success:
+        # Create a session for the authenticated user
+        session_id = create_session(username)
+        session[SESSION_COOKIE_NAME] = session_id
+        return jsonify({"success": True})
+    elif needs_2fa:
+        # Need 2FA code
+        return jsonify({"success": False, "needs_2fa": True})
+    else:
+        return jsonify({"success": False, "message": "Invalid credentials"}), 401
+
+@app.route('/api/user/2fa-status')
+def api_2fa_status():
+    """Check if 2FA is enabled for the current user"""
+    return jsonify({"enabled": is_2fa_enabled()})
+
+@app.route('/api/user/generate-2fa')
+def api_generate_2fa():
+    """Generate a new 2FA secret and QR code"""
+    try:
+        secret, qr_code_url = generate_2fa_secret()
+        return jsonify({
+            "success": True,
+            "secret": secret,
+            "qr_code_url": qr_code_url
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Failed to generate 2FA: {str(e)}"
+        }), 500
+
+@app.route('/api/user/verify-2fa', methods=['POST'])
+def api_verify_2fa():
+    """Verify a 2FA code and enable 2FA if valid"""
+    data = request.json
+    code = data.get('code')
+    
+    if not code:
+        return jsonify({"success": False, "message": "Verification code is required"}), 400
+    
+    if verify_2fa_code(code):
+        return jsonify({"success": True})
+    else:
+        return jsonify({"success": False, "message": "Invalid verification code"}), 400
+
+@app.route('/api/user/disable-2fa', methods=['POST'])
+def api_disable_2fa():
+    """Disable 2FA for the current user"""
+    data = request.json
+    password = data.get('password')
+    
+    if not password:
+        return jsonify({"success": False, "message": "Password is required"}), 400
+    
+    if disable_2fa(password):
+        return jsonify({"success": True})
+    else:
+        return jsonify({"success": False, "message": "Invalid password"}), 400
+
+@app.route('/api/user/change-username', methods=['POST'])
+def api_change_username():
+    """Change the username for the current user"""
+    data = request.json
+    current_username = data.get('current_username')
+    new_username = data.get('new_username')
+    password = data.get('password')
+    
+    if not current_username or not new_username or not password:
+        return jsonify({"success": False, "message": "All fields are required"}), 400
+    
+    if change_username(current_username, new_username, password):
+        # Force logout
+        logout()
+        return jsonify({"success": True})
+    else:
+        return jsonify({"success": False, "message": "Invalid username or password"}), 400
+
+@app.route('/api/user/change-password', methods=['POST'])
+def api_change_password():
+    """Change the password for the current user"""
+    data = request.json
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+    
+    if not current_password or not new_password:
+        return jsonify({"success": False, "message": "All fields are required"}), 400
+    
+    if change_password(current_password, new_password):
+        # Force logout
+        logout()
+        return jsonify({"success": True})
+    else:
+        return jsonify({"success": False, "message": "Invalid current password"}), 400
+
 @app.route('/static/<path:path>')
 def send_static(path):
     """Serve static files"""
-    return send_from_directory('static', path)
+    return send_from_directory('../static', path)
 
 @app.route('/logs')
 def stream_logs():
@@ -250,7 +443,6 @@ def get_ip_address():
     """Get the host's IP address from API_URL for display"""
     try:
         from urllib.parse import urlparse
-        from config import API_URL
         
         # Extract the hostname/IP from the API_URL
         parsed_url = urlparse(API_URL)
