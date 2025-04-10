@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loadSettings(app);
             
             // For logs, we need to refresh the log stream
-            if (logsElement && logsContainer.style.display !== 'none') {
+            if (logsElement && logsContainer && logsContainer.style.display !== 'none') {
                 // Clear the logs first
                 logsElement.innerHTML = '';
                 // Reconnect the event source
@@ -97,6 +97,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update sleep duration display
     function updateSleepDurationDisplay() {
+        if (!sleepDurationInput || !sleepDurationHoursSpan) return;
+        
         const seconds = parseInt(sleepDurationInput.value) || 900;
         let displayText = '';
         
@@ -132,8 +134,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 const isDarkMode = data.dark_mode || false;
                 setTheme(isDarkMode);
-                themeToggle.checked = isDarkMode;
-                themeLabel.textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
+                if (themeToggle) themeToggle.checked = isDarkMode;
+                if (themeLabel) themeLabel.textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
             })
             .catch(error => console.error('Error loading theme:', error));
     }
@@ -141,26 +143,28 @@ document.addEventListener('DOMContentLoaded', function() {
     function setTheme(isDark) {
         if (isDark) {
             document.body.classList.add('dark-theme');
-            themeLabel.textContent = 'Dark Mode';
+            if (themeLabel) themeLabel.textContent = 'Dark Mode';
         } else {
             document.body.classList.remove('dark-theme');
-            themeLabel.textContent = 'Light Mode';
+            if (themeLabel) themeLabel.textContent = 'Light Mode';
         }
     }
     
-    themeToggle.addEventListener('change', function() {
-        const isDarkMode = this.checked;
-        setTheme(isDarkMode);
-        
-        fetch('/api/settings/theme', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ dark_mode: isDarkMode })
-        })
-        .catch(error => console.error('Error saving theme:', error));
-    });
+    if (themeToggle) {
+        themeToggle.addEventListener('change', function() {
+            const isDarkMode = this.checked;
+            setTheme(isDarkMode);
+            
+            fetch('/api/settings/theme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ dark_mode: isDarkMode })
+            })
+            .catch(error => console.error('Error saving theme:', error));
+        });
+    }
     
     // Get user's name for welcome message
     function getUserInfo() {
@@ -259,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Log management
     if (clearLogsButton) {
         clearLogsButton.addEventListener('click', function() {
-            logsElement.innerHTML = '';
+            if (logsElement) logsElement.innerHTML = '';
         });
     }
     
@@ -282,8 +286,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Test API connection
-            sonarrConnectionStatus.textContent = 'Testing...';
-            sonarrConnectionStatus.className = 'connection-badge';
+            if (sonarrConnectionStatus) {
+                sonarrConnectionStatus.textContent = 'Testing...';
+                sonarrConnectionStatus.className = 'connection-badge';
+            }
             
             fetch('/api/test-connection', {
                 method: 'POST',
@@ -299,8 +305,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    sonarrConnectionStatus.textContent = 'Connected';
-                    sonarrConnectionStatus.className = 'connection-badge connected';
+                    if (sonarrConnectionStatus) {
+                        sonarrConnectionStatus.textContent = 'Connected';
+                        sonarrConnectionStatus.className = 'connection-badge connected';
+                    }
                     
                     // Update home page status
                     if (sonarrHomeStatus) {
@@ -308,15 +316,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         sonarrHomeStatus.className = 'connection-badge connected';
                     }
                 } else {
-                    sonarrConnectionStatus.textContent = 'Connection Failed';
-                    sonarrConnectionStatus.className = 'connection-badge not-connected';
+                    if (sonarrConnectionStatus) {
+                        sonarrConnectionStatus.textContent = 'Connection Failed';
+                        sonarrConnectionStatus.className = 'connection-badge not-connected';
+                    }
                     alert(`Connection failed: ${data.message}`);
                 }
             })
             .catch(error => {
                 console.error('Error testing connection:', error);
-                sonarrConnectionStatus.textContent = 'Connection Error';
-                sonarrConnectionStatus.className = 'connection-badge not-connected';
+                if (sonarrConnectionStatus) {
+                    sonarrConnectionStatus.textContent = 'Connection Error';
+                    sonarrConnectionStatus.className = 'connection-badge not-connected';
+                }
                 alert('Error testing connection: ' + error.message);
             });
         });
@@ -324,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to check if settings have changed from original values
     function checkForChanges() {
-        if (!originalSettings.huntarr) return; // Don't check if original settings not loaded
+        if (!originalSettings.huntarr) return false; // Don't check if original settings not loaded
         
         let hasChanges = false;
         
@@ -504,14 +516,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 skip_series_refresh: skipSeriesRefreshInput ? skipSeriesRefreshInput.checked : false
             },
             advanced: {
-                api_timeout: apiTimeoutInput ? parseInt(apiTimeoutInput.value) || 60 : 60,
-                debug_mode: debugModeInput ? debugModeInput.checked : false
                 debug_mode: debugModeInput ? debugModeInput.checked : false,
                 command_wait_delay: commandWaitDelayInput ? parseInt(commandWaitDelayInput.value) || 1 : 1,
                 command_wait_attempts: commandWaitAttemptsInput ? parseInt(commandWaitAttemptsInput.value) || 600 : 600,
                 minimum_download_queue_size: minimumDownloadQueueSizeInput ? parseInt(minimumDownloadQueueSizeInput.value) || -1 : -1,
                 random_missing: randomMissingInput ? randomMissingInput.checked : true,
-                random_upgrades: randomUpgradesInput ? randomUpgradesInput.checked : true
+                random_upgrades: randomUpgradesInput ? randomUpgradesInput.checked : true,
+                api_timeout: apiTimeoutInput ? parseInt(apiTimeoutInput.value) || 60 : 60
             }
         };
         
@@ -571,6 +582,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Are you sure you want to reset all settings to default values?')) {
             fetch('/api/settings/reset', {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ app: currentApp })
             })
             .then(response => response.json())
