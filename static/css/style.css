@@ -33,7 +33,10 @@
     --app-tab-text: #ecf0f1;
     --app-tab-active: #3498db;
     --app-tab-hover: #2980b9;
+    --app-tab-border: #1a2530;
     --service-not-configured: #f39c12;
+    --welcome-panel-bg: #34495e;
+    --info-box-bg: #2c3e50;
 }
 
 .dark-theme {
@@ -71,7 +74,10 @@
     --app-tab-text: #ecf0f1;
     --app-tab-active: #3498db;
     --app-tab-hover: #2980b9;
+    --app-tab-border: #2c3e50;
     --service-not-configured: #f39c12;
+    --welcome-panel-bg: #2c3e50;
+    --info-box-bg: #1a2530;
 }
 
 * {
@@ -501,16 +507,7 @@ input:checked + .toggle-slider:before {
     background-color: var(--reset-button-hover);
 }
 
-/* App selection tabs */
-.app-selector {
-    display: flex;
-    background-color: var(--app-tab-bg);
-    border-radius: 0;
-    margin-top: -1px;
-    margin-bottom: -1px;
-    overflow: hidden;
-}
-/* App selection tabs */
+/* App selection tabs - Improved with borders */
 .app-selector {
     display: flex;
     background-color: var(--app-tab-bg);
@@ -523,7 +520,8 @@ input:checked + .toggle-slider:before {
 .app-tab {
     background-color: var(--app-tab-bg);
     color: var(--app-tab-text);
-    border: none;
+    border: 1px solid var(--app-tab-border);
+    border-bottom: none;
     padding: 10px 20px;
     flex: 1;
     cursor: pointer;
@@ -532,12 +530,17 @@ input:checked + .toggle-slider:before {
     transition: background-color 0.3s;
 }
 
+.app-tab:not(:last-child) {
+    border-right: none;
+}
+
 .app-tab:hover {
     background-color: var(--app-tab-hover);
 }
 
 .app-tab.active {
     background-color: var(--app-tab-active);
+    border-color: var(--app-tab-active);
 }
 
 /* App settings sections */
@@ -603,6 +606,76 @@ input:checked + .toggle-slider:before {
     font-family: monospace;
     overflow-x: auto;
     margin: 10px 0;
+}
+
+/* Welcome page styles */
+.welcome-panel {
+    padding: 20px;
+    background-color: var(--welcome-panel-bg);
+    border-radius: 8px;
+    color: var(--header-text);
+    margin-bottom: 20px;
+}
+
+.welcome-panel h2 {
+    margin-bottom: 15px;
+    font-size: 24px;
+    color: var(--header-text);
+}
+
+.welcome-panel h3 {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: var(--header-text);
+    border-bottom: 1px solid var(--app-tab-border);
+    padding-bottom: 8px;
+}
+
+.welcome-panel p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.welcome-panel a {
+    color: var(--button-bg);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.welcome-panel a:hover {
+    text-decoration: underline;
+}
+
+.connection-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.connection-item {
+    display: flex;
+    align-items: center;
+}
+
+.connection-name {
+    width: 100px;
+    font-weight: bold;
+}
+
+.info-box, .thank-you-box {
+    background-color: var(--info-box-bg);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 25px;
+}
+
+.info-box h3, .thank-you-box h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 @media (max-width: 768px) {

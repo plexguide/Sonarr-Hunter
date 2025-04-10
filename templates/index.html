@@ -12,7 +12,8 @@
         <div class="header">
             <h1>Huntarr</h1>
             <div class="buttons">
-                <button id="logsButton" class="active">Logs</button>
+                <button id="homeButton" class="active">Home</button>
+                <button id="logsButton">Logs</button>
                 <button id="settingsButton">Settings</button>
                 <button id="userButton">User</button>
             </div>
@@ -33,7 +34,46 @@
             <button class="app-tab" data-app="readarr">Readarr</button>
         </div>
 
-        <div id="logsContainer" class="content-section">
+        <div id="homeContainer" class="content-section">
+            <div class="welcome-panel">
+                <h2>Welcome to Huntarr, <span id="username">User</span>!</h2>
+                <p>Huntarr helps you find missing media and upgrade quality across multiple Arr applications.</p>
+                
+                <h3>Connection Status</h3>
+                <div class="connection-list">
+                    <div class="connection-item">
+                        <span class="connection-name">Sonarr:</span>
+                        <span id="sonarrHomeStatus" class="connection-badge not-connected">Not Configured</span>
+                    </div>
+                    <div class="connection-item">
+                        <span class="connection-name">Radarr:</span>
+                        <span id="radarrHomeStatus" class="connection-badge not-connected">Not Configured</span>
+                    </div>
+                    <div class="connection-item">
+                        <span class="connection-name">Lidarr:</span>
+                        <span id="lidarrHomeStatus" class="connection-badge not-connected">Not Configured</span>
+                    </div>
+                    <div class="connection-item">
+                        <span class="connection-name">Readarr:</span>
+                        <span id="readarrHomeStatus" class="connection-badge not-connected">Not Configured</span>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <h3>Coming Soon</h3>
+                    <p>Huntarr.io with a Discord community for support and developers.</p>
+                    <p>To file issues, please visit: <a href="https://github.com/plexguide/Huntarr/issues" target="_blank">GitHub Issues</a></p>
+                    <p>For documentation, check our <a href="https://github.com/plexguide/Huntarr/wiki" target="_blank">Wiki</a></p>
+                </div>
+                
+                <div class="thank-you-box">
+                    <h3>Special Thanks</h3>
+                    <p>Thank you to <a href="https://github.com/zpatten" target="_blank">ZPatten</a> and <a href="https://github.com/MacaidenXIII" target="_blank">MacaidenXIII</a> for really getting this project kickstarted with great ideas!</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="logsContainer" class="content-section" style="display: none;">
             <div class="log-controls">
                 <div class="connection-status">
                     Status: <span id="status" class="status-disconnected">Disconnected</span>

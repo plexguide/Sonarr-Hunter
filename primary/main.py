@@ -1,204 +1,722 @@
-#!/usr/bin/env python3
-"""
-Huntarr - Main entry point for the application
-Supports multiple Arr applications
-"""
-
-import time
-import sys
-import os
-import socket
-import signal
-import importlib
-from primary.utils.logger import logger
-from primary.config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, APP_TYPE, log_configuration, refresh_settings
-from primary.state import check_state_reset, calculate_reset_time
-from primary.api import get_download_queue_size
-
-# Flag to indicate if cycle should restart
-restart_cycle = False
-
-def signal_handler(signum, frame):
-    """Handle signals from the web UI for cycle restart"""
-    global restart_cycle
-    if signum == signal.SIGUSR1:
-        logger.warning("⚠️ Received restart signal from web UI. Immediately aborting current operations... ⚠️")
-        restart_cycle = True
-
-# Register signal handler for SIGUSR1
-signal.signal(signal.SIGUSR1, signal_handler)
-
-def get_ip_address():
-    """Get the host's IP address from API_URL for display"""
-    try:
-        from urllib.parse import urlparse
-        from primary.config import API_URL
-        
-        # Extract the hostname/IP from the API_URL
-        parsed_url = urlparse(API_URL)
-        hostname = parsed_url.netloc
-        
-        # Remove port if present
-        if ':' in hostname:
-            hostname = hostname.split(':')[0]
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const homeButton = document.getElementById('homeButton');
+    const logsButton = document.getElementById('logsButton');
+    const settingsButton = document.getElementById('settingsButton');
+    const userButton = document.getElementById('userButton');
+    const homeContainer = document.getElementById('homeContainer');
+    const logsContainer = document.getElementById('logsContainer');
+    const settingsContainer = document.getElementById('settingsContainer');
+    const logsElement = document.getElementById('logs');
+    const statusElement = document.getElementById('status');
+    const clearLogsButton = document.getElementById('clearLogs');
+    const autoScrollCheckbox = document.getElementById('autoScroll');
+    const themeToggle = document.getElementById('themeToggle');
+    const themeLabel = document.getElementById('themeLabel');
+    
+    // App tabs
+    const appTabs = document.querySelectorAll('.app-tab');
+    const appSettings = document.querySelectorAll('.app-settings');
+    
+    // Connection status elements on home page
+    const sonarrHomeStatus = document.getElementById('sonarrHomeStatus');
+    const radarrHomeStatus = document.getElementById('radarrHomeStatus');
+    const lidarrHomeStatus = document.getElementById('lidarrHomeStatus');
+    const readarrHomeStatus = document.getElementById('readarrHomeStatus');
+    
+    // Current selected app
+    let currentApp = 'sonarr';
+    
+    // App settings - Sonarr
+    const sonarrApiUrlInput = document.getElementById('sonarr_api_url');
+    const sonarrApiKeyInput = document.getElementById('sonarr_api_key');
+    const sonarrConnectionStatus = document.getElementById('sonarrConnectionStatus');
+    const testSonarrConnectionButton = document.getElementById('testSonarrConnection');
+    
+    // Settings form elements - Basic settings (Sonarr)
+    const huntMissingShowsInput = document.getElementById('hunt_missing_shows');
+    const huntUpgradeEpisodesInput = document.getElementById('hunt_upgrade_episodes');
+    const sleepDurationInput = document.getElementById('sleep_duration');
+    const sleepDurationHoursSpan = document.getElementById('sleep_duration_hours');
+    const stateResetIntervalInput = document.getElementById('state_reset_interval_hours');
+    const monitoredOnlyInput = document.getElementById('monitored_only');
+    const randomMissingInput = document.getElementById('random_missing');
+    const randomUpgradesInput = document.getElementById('random_upgrades');
+    const skipFutureEpisodesInput = document.getElementById('skip_future_episodes');
+    const skipSeriesRefreshInput = document.getElementById('skip_series_refresh');
+    
+    // Settings form elements - Advanced settings
+    const apiTimeoutInput = document.getElementById('api_timeout');
+    const debugModeInput = document.getElementById('debug_mode');
+    const commandWaitDelayInput = document.getElementById('command_wait_delay');
+    const commandWaitAttemptsInput = document.getElementById('command_wait_attempts');
+    const minimumDownloadQueueSizeInput = document.getElementById('minimum_download_queue_size');
+    
+    // Button elements for saving and resetting settings
+    const saveSettingsButton = document.getElementById('saveSettings');
+    const resetSettingsButton = document.getElementById('resetSettings');
+    const saveSettingsBottomButton = document.getElementById('saveSettingsBottom');
+    const resetSettingsBottomButton = document.getElementById('resetSettingsBottom');
+    
+    // Store original settings values
+    let originalSettings = {};
+    
+    // App selection handler
+    appTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const app = this.dataset.app;
             
-        return hostname
-    except Exception as e:
-        # Fallback to the current method if there's an issue
-        try:
-            hostname = socket.gethostname()
-            ip = socket.gethostbyname(hostname)
-            return ip
-        except:
-            return "YOUR_SERVER_IP"
-
-def force_reload_all_modules():
-    """Force reload of all relevant modules to ensure fresh settings"""
-    try:
-        # Force reload the config module
-        from primary import config
-        importlib.reload(config)
-        
-        # Reload app-specific modules
-        if APP_TYPE == "sonarr":
-            from primary import missing
-            importlib.reload(missing)
+            // If it's already the active app, do nothing
+            if (app === currentApp) return;
             
-            from primary import upgrade
-            importlib.reload(upgrade)
-        # TODO: Add other app type module reloading when implemented
-        
-        # Call the refresh function to ensure settings are updated
-        config.refresh_settings()
-        
-        # Log the reloaded settings for verification
-        logger.warning("⚠️ Settings reloaded from JSON file after restart signal ⚠️")
-        config.log_configuration(logger)
-        
-        return True
-    except Exception as e:
-        logger.error(f"Error reloading modules: {e}")
-        return False
-
-def main_loop() -> None:
-    """Main processing loop for Huntarr"""
-    global restart_cycle
+            // Update active tab
+            appTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update active settings panel if on settings page
+            if (settingsContainer && settingsContainer.style.display !== 'none') {
+                appSettings.forEach(s => s.style.display = 'none');
+                document.getElementById(`${app}Settings`).style.display = 'block';
+            }
+            
+            // Update current app
+            currentApp = app;
+            
+            // Load settings for this app
+            loadSettings(app);
+            
+            // For logs, we need to refresh the log stream
+            if (logsElement && logsContainer.style.display !== 'none') {
+                // Clear the logs first
+                logsElement.innerHTML = '';
+                // Reconnect the event source
+                connectEventSource(app);
+            }
+        });
+    });
     
-    # Log welcome message
-    logger.info(f"=== Huntarr [{APP_TYPE.title()} Edition] Starting ===")
+    // Update sleep duration display
+    function updateSleepDurationDisplay() {
+        const seconds = parseInt(sleepDurationInput.value) || 900;
+        let displayText = '';
+        
+        if (seconds < 60) {
+            displayText = `${seconds} seconds`;
+        } else if (seconds < 3600) {
+            const minutes = Math.floor(seconds / 60);
+            displayText = `≈ ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+        } else {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            if (minutes === 0) {
+                displayText = `≈ ${hours} hour${hours !== 1 ? 's' : ''}`;
+            } else {
+                displayText = `≈ ${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+            }
+        }
+        
+        sleepDurationHoursSpan.textContent = displayText;
+    }
     
-    # Log web UI information (always enabled)
-    server_ip = get_ip_address()
-    logger.info(f"Web interface available at http://{server_ip}:8988")
+    if (sleepDurationInput) {
+        sleepDurationInput.addEventListener('input', function() {
+            updateSleepDurationDisplay();
+            checkForChanges();
+        });
+    }
     
-    logger.info("GitHub: https://github.com/plexguide/huntarr")
+    // Theme management
+    function loadTheme() {
+        fetch('/api/settings/theme')
+            .then(response => response.json())
+            .then(data => {
+                const isDarkMode = data.dark_mode || false;
+                setTheme(isDarkMode);
+                themeToggle.checked = isDarkMode;
+                themeLabel.textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
+            })
+            .catch(error => console.error('Error loading theme:', error));
+    }
     
-    while True:
-        # Set restart_cycle flag to False at the beginning of each cycle
-        restart_cycle = False
+    function setTheme(isDark) {
+        if (isDark) {
+            document.body.classList.add('dark-theme');
+            themeLabel.textContent = 'Dark Mode';
+        } else {
+            document.body.classList.remove('dark-theme');
+            themeLabel.textContent = 'Light Mode';
+        }
+    }
+    
+    themeToggle.addEventListener('change', function() {
+        const isDarkMode = this.checked;
+        setTheme(isDarkMode);
         
-        # Always force reload all modules at the start of each cycle
-        force_reload_all_modules()
+        fetch('/api/settings/theme', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ dark_mode: isDarkMode })
+        })
+        .catch(error => console.error('Error saving theme:', error));
+    });
+    
+    // Get user's name for welcome message
+    function getUserInfo() {
+        // This is a placeholder - in a real implementation, you'd likely have an API
+        // to get the current user's information
+        const username = document.getElementById('username');
+        if (username) {
+            username.textContent = 'User'; // Default placeholder
+        }
+    }
+    
+    // Update connection status on the home page
+    function updateHomeConnectionStatus() {
+        // Sonarr status
+        if (sonarrHomeStatus) {
+            if (sonarrApiUrlInput && sonarrApiKeyInput && 
+                sonarrApiUrlInput.value && sonarrApiKeyInput.value) {
+                sonarrHomeStatus.textContent = 'Configured';
+                sonarrHomeStatus.className = 'connection-badge connected';
+            } else {
+                sonarrHomeStatus.textContent = 'Not Configured';
+                sonarrHomeStatus.className = 'connection-badge not-connected';
+            }
+        }
         
-        # Check if state files need to be reset
-        check_state_reset()
+        // Add similar checks for other services when implemented
+        // For now, we'll just show them as not configured
+        if (radarrHomeStatus) {
+            radarrHomeStatus.textContent = 'Not Configured';
+            radarrHomeStatus.className = 'connection-badge not-connected';
+        }
         
-        logger.info(f"=== Starting Huntarr cycle ===")
+        if (lidarrHomeStatus) {
+            lidarrHomeStatus.textContent = 'Not Configured';
+            lidarrHomeStatus.className = 'connection-badge not-connected';
+        }
         
-        # Track if any processing was done in this cycle
-        processing_done = False
-
-        # Check if we should ignore the download queue size or if we are below the minimum queue size
-        download_queue_size = get_download_queue_size()
-        if MINIMUM_DOWNLOAD_QUEUE_SIZE < 0 or (MINIMUM_DOWNLOAD_QUEUE_SIZE >= 0 and download_queue_size <= MINIMUM_DOWNLOAD_QUEUE_SIZE):
+        if (readarrHomeStatus) {
+            readarrHomeStatus.textContent = 'Not Configured';
+            readarrHomeStatus.className = 'connection-badge not-connected';
+        }
+    }
+    
+    // Tab switching - Toggle visibility of containers
+    if (homeButton && logsButton && settingsButton && homeContainer && logsContainer && settingsContainer) {
+        homeButton.addEventListener('click', function() {
+            homeContainer.style.display = 'flex';
+            logsContainer.style.display = 'none';
+            settingsContainer.style.display = 'none';
+            homeButton.classList.add('active');
+            logsButton.classList.remove('active');
+            settingsButton.classList.remove('active');
+            userButton.classList.remove('active');
+            
+            // Update connection status on home page
+            updateHomeConnectionStatus();
+        });
         
-            # Process items based on APP_TYPE and HUNT_MODE
-            if restart_cycle:
-                logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
-                continue
-                
-            if APP_TYPE == "sonarr":
-                if HUNT_MODE in ["missing", "both"]:
-                    from primary.missing import process_missing_episodes
-                    if process_missing_episodes():
-                        processing_done = True
+        logsButton.addEventListener('click', function() {
+            homeContainer.style.display = 'none';
+            logsContainer.style.display = 'flex';
+            settingsContainer.style.display = 'none';
+            homeButton.classList.remove('active');
+            logsButton.classList.add('active');
+            settingsButton.classList.remove('active');
+            userButton.classList.remove('active');
+            
+            // Reconnect to logs for the current app
+            if (logsElement) {
+                connectEventSource(currentApp);
+            }
+        });
+        
+        settingsButton.addEventListener('click', function() {
+            homeContainer.style.display = 'none';
+            logsContainer.style.display = 'none';
+            settingsContainer.style.display = 'flex';
+            homeButton.classList.remove('active');
+            logsButton.classList.remove('active');
+            settingsButton.classList.add('active');
+            userButton.classList.remove('active');
+            
+            // Show the settings for the current app
+            appSettings.forEach(s => s.style.display = 'none');
+            document.getElementById(`${currentApp}Settings`).style.display = 'block';
+            
+            // Make sure settings are loaded
+            loadSettings(currentApp);
+        });
+        
+        userButton.addEventListener('click', function() {
+            window.location.href = '/user';
+        });
+    }
+    
+    // Log management
+    if (clearLogsButton) {
+        clearLogsButton.addEventListener('click', function() {
+            logsElement.innerHTML = '';
+        });
+    }
+    
+    // Auto-scroll function
+    function scrollToBottom() {
+        if (autoScrollCheckbox && autoScrollCheckbox.checked && logsElement) {
+            logsElement.scrollTop = logsElement.scrollHeight;
+        }
+    }
+    
+    // Test connection for Sonarr
+    if (testSonarrConnectionButton) {
+        testSonarrConnectionButton.addEventListener('click', function() {
+            const apiUrl = sonarrApiUrlInput.value;
+            const apiKey = sonarrApiKeyInput.value;
+            
+            if (!apiUrl || !apiKey) {
+                alert('Please enter both API URL and API Key before testing the connection.');
+                return;
+            }
+            
+            // Test API connection
+            sonarrConnectionStatus.textContent = 'Testing...';
+            sonarrConnectionStatus.className = 'connection-badge';
+            
+            fetch('/api/test-connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    app: 'sonarr',
+                    api_url: apiUrl,
+                    api_key: apiKey
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    sonarrConnectionStatus.textContent = 'Connected';
+                    sonarrConnectionStatus.className = 'connection-badge connected';
                     
-                    # Check if restart signal received
-                    if restart_cycle:
-                        logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
-                        continue
-                        
-                if HUNT_MODE in ["upgrade", "both"]:
-                    from primary.upgrade import process_cutoff_upgrades
-                    if process_cutoff_upgrades():
-                        processing_done = True
+                    // Update home page status
+                    if (sonarrHomeStatus) {
+                        sonarrHomeStatus.textContent = 'Connected';
+                        sonarrHomeStatus.className = 'connection-badge connected';
+                    }
+                } else {
+                    sonarrConnectionStatus.textContent = 'Connection Failed';
+                    sonarrConnectionStatus.className = 'connection-badge not-connected';
+                    alert(`Connection failed: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error testing connection:', error);
+                sonarrConnectionStatus.textContent = 'Connection Error';
+                sonarrConnectionStatus.className = 'connection-badge not-connected';
+                alert('Error testing connection: ' + error.message);
+            });
+        });
+    }
+    
+    // Function to check if settings have changed from original values
+    function checkForChanges() {
+        if (!originalSettings.huntarr) return; // Don't check if original settings not loaded
+        
+        let hasChanges = false;
+        
+        // API connection settings
+        if (sonarrApiUrlInput && sonarrApiUrlInput.value !== originalSettings.api_url) hasChanges = true;
+        if (sonarrApiKeyInput && sonarrApiKeyInput.value !== originalSettings.api_key) hasChanges = true;
+        
+        // Check Basic Settings
+        if (huntMissingShowsInput && parseInt(huntMissingShowsInput.value) !== originalSettings.huntarr.hunt_missing_shows) hasChanges = true;
+        if (huntUpgradeEpisodesInput && parseInt(huntUpgradeEpisodesInput.value) !== originalSettings.huntarr.hunt_upgrade_episodes) hasChanges = true;
+        if (sleepDurationInput && parseInt(sleepDurationInput.value) !== originalSettings.huntarr.sleep_duration) hasChanges = true;
+        if (stateResetIntervalInput && parseInt(stateResetIntervalInput.value) !== originalSettings.huntarr.state_reset_interval_hours) hasChanges = true;
+        if (monitoredOnlyInput && monitoredOnlyInput.checked !== originalSettings.huntarr.monitored_only) hasChanges = true;
+        if (skipFutureEpisodesInput && skipFutureEpisodesInput.checked !== originalSettings.huntarr.skip_future_episodes) hasChanges = true;
+        if (skipSeriesRefreshInput && skipSeriesRefreshInput.checked !== originalSettings.huntarr.skip_series_refresh) hasChanges = true;
+        
+        // Check Advanced Settings
+        if (apiTimeoutInput && parseInt(apiTimeoutInput.value) !== originalSettings.advanced.api_timeout) hasChanges = true;
+        if (debugModeInput && debugModeInput.checked !== originalSettings.advanced.debug_mode) hasChanges = true;
+        if (commandWaitDelayInput && parseInt(commandWaitDelayInput.value) !== originalSettings.advanced.command_wait_delay) hasChanges = true;
+        if (commandWaitAttemptsInput && parseInt(commandWaitAttemptsInput.value) !== originalSettings.advanced.command_wait_attempts) hasChanges = true;
+        if (minimumDownloadQueueSizeInput && parseInt(minimumDownloadQueueSizeInput.value) !== originalSettings.advanced.minimum_download_queue_size) hasChanges = true;
+        if (randomMissingInput && randomMissingInput.checked !== originalSettings.advanced.random_missing) hasChanges = true;
+        if (randomUpgradesInput && randomUpgradesInput.checked !== originalSettings.advanced.random_upgrades) hasChanges = true;
+        
+        // Enable/disable save buttons based on whether there are changes
+        if (saveSettingsButton && saveSettingsBottomButton) {
+            saveSettingsButton.disabled = !hasChanges;
+            saveSettingsBottomButton.disabled = !hasChanges;
+            
+            // Apply visual indicator based on disabled state
+            if (hasChanges) {
+                saveSettingsButton.classList.remove('disabled-button');
+                saveSettingsBottomButton.classList.remove('disabled-button');
+            } else {
+                saveSettingsButton.classList.add('disabled-button');
+                saveSettingsBottomButton.classList.add('disabled-button');
+            }
+        }
+        
+        return hasChanges;
+    }
+    
+    // Add change event listeners to all form elements
+    if (sonarrApiUrlInput && sonarrApiKeyInput) {
+        sonarrApiUrlInput.addEventListener('input', checkForChanges);
+        sonarrApiKeyInput.addEventListener('input', checkForChanges);
+    }
+    
+    if (huntMissingShowsInput && huntUpgradeEpisodesInput && stateResetIntervalInput && 
+        apiTimeoutInput && commandWaitDelayInput && commandWaitAttemptsInput && 
+        minimumDownloadQueueSizeInput) {
+        
+        [huntMissingShowsInput, huntUpgradeEpisodesInput, stateResetIntervalInput, 
+         apiTimeoutInput, commandWaitDelayInput, commandWaitAttemptsInput, 
+         minimumDownloadQueueSizeInput].forEach(input => {
+            input.addEventListener('input', checkForChanges);
+        });
+    }
+    
+    if (monitoredOnlyInput && randomMissingInput && randomUpgradesInput && 
+        skipFutureEpisodesInput && skipSeriesRefreshInput && debugModeInput) {
+        
+        [monitoredOnlyInput, randomMissingInput, randomUpgradesInput, 
+         skipFutureEpisodesInput, skipSeriesRefreshInput, debugModeInput].forEach(checkbox => {
+            checkbox.addEventListener('change', checkForChanges);
+        });
+    }
+    
+    // Load settings from API
+    function loadSettings(app = 'sonarr') {
+        fetch('/api/settings')
+            .then(response => response.json())
+            .then(data => {
+                const huntarr = data.huntarr || {};
+                const advanced = data.advanced || {};
+                
+                // Store original settings for comparison
+                originalSettings = JSON.parse(JSON.stringify(data));
+                
+                // Connection settings
+                if (app === 'sonarr' && sonarrApiUrlInput && sonarrApiKeyInput) {
+                    sonarrApiUrlInput.value = data.api_url || '';
+                    sonarrApiKeyInput.value = data.api_key || '';
                     
-                    # Check if restart signal received
-                    if restart_cycle:
-                        logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
-                        continue
-            
-            elif APP_TYPE == "radarr":
-                # TODO: Implement Radarr processing
-                logger.info("Radarr processing not yet implemented")
-                time.sleep(5)  # Short sleep to avoid log spam
+                    // Update connection status
+                    if (sonarrConnectionStatus) {
+                        if (data.api_url && data.api_key) {
+                            sonarrConnectionStatus.textContent = 'Configured';
+                            sonarrConnectionStatus.className = 'connection-badge connected';
+                        } else {
+                            sonarrConnectionStatus.textContent = 'Not Configured';
+                            sonarrConnectionStatus.className = 'connection-badge not-connected';
+                        }
+                    }
+                    
+                    // Sonarr-specific settings
+                    if (huntMissingShowsInput) {
+                        huntMissingShowsInput.value = huntarr.hunt_missing_shows !== undefined ? huntarr.hunt_missing_shows : 1;
+                    }
+                    if (huntUpgradeEpisodesInput) {
+                        huntUpgradeEpisodesInput.value = huntarr.hunt_upgrade_episodes !== undefined ? huntarr.hunt_upgrade_episodes : 5;
+                    }
+                    if (sleepDurationInput) {
+                        sleepDurationInput.value = huntarr.sleep_duration || 900;
+                        updateSleepDurationDisplay();
+                    }
+                    if (stateResetIntervalInput) {
+                        stateResetIntervalInput.value = huntarr.state_reset_interval_hours || 168;
+                    }
+                    if (monitoredOnlyInput) {
+                        monitoredOnlyInput.checked = huntarr.monitored_only !== false;
+                    }
+                    if (skipFutureEpisodesInput) {
+                        skipFutureEpisodesInput.checked = huntarr.skip_future_episodes !== false;
+                    }
+                    if (skipSeriesRefreshInput) {
+                        skipSeriesRefreshInput.checked = huntarr.skip_series_refresh === true;
+                    }
+                    
+                    // Advanced settings
+                    if (apiTimeoutInput) {
+                        apiTimeoutInput.value = advanced.api_timeout || 60;
+                    }
+                    if (debugModeInput) {
+                        debugModeInput.checked = advanced.debug_mode === true;
+                    }
+                    if (commandWaitDelayInput) {
+                        commandWaitDelayInput.value = advanced.command_wait_delay || 1;
+                    }
+                    if (commandWaitAttemptsInput) {
+                        commandWaitAttemptsInput.value = advanced.command_wait_attempts || 600;
+                    }
+                    if (minimumDownloadQueueSizeInput) {
+                        minimumDownloadQueueSizeInput.value = advanced.minimum_download_queue_size || -1;
+                    }
+                    if (randomMissingInput) {
+                        randomMissingInput.checked = advanced.random_missing !== false;
+                    }
+                    if (randomUpgradesInput) {
+                        randomUpgradesInput.checked = advanced.random_upgrades !== false;
+                    }
+                }
                 
-            elif APP_TYPE == "lidarr":
-                # TODO: Implement Lidarr processing
-                logger.info("Lidarr processing not yet implemented")
-                time.sleep(5)  # Short sleep to avoid log spam
+                // Update home page connection status
+                updateHomeConnectionStatus();
                 
-            elif APP_TYPE == "readarr":
-                # TODO: Implement Readarr processing
-                logger.info("Readarr processing not yet implemented")
-                time.sleep(5)  # Short sleep to avoid log spam
-
-        else:
-            logger.info(f"Download queue size ({download_queue_size}) is above the minimum threshold ({MINIMUM_DOWNLOAD_QUEUE_SIZE}). Skipped processing.")
-
-        # Calculate time until the next reset
-        calculate_reset_time()
+                // Initialize save buttons state
+                if (saveSettingsButton && saveSettingsBottomButton) {
+                    saveSettingsButton.disabled = true;
+                    saveSettingsBottomButton.disabled = true;
+                    saveSettingsButton.classList.add('disabled-button');
+                    saveSettingsBottomButton.classList.add('disabled-button');
+                }
+            })
+            .catch(error => console.error('Error loading settings:', error));
+    }
+    
+    // Function to save settings
+    function saveSettings() {
+        if (!checkForChanges()) {
+            // If no changes, don't do anything
+            return;
+        }
         
-        # Refresh settings before sleep to get the latest sleep_duration
-        refresh_settings()
-        # Import it directly from the settings manager to ensure latest value
-        from primary.config import SLEEP_DURATION as CURRENT_SLEEP_DURATION
+        const settings = {
+            app_type: currentApp,
+            api_url: sonarrApiUrlInput ? sonarrApiUrlInput.value : '',
+            api_key: sonarrApiKeyInput ? sonarrApiKeyInput.value : '',
+            huntarr: {
+                hunt_missing_shows: huntMissingShowsInput ? parseInt(huntMissingShowsInput.value) || 0 : 0,
+                hunt_upgrade_episodes: huntUpgradeEpisodesInput ? parseInt(huntUpgradeEpisodesInput.value) || 0 : 0,
+                sleep_duration: sleepDurationInput ? parseInt(sleepDurationInput.value) || 900 : 900,
+                state_reset_interval_hours: stateResetIntervalInput ? parseInt(stateResetIntervalInput.value) || 168 : 168,
+                monitored_only: monitoredOnlyInput ? monitoredOnlyInput.checked : true,
+                skip_future_episodes: skipFutureEpisodesInput ? skipFutureEpisodesInput.checked : true,
+                skip_series_refresh: skipSeriesRefreshInput ? skipSeriesRefreshInput.checked : false
+            },
+            advanced: {
+                api_timeout: apiTimeoutInput ? parseInt(apiTimeoutInput.value) || 60 : 60,
+                debug_mode: debugModeInput ? debugModeInput.checked : false
+                debug_mode: debugModeInput ? debugModeInput.checked : false,
+                command_wait_delay: commandWaitDelayInput ? parseInt(commandWaitDelayInput.value) || 1 : 1,
+                command_wait_attempts: commandWaitAttemptsInput ? parseInt(commandWaitAttemptsInput.value) || 600 : 600,
+                minimum_download_queue_size: minimumDownloadQueueSizeInput ? parseInt(minimumDownloadQueueSizeInput.value) || -1 : -1,
+                random_missing: randomMissingInput ? randomMissingInput.checked : true,
+                random_upgrades: randomUpgradesInput ? randomUpgradesInput.checked : true
+            }
+        };
         
-        # Sleep at the end of the cycle only
-        logger.info(f"Cycle complete. Sleeping {CURRENT_SLEEP_DURATION}s before next cycle...")
-        logger.info("⭐ Tool Great? Donate @ https://donate.plex.one for Daughter's College Fund!")
+        fetch('/api/settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update original settings after successful save
+                originalSettings = JSON.parse(JSON.stringify(settings));
+                
+                // Update connection status
+                if (sonarrConnectionStatus) {
+                    if (settings.api_url && settings.api_key) {
+                        sonarrConnectionStatus.textContent = 'Configured';
+                        sonarrConnectionStatus.className = 'connection-badge connected';
+                    } else {
+                        sonarrConnectionStatus.textContent = 'Not Configured';
+                        sonarrConnectionStatus.className = 'connection-badge not-connected';
+                    }
+                }
+                
+                // Update home page connection status
+                updateHomeConnectionStatus();
+                
+                // Disable save buttons
+                if (saveSettingsButton && saveSettingsBottomButton) {
+                    saveSettingsButton.disabled = true;
+                    saveSettingsBottomButton.disabled = true;
+                    saveSettingsButton.classList.add('disabled-button');
+                    saveSettingsBottomButton.classList.add('disabled-button');
+                }
+                
+                // Show success message
+                if (data.changes_made) {
+                    alert('Settings saved successfully and cycle restarted to apply changes!');
+                } else {
+                    alert('No changes detected.');
+                }
+            } else {
+                alert('Error saving settings: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error saving settings:', error);
+            alert('Error saving settings: ' + error.message);
+        });
+    }
+    
+    // Function to reset settings
+    function resetSettings() {
+        if (confirm('Are you sure you want to reset all settings to default values?')) {
+            fetch('/api/settings/reset', {
+                method: 'POST',
+                body: JSON.stringify({ app: currentApp })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Settings reset to defaults and cycle restarted.');
+                    loadSettings(currentApp);
+                    
+                    // Update home page connection status
+                    updateHomeConnectionStatus();
+                } else {
+                    alert('Error resetting settings: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error resetting settings:', error);
+                alert('Error resetting settings: ' + error.message);
+            });
+        }
+    }
+    
+    // Add event listeners to both button sets
+    if (saveSettingsButton && resetSettingsButton && saveSettingsBottomButton && resetSettingsBottomButton) {
+        saveSettingsButton.addEventListener('click', saveSettings);
+        resetSettingsButton.addEventListener('click', resetSettings);
         
-        # Log web UI information
-        server_ip = get_ip_address()
-        logger.info(f"Web interface available at http://{server_ip}:8988")
+        saveSettingsBottomButton.addEventListener('click', saveSettings);
+        resetSettingsBottomButton.addEventListener('click', resetSettings);
+    }
+    
+    // Event source for logs
+    let eventSource;
+    
+    function connectEventSource(app = 'sonarr') {
+        if (!logsElement) return; // Skip if not on logs page
         
-        # Sleep with progress updates for the web interface
-        sleep_start = time.time()
-        sleep_end = sleep_start + CURRENT_SLEEP_DURATION
+        if (eventSource) {
+            eventSource.close();
+        }
         
-        while time.time() < sleep_end and not restart_cycle:
-            # Sleep in smaller chunks for more responsive shutdown and restart
-            time.sleep(min(1, sleep_end - time.time()))
+        eventSource = new EventSource(`/logs?app=${app}`);
+        
+        eventSource.onopen = function() {
+            if (statusElement) {
+                statusElement.textContent = 'Connected';
+                statusElement.className = 'status-connected';
+            }
+        };
+        
+        eventSource.onerror = function() {
+            if (statusElement) {
+                statusElement.textContent = 'Disconnected';
+                statusElement.className = 'status-disconnected';
+            }
             
-            # Every minute, log the remaining sleep time for web interface visibility
-            if int((time.time() - sleep_start) % 60) == 0 and time.time() < sleep_end - 10:
-                remaining = int(sleep_end - time.time())
-                logger.debug(f"Sleeping... {remaining}s remaining until next cycle")
+            // Attempt to reconnect after 5 seconds
+            setTimeout(() => connectEventSource(app), 5000);
+        };
+        
+        eventSource.onmessage = function(event) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
             
-            # Check if restart signal received
-            if restart_cycle:
-                logger.warning("⚠️ Sleep interrupted due to settings change. Restarting cycle immediately... ⚠️")
-                break
-
-if __name__ == "__main__":
-    # Log configuration settings
-    log_configuration(logger)
-
-    try:
-        main_loop()
-    except KeyboardInterrupt:
-        logger.info("Huntarr stopped by user.")
-        sys.exit(0)
-    except Exception as e:
-        logger.exception(f"Unexpected error: {e}")
-        sys.exit(1)
+            // Add appropriate class for log level
+            if (event.data.includes(' - INFO - ')) {
+                logEntry.classList.add('log-info');
+            } else if (event.data.includes(' - WARNING - ')) {
+                logEntry.classList.add('log-warning');
+            } else if (event.data.includes(' - ERROR - ')) {
+                logEntry.classList.add('log-error');
+            } else if (event.data.includes(' - DEBUG - ')) {
+                logEntry.classList.add('log-debug');
+            }
+            
+            logEntry.textContent = event.data;
+            logsElement.appendChild(logEntry);
+            
+            // Auto-scroll to bottom if enabled
+            scrollToBottom();
+        };
+    }
+    
+    // Observe scroll event to detect manual scrolling
+    if (logsElement) {
+        logsElement.addEventListener('scroll', function() {
+            // If we're at the bottom or near it (within 20px), ensure auto-scroll stays on
+            const atBottom = (logsElement.scrollHeight - logsElement.scrollTop - logsElement.clientHeight) < 20;
+            if (!atBottom && autoScrollCheckbox && autoScrollCheckbox.checked) {
+                // User manually scrolled up, disable auto-scroll
+                autoScrollCheckbox.checked = false;
+            }
+        });
+    }
+    
+    // Re-enable auto-scroll when checkbox is checked
+    if (autoScrollCheckbox) {
+        autoScrollCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                scrollToBottom();
+            }
+        });
+    }
+    
+    // Initialize
+    loadTheme();
+    if (sleepDurationInput) {
+        updateSleepDurationDisplay();
+    }
+    
+    // Get user info for welcome page
+    getUserInfo();
+    
+    // Load settings for initial app
+    loadSettings(currentApp);
+    
+    // Check if we're on the settings page by URL path
+    const path = window.location.pathname;
+    
+    // Show proper content based on path or hash
+    if (path === '/settings') {
+        // Show settings page
+        if (homeContainer) homeContainer.style.display = 'none';
+        if (logsContainer) logsContainer.style.display = 'none';
+        if (settingsContainer) settingsContainer.style.display = 'flex';
+        
+        if (homeButton) homeButton.classList.remove('active');
+        if (logsButton) logsButton.classList.remove('active');
+        if (settingsButton) settingsButton.classList.add('active');
+        if (userButton) userButton.classList.remove('active');
+    } else if (path === '/') {
+        // Default to home page
+        if (homeContainer) homeContainer.style.display = 'flex';
+        if (logsContainer) logsContainer.style.display = 'none';
+        if (settingsContainer) settingsContainer.style.display = 'none';
+        
+        if (homeButton) homeButton.classList.add('active');
+        if (logsButton) logsButton.classList.remove('active');
+        if (settingsButton) settingsButton.classList.remove('active');
+        if (userButton) userButton.classList.remove('active');
+        
+        // Update connection status on home page
+        updateHomeConnectionStatus();
+    }
+    
+    // Connect to logs if we're on the logs page
+    if (logsElement && logsContainer && logsContainer.style.display !== 'none') {
+        connectEventSource(currentApp);
+    }
+});
