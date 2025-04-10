@@ -692,6 +692,12 @@ input:checked + .toggle-slider:before {
     padding: 0;
 }
 
+/* Fix for navigation in user pages */
+.header .title-link {
+    display: flex;
+    align-items: center;
+}
+
 /* Fix reset button on login page */
 .reset-link {
     color: var(--button-bg);

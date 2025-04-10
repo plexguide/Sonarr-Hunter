@@ -61,6 +61,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store original settings values
     let originalSettings = {};
     
+    // Track which apps are configured
+    const configuredApps = {
+        sonarr: false,
+        radarr: false,
+        lidarr: false,
+        readarr: false
+    };
+    
     // App selection handler
     appTabs.forEach(tab => {
         tab.addEventListener('click', function() {
@@ -89,8 +97,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (logsElement && logsContainer && logsContainer.style.display !== 'none') {
                 // Clear the logs first
                 logsElement.innerHTML = '';
-                // Reconnect the event source
-                connectEventSource(app);
+                
+                // Update connection status based on configuration
+                if (statusElement) {
+                    if (configuredApps[app]) {
+                        statusElement.textContent = 'Connected';
+                        statusElement.className = 'status-connected';
+                    } else {
+                        statusElement.textContent = 'Disconnected';
+                        statusElement.className = 'status-disconnected';
+                    }
+                }
+                
+                // Reconnect the event source only if app is configured
+                if (configuredApps[app]) {
+                    connectEventSource(app);
+                }
             }
         });
     });
@@ -180,8 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateHomeConnectionStatus() {
         // Sonarr status
         if (sonarrHomeStatus) {
-            if (sonarrApiUrlInput && sonarrApiKeyInput && 
-                sonarrApiUrlInput.value && sonarrApiKeyInput.value) {
+            if (configuredApps.sonarr) {
                 sonarrHomeStatus.textContent = 'Configured';
                 sonarrHomeStatus.className = 'connection-badge connected';
             } else {
@@ -190,21 +211,50 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Add similar checks for other services when implemented
-        // For now, we'll just show them as not configured
+        // Radarr status
         if (radarrHomeStatus) {
-            radarrHomeStatus.textContent = 'Not Configured';
-            radarrHomeStatus.className = 'connection-badge not-connected';
+            if (configuredApps.radarr) {
+                radarrHomeStatus.textContent = 'Configured';
+                radarrHomeStatus.className = 'connection-badge connected';
+            } else {
+                radarrHomeStatus.textContent = 'Not Configured';
+                radarrHomeStatus.className = 'connection-badge not-connected';
+            }
         }
         
+        // Lidarr status
         if (lidarrHomeStatus) {
-            lidarrHomeStatus.textContent = 'Not Configured';
-            lidarrHomeStatus.className = 'connection-badge not-connected';
+            if (configuredApps.lidarr) {
+                lidarrHomeStatus.textContent = 'Configured';
+                lidarrHomeStatus.className = 'connection-badge connected';
+            } else {
+                lidarrHomeStatus.textContent = 'Not Configured';
+                lidarrHomeStatus.className = 'connection-badge not-connected';
+            }
         }
         
+        // Readarr status
         if (readarrHomeStatus) {
-            readarrHomeStatus.textContent = 'Not Configured';
-            readarrHomeStatus.className = 'connection-badge not-connected';
+            if (configuredApps.readarr) {
+                readarrHomeStatus.textContent = 'Configured';
+                readarrHomeStatus.className = 'connection-badge connected';
+            } else {
+                readarrHomeStatus.textContent = 'Not Configured';
+                readarrHomeStatus.className = 'connection-badge not-connected';
+            }
+        }
+    }
+    
+    // Update logs connection status
+    function updateLogsConnectionStatus() {
+        if (statusElement) {
+            if (configuredApps[currentApp]) {
+                statusElement.textContent = 'Connected';
+                statusElement.className = 'status-connected';
+            } else {
+                statusElement.textContent = 'Disconnected';
+                statusElement.className = 'status-disconnected';
+            }
         }
     }
     
@@ -232,8 +282,11 @@ document.addEventListener('DOMContentLoaded', function() {
             settingsButton.classList.remove('active');
             userButton.classList.remove('active');
             
-            // Reconnect to logs for the current app
-            if (logsElement) {
+            // Update the connection status based on configuration
+            updateLogsConnectionStatus();
+            
+            // Reconnect to logs for the current app if configured
+            if (logsElement && configuredApps[currentApp]) {
                 connectEventSource(currentApp);
             }
         });
@@ -310,6 +363,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         sonarrConnectionStatus.className = 'connection-badge connected';
                     }
                     
+                    // Update configuration status
+                    configuredApps.sonarr = true;
+                    
                     // Update home page status
                     if (sonarrHomeStatus) {
                         sonarrHomeStatus.textContent = 'Connected';
@@ -320,6 +376,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         sonarrConnectionStatus.textContent = 'Connection Failed';
                         sonarrConnectionStatus.className = 'connection-badge not-connected';
                     }
+                    
+                    // Update configuration status
+                    configuredApps.sonarr = false;
+                    
                     alert(`Connection failed: ${data.message}`);
                 }
             })
@@ -329,6 +389,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     sonarrConnectionStatus.textContent = 'Connection Error';
                     sonarrConnectionStatus.className = 'connection-badge not-connected';
                 }
+                
+                // Update configuration status
+                configuredApps.sonarr = false;
+                
                 alert('Error testing connection: ' + error.message);
             });
         });
@@ -417,10 +481,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Store original settings for comparison
                 originalSettings = JSON.parse(JSON.stringify(data));
                 
-                // Connection settings
+                // Connection settings for the current app (currently only sonarr is implemented)
                 if (app === 'sonarr' && sonarrApiUrlInput && sonarrApiKeyInput) {
                     sonarrApiUrlInput.value = data.api_url || '';
                     sonarrApiKeyInput.value = data.api_key || '';
+                    
+                    // Update configured status for sonarr
+                    configuredApps.sonarr = !!(data.api_url && data.api_key);
                     
                     // Update connection status
                     if (sonarrConnectionStatus) {
@@ -484,6 +551,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update home page connection status
                 updateHomeConnectionStatus();
                 
+                // Update log connection status if on logs page
+                if (logsContainer && logsContainer.style.display !== 'none') {
+                    updateLogsConnectionStatus();
+                }
+                
                 // Initialize save buttons state
                 if (saveSettingsButton && saveSettingsBottomButton) {
                     saveSettingsButton.disabled = true;
@@ -539,6 +611,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update original settings after successful save
                 originalSettings = JSON.parse(JSON.stringify(settings));
                 
+                // Update configuration status based on API URL and API key
+                configuredApps.sonarr = !!(settings.api_url && settings.api_key);
+                
                 // Update connection status
                 if (sonarrConnectionStatus) {
                     if (settings.api_url && settings.api_key) {
@@ -552,6 +627,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update home page connection status
                 updateHomeConnectionStatus();
+                
+                // Update logs connection status
+                updateLogsConnectionStatus();
                 
                 // Disable save buttons
                 if (saveSettingsButton && saveSettingsBottomButton) {
@@ -595,6 +673,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Update home page connection status
                     updateHomeConnectionStatus();
+                    
+                    // Update logs connection status
+                    updateLogsConnectionStatus();
                 } else {
                     alert('Error resetting settings: ' + (data.message || 'Unknown error'));
                 }
@@ -620,6 +701,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function connectEventSource(app = 'sonarr') {
         if (!logsElement) return; // Skip if not on logs page
+        if (!configuredApps[app]) return; // Skip if app not configured
         
         if (eventSource) {
             eventSource.close();
@@ -640,8 +722,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusElement.className = 'status-disconnected';
             }
             
-            // Attempt to reconnect after 5 seconds
-            setTimeout(() => connectEventSource(app), 5000);
+            // Attempt to reconnect after 5 seconds if app is still configured
+            setTimeout(() => {
+                if (configuredApps[app]) {
+                    connectEventSource(app);
+                }
+            }, 5000);
         };
         
         eventSource.onmessage = function(event) {
@@ -729,8 +815,8 @@ document.addEventListener('DOMContentLoaded', function() {
         updateHomeConnectionStatus();
     }
     
-    // Connect to logs if we're on the logs page
-    if (logsElement && logsContainer && logsContainer.style.display !== 'none') {
+    // Connect to logs if we're on the logs page and the current app is configured
+    if (logsElement && logsContainer && logsContainer.style.display !== 'none' && configuredApps[currentApp]) {
         connectEventSource(currentApp);
     }
 });
