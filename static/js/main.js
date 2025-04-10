@@ -753,6 +753,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.error('Error loading Readarr settings:', error);
                             
                             // Default values
+                            readarrApiUrlInput.value
+                            // Default values
                             readarrApiUrlInput.value = '';
                             readarrApiKeyInput.value = '';
                             readarrApiUrlInput.dataset.originalValue = '';
@@ -792,9 +794,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Ask user if they want to restart the container for changes to take effect immediately
+        const restartContainer = confirm('Save settings and restart the container for changes to take effect immediately?\n\nClick OK to restart container, or Cancel to just save settings without restart.');
+        
         // Prepare settings object based on current app
         let settings = {
-            app_type: currentApp
+            app_type: currentApp,
+            restart_container: restartContainer  // Add restart flag
         };
         
         // Add API connection settings
@@ -895,6 +901,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     saveSettingsBottomButton.classList.add('disabled-button');
                 }
                 
+                // Handle restart case differently
+                if (data.restarting) {
+                    alert('Settings saved successfully. Container is now restarting. The page will reload in 5 seconds.');
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 5000);
+                    return;
+                }
+                
                 // Show success message
                 if (data.changes_made) {
                     alert('Settings saved successfully and cycle restarted to apply changes!');
@@ -951,16 +966,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to reset settings
     function resetSettings() {
         if (confirm('Are you sure you want to reset all settings to default values?')) {
+            const restartContainer = confirm('Reset settings and restart the container for changes to take effect immediately?\n\nClick OK to restart container, or Cancel to just reset settings without restart.');
+            
             fetch('/api/settings/reset', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ app: currentApp })
+                body: JSON.stringify({ 
+                    app: currentApp,
+                    restart_container: restartContainer
+                })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    if (data.restarting) {
+                        alert('Settings reset to defaults. Container is now restarting. The page will reload in 5 seconds.');
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 5000);
+                        return;
+                    }
+                    
                     alert('Settings reset to defaults and cycle restarted.');
                     loadSettings(currentApp);
                     

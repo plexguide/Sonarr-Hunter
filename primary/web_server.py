@@ -397,11 +397,14 @@ def get_configured_apps():
 
 @app.route('/api/settings', methods=['POST'])
 def update_settings():
-    """Update settings and restart the main process to apply them immediately"""
+    """Update settings and optionally restart the container to apply them immediately"""
     try:
         data = request.json
         if not data:
             return jsonify({"success": False, "message": "No data provided"}), 400
+        
+        # Check if restart flag is set
+        restart_container = data.pop('restart_container', False)
         
         # Get current settings to compare
         old_settings = settings_manager.get_all_settings()
@@ -497,21 +500,54 @@ def update_settings():
                     f.write(f"{timestamp} - huntarr-web - INFO - Changed UI.{key} from {change['old']} to {change['new']}\n")
                 
                 f.write(f"{timestamp} - huntarr-web - INFO - Settings saved successfully\n")
-                f.write(f"{timestamp} - huntarr-web - INFO - Restarting current cycle to apply new settings immediately\n")
+                
+                # If restart_container flag is true, restart the container
+                if restart_container:
+                    f.write(f"{timestamp} - huntarr-web - INFO - Container restart requested by user\n")
+                    # Start a background thread to restart the container after a short delay
+                    import threading
+                    def delayed_restart():
+                        time.sleep(1)  # Give time for the response to be sent
+                        f.write(f"{timestamp} - huntarr-web - INFO - Restarting container now...\n")
+                        os.system("kill 1")  # In Docker, PID 1 is the main process, killing it will restart the container
+                    
+                    restart_thread = threading.Thread(target=delayed_restart)
+                    restart_thread.daemon = True
+                    restart_thread.start()
+                    
+                    return jsonify({
+                        "success": True, 
+                        "message": "Settings saved and container is restarting...", 
+                        "changes_made": True,
+                        "restarting": True
+                    })
+                else:
+                    f.write(f"{timestamp} - huntarr-web - INFO - Trying to restart cycle to apply new settings\n")
+                    # Try to signal the main process to restart the cycle
+                    main_pid = get_main_process_pid()
+                    if main_pid:
+                        try:
+                            # Send a SIGUSR1 signal which we'll handle in main.py to restart the cycle
+                            os.kill(main_pid, signal.SIGUSR1)
+                            return jsonify({
+                                "success": True, 
+                                "message": "Settings saved and cycle restarted", 
+                                "changes_made": True
+                            })
+                        except:
+                            # If signaling fails, just return success for the settings save
+                            return jsonify({
+                                "success": True, 
+                                "message": "Settings saved, but cycle not restarted", 
+                                "changes_made": True
+                            })
+                    else:
+                        return jsonify({
+                            "success": True, 
+                            "message": "Settings saved, but main process not found", 
+                            "changes_made": True
+                        })
             
-            # Try to signal the main process to restart the cycle
-            main_pid = get_main_process_pid()
-            if main_pid:
-                try:
-                    # Send a SIGUSR1 signal which we'll handle in main.py to restart the cycle
-                    os.kill(main_pid, signal.SIGUSR1)
-                    return jsonify({"success": True, "message": "Settings saved and cycle restarted", "changes_made": True})
-                except Exception as signal_error:
-                    logger.error(f"Failed to send restart signal: {signal_error}")
-                    # If signaling fails, just return success for the settings save
-                    return jsonify({"success": True, "message": "Settings saved, but cycle not restarted", "changes_made": True})
-            else:
-                return jsonify({"success": True, "message": "Settings saved, but main process not found", "changes_made": True})
         else:
             # No changes were made
             return jsonify({"success": True, "message": "No changes detected", "changes_made": False})
@@ -521,10 +557,10 @@ def update_settings():
 
 @app.route('/api/settings/reset', methods=['POST'])
 def reset_settings():
-    """Reset settings to defaults"""
+    """Reset settings to defaults and optionally restart the container"""
     try:
-        # Get current settings to compare
-        old_settings = settings_manager.get_all_settings()
+        data = request.json or {}
+        restart_container = data.get('restart_container', False)
         
         # Reset settings
         settings_manager.save_settings(settings_manager.DEFAULT_SETTINGS)
@@ -533,20 +569,40 @@ def reset_settings():
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(LOG_FILE, 'a') as f:
             f.write(f"{timestamp} - huntarr-web - INFO - Settings reset to defaults by user\n")
-            f.write(f"{timestamp} - huntarr-web - INFO - Restarting current cycle to apply new settings immediately\n")
-        
-        # Try to signal the main process to restart the cycle
-        main_pid = get_main_process_pid()
-        if main_pid:
-            try:
-                # Send a SIGUSR1 signal which we'll handle in main.py to restart the cycle
-                os.kill(main_pid, signal.SIGUSR1)
-                return jsonify({"success": True, "message": "Settings reset and cycle restarted"})
-            except:
-                # If signaling fails, just return success for the settings reset
-                return jsonify({"success": True, "message": "Settings reset, but cycle not restarted"})
-        else:
-            return jsonify({"success": True, "message": "Settings reset, but main process not found"})
+            
+            # If restart_container flag is true, restart the container
+            if restart_container:
+                f.write(f"{timestamp} - huntarr-web - INFO - Container restart requested by user\n")
+                # Start a background thread to restart the container after a short delay
+                import threading
+                def delayed_restart():
+                    time.sleep(1)  # Give time for the response to be sent
+                    f.write(f"{timestamp} - huntarr-web - INFO - Restarting container now...\n")
+                    os.system("kill 1")  # In Docker, PID 1 is the main process, killing it will restart the container
+                
+                restart_thread = threading.Thread(target=delayed_restart)
+                restart_thread.daemon = True
+                restart_thread.start()
+                
+                return jsonify({
+                    "success": True, 
+                    "message": "Settings reset to defaults and container is restarting...",
+                    "restarting": True
+                })
+            else:
+                f.write(f"{timestamp} - huntarr-web - INFO - Trying to restart cycle to apply new settings\n")
+                # Try to signal the main process to restart the cycle
+                main_pid = get_main_process_pid()
+                if main_pid:
+                    try:
+                        # Send a SIGUSR1 signal which we'll handle in main.py to restart the cycle
+                        os.kill(main_pid, signal.SIGUSR1)
+                        return jsonify({"success": True, "message": "Settings reset and cycle restarted"})
+                    except:
+                        # If signaling fails, just return success for the settings reset
+                        return jsonify({"success": True, "message": "Settings reset, but cycle not restarted"})
+                else:
+                    return jsonify({"success": True, "message": "Settings reset, but main process not found"})
         
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
