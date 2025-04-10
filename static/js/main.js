@@ -793,7 +793,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Ask user if they want to restart the container for changes to take effect immediately
-        const restartContainer = confirm('Save settings and restart the container for changes to take effect immediately?\n\nClick OK to restart container, or Cancel to just save settings without restart.');
+        const restartContainer = confirm('Save settings and restart the container for changes to take effect immediately?\n\nClick OK to restart container or Cancel to not do anything and go back.');
         
         // Prepare settings object based on current app
         let settings = {
