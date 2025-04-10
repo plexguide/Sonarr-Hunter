@@ -180,7 +180,6 @@ def main_loop() -> None:
         
         # Sleep at the end of the cycle only
         logger.info(f"Cycle complete. Sleeping {CURRENT_SLEEP_DURATION}s before next cycle...")
-        logger.info("🎓 Donate @ donate.plex.one for Daughter's College Fund! ⭐ Also Star Huntarr on GitHub!")
         
         # Log web UI information
         server_ip = get_ip_address()

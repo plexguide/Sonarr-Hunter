@@ -753,8 +753,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.error('Error loading Readarr settings:', error);
                             
                             // Default values
-                            readarrApiUrlInput.value
-                            // Default values
                             readarrApiUrlInput.value = '';
                             readarrApiKeyInput.value = '';
                             readarrApiUrlInput.dataset.originalValue = '';
@@ -851,6 +849,12 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Check if operation was cancelled
+                if (data.cancelled) {
+                    alert('Operation cancelled - no changes were saved.');
+                    return;
+                }
+                
                 // Update original settings after successful save
                 if (currentApp === 'sonarr') {
                     originalSettings.api_url = settings.api_url;
@@ -981,6 +985,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Check if operation was cancelled
+                    if (data.cancelled) {
+                        alert('Operation cancelled - settings were not reset.');
+                        return;
+                    }
+                    
                     if (data.restarting) {
                         alert('Settings reset to defaults. Container is now restarting. The page will reload in 5 seconds.');
                         setTimeout(function() {

@@ -403,8 +403,16 @@ def update_settings():
         if not data:
             return jsonify({"success": False, "message": "No data provided"}), 400
         
-        # Check if restart flag is set
+        # Check if restart flag is set - if restart is cancelled, don't save settings
         restart_container = data.pop('restart_container', False)
+        if not restart_container:
+            # User cancelled the restart, so don't save any settings
+            return jsonify({
+                "success": True, 
+                "message": "Operation cancelled - no changes saved", 
+                "changes_made": False,
+                "cancelled": True
+            })
         
         # Get current settings to compare
         old_settings = settings_manager.get_all_settings()
@@ -562,6 +570,15 @@ def reset_settings():
         data = request.json or {}
         restart_container = data.get('restart_container', False)
         
+        # If restart is cancelled, don't reset settings
+        if not restart_container:
+            return jsonify({
+                "success": True, 
+                "message": "Operation cancelled - settings not reset", 
+                "changes_made": False,
+                "cancelled": True
+            })
+        
         # Reset settings
         settings_manager.save_settings(settings_manager.DEFAULT_SETTINGS)
         
@@ -661,8 +678,8 @@ if __name__ == "__main__":
     ip_address = get_ip_address()
     
     with open(LOG_FILE, 'a') as f:
-        f.write(f"{timestamp} - huntarr-web - INFO - Web server starting on port 8988\n")
-        f.write(f"{timestamp} - huntarr-web - INFO - Web interface available at http://{ip_address}:8988\n")
+        f.write(f"{timestamp} - huntarr-web - INFO - Web server starting on port 9705\n")
+        f.write(f"{timestamp} - huntarr-web - INFO - Web interface available at http://{ip_address}:9705\n")
     
     # Run the Flask app
     app.run(host='0.0.0.0', port=9705, debug=False, threaded=True)
