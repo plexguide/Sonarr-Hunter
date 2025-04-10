@@ -14,16 +14,19 @@
   </tr>
 </table>
  
-**NOTE**: Working to Integrate Apps into UI and Drop Extra Variables.
+**NOTE**: Working to Intergrate Other Applications! If making changes in the UI do not appear to take effect after saving, type: `docker restart hunter`
 
 * Sonarr [Good]
 * Radarr [Not Incorporated Yet]
 * Lidarr [Not Incorporated Yet]
 * Readarr [Not Incorporated Yet]
 
+** WARNING
+
+This uses a new repo `huntarr\huntarr` and does not utilize the env variable and requires the UI. Please read the documentation. To utilize legacy Huntarr-Sonarr, please view this [Backup Page](https://null.com)
+
 **Change Log:**
 Visit: https://github.com/plexguide/Huntarr/releases/
-
 
 ## Table of Contents
 - [Overview](#overview)
