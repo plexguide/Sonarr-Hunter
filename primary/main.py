@@ -22,7 +22,7 @@ def signal_handler(signum, frame):
     """Handle signals from the web UI for cycle restart"""
     global restart_cycle
     if signum == signal.SIGUSR1:
-        logger.info("🔄 Received restart signal. Aborting current operations to restart cycle...")
+        logger.warning("⚠️ Received restart signal from web UI. Immediately aborting current operations... ⚠️")
         restart_cycle = True
 
 # Register signal handler for SIGUSR1
@@ -72,7 +72,7 @@ def force_reload_all_modules():
         config.refresh_settings()
         
         # Log the reloaded settings for verification
-        logger.info("Settings reloaded from JSON file for new cycle")
+        logger.warning("⚠️ Settings reloaded from JSON file after restart signal ⚠️")
         config.log_configuration(logger)
         
         return True
@@ -113,27 +113,29 @@ def main_loop() -> None:
         if MINIMUM_DOWNLOAD_QUEUE_SIZE < 0 or (MINIMUM_DOWNLOAD_QUEUE_SIZE >= 0 and download_queue_size <= MINIMUM_DOWNLOAD_QUEUE_SIZE):
         
             # Process items based on APP_TYPE and HUNT_MODE
+            if restart_cycle:
+                logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
+                continue
+                
             if APP_TYPE == "sonarr":
                 if HUNT_MODE in ["missing", "both"]:
-                    # Modified to pass restart_cycle flag to process_missing_episodes
                     from primary.missing import process_missing_episodes
-                    if process_missing_episodes(restart_cycle_flag=lambda: restart_cycle):
+                    if process_missing_episodes():
                         processing_done = True
                     
                     # Check if restart signal received
                     if restart_cycle:
-                        logger.info("🔄 Restarting cycle due to settings change...")
+                        logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
                         continue
                         
-                if HUNT_MODE in ["upgrade", "both"] and not restart_cycle:
-                    # Modified to pass restart_cycle flag to process_cutoff_upgrades
+                if HUNT_MODE in ["upgrade", "both"]:
                     from primary.upgrade import process_cutoff_upgrades
-                    if process_cutoff_upgrades(restart_cycle_flag=lambda: restart_cycle):
+                    if process_cutoff_upgrades():
                         processing_done = True
                     
                     # Check if restart signal received
                     if restart_cycle:
-                        logger.info("🔄 Restarting cycle due to settings change...")
+                        logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
                         continue
             
             elif APP_TYPE == "radarr":
@@ -141,30 +143,15 @@ def main_loop() -> None:
                 logger.info("Radarr processing not yet implemented")
                 time.sleep(5)  # Short sleep to avoid log spam
                 
-                # Check if restart signal received
-                if restart_cycle:
-                    logger.info("🔄 Restarting cycle due to settings change...")
-                    continue
-                
             elif APP_TYPE == "lidarr":
                 # TODO: Implement Lidarr processing
                 logger.info("Lidarr processing not yet implemented")
                 time.sleep(5)  # Short sleep to avoid log spam
                 
-                # Check if restart signal received
-                if restart_cycle:
-                    logger.info("🔄 Restarting cycle due to settings change...")
-                    continue
-                
             elif APP_TYPE == "readarr":
                 # TODO: Implement Readarr processing
                 logger.info("Readarr processing not yet implemented")
                 time.sleep(5)  # Short sleep to avoid log spam
-                
-                # Check if restart signal received
-                if restart_cycle:
-                    logger.info("🔄 Restarting cycle due to settings change...")
-                    continue
 
         else:
             logger.info(f"Download queue size ({download_queue_size}) is above the minimum threshold ({MINIMUM_DOWNLOAD_QUEUE_SIZE}). Skipped processing.")
@@ -177,14 +164,9 @@ def main_loop() -> None:
         # Import it directly from the settings manager to ensure latest value
         from primary.config import SLEEP_DURATION as CURRENT_SLEEP_DURATION
         
-        # Skip sleep if restart_cycle is True
-        if restart_cycle:
-            logger.info("🔄 Restarting cycle due to settings change...")
-            continue
-        
         # Sleep at the end of the cycle only
         logger.info(f"Cycle complete. Sleeping {CURRENT_SLEEP_DURATION}s before next cycle...")
-        logger.info("⭐ Tool Great? Donate @ https://donate.plex.one for Daughter's College Fund!")
+        logger.info("🎓 Donate @ donate.plex.one for Daughter's College Fund! ⭐ Also Star Huntarr on GitHub!")
         
         # Log web UI information
         server_ip = get_ip_address()
@@ -196,17 +178,16 @@ def main_loop() -> None:
         
         while time.time() < sleep_end and not restart_cycle:
             # Sleep in smaller chunks for more responsive shutdown and restart
-            time.sleep(min(0.5, sleep_end - time.time()))
+            time.sleep(min(1, sleep_end - time.time()))
             
             # Every minute, log the remaining sleep time for web interface visibility
-            elapsed = time.time() - sleep_start
-            if int(elapsed) % 60 == 0 and elapsed > 0 and time.time() < sleep_end - 10:
+            if int((time.time() - sleep_start) % 60) == 0 and time.time() < sleep_end - 10:
                 remaining = int(sleep_end - time.time())
                 logger.debug(f"Sleeping... {remaining}s remaining until next cycle")
             
             # Check if restart signal received
             if restart_cycle:
-                logger.info("🔄 Sleep interrupted due to settings change. Restarting cycle immediately...")
+                logger.warning("⚠️ Sleep interrupted due to settings change. Restarting cycle immediately... ⚠️")
                 break
 
 if __name__ == "__main__":
