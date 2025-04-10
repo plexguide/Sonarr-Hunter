@@ -124,6 +124,8 @@ body {
 .title-link {
     color: var(--header-text);
     text-decoration: none;
+    display: flex;
+    align-items: center;
 }
 
 .title-link:hover {
@@ -676,6 +678,29 @@ input:checked + .toggle-slider:before {
     margin-bottom: 10px;
     border-bottom: none;
     padding-bottom: 0;
+}
+
+/* Add Huntarr logo styling */
+.huntarr-logo {
+    height: 40px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+/* Add styling for welcome page content */
+#homeContainer {
+    padding: 0;
+}
+
+/* Fix reset button on login page */
+.reset-link {
+    color: var(--button-bg);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.reset-link:hover {
+    text-decoration: underline;
 }
 
 @media (max-width: 768px) {

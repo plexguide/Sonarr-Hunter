@@ -176,8 +176,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1><a href="/" class="title-link">Huntarr</a></h1>
+            <h1><a href="/" class="title-link"><img src="https://github.com/plexguide/Huntarr/blob/main/logo/40.png?raw=true" alt="Huntarr Logo" class="huntarr-logo">Huntarr</a></h1>
             <div class="buttons">
+                <button id="homeButton">Home</button>
                 <button id="logsButton">Logs</button>
                 <button id="settingsButton">Settings</button>
                 <button id="userButton" class="active">User</button>
@@ -287,6 +288,7 @@
     <script src="/static/js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const homeButton = document.getElementById('homeButton');
             const logsButton = document.getElementById('logsButton');
             const settingsButton = document.getElementById('settingsButton');
             const userButton = document.getElementById('userButton');
@@ -310,6 +312,9 @@
                         themeToggle.checked = true;
                         themeLabel.textContent = 'Dark Mode';
                     } else {
+                        document.body.classList.remove('dark-theme');
+                        themeToggle.checked = false;
+                        theme
                         document.body.classList.remove('dark-theme');
                         themeToggle.checked = false;
                         themeLabel.textContent = 'Light Mode';
@@ -338,8 +343,12 @@
             });
             
             // Navigation
-            logsButton.addEventListener('click', function() {
+            homeButton.addEventListener('click', function() {
                 window.location.href = '/';
+            });
+            
+            logsButton.addEventListener('click', function() {
+                window.location.href = '/#logs';
             });
             
             settingsButton.addEventListener('click', function() {
@@ -565,4 +574,4 @@
         });
     </script>
 </body>
-</html>
+</html>                  

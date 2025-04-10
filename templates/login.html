@@ -83,10 +83,24 @@
         .reset-link:hover {
             text-decoration: underline;
         }
+        
+        .logo-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .logo-header img {
+            height: 40px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body class="dark-theme">
     <div class="login-container">
+        <div class="logo-header">
+            <img src="https://github.com/plexguide/Huntarr/blob/main/logo/40.png?raw=true" alt="Huntarr Logo">
+        </div>
         <div class="login-header">
             <h1>Login to Huntarr</h1>
             {% if needs_2fa %}
