@@ -85,6 +85,10 @@ def setup_page():
     """Render the setup page for first-time users"""
     if user_exists():
         return redirect('/')
+    # Log the access to setup page
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(LOG_FILE, 'a') as f:
+        f.write(f"{timestamp} - huntarr-web - INFO - Accessed setup page - no user exists yet\n")
     return render_template('setup.html')
 
 @app.route('/login', methods=['GET'])
@@ -138,13 +142,25 @@ def api_setup():
     if password != confirm_password:
         return jsonify({"success": False, "message": "Passwords do not match"}), 400
         
+    # Log the creation attempt
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(LOG_FILE, 'a') as f:
+        f.write(f"{timestamp} - huntarr-web - INFO - Attempting to create first user: {username}\n")
+    
     if create_user(username, password):
+        # Log success
+        with open(LOG_FILE, 'a') as f:
+            f.write(f"{timestamp} - huntarr-web - INFO - Successfully created first user\n")
+        
         # Create a session for the new user
         session_id = create_session(username)
         session[SESSION_COOKIE_NAME] = session_id
         return jsonify({"success": True})
     else:
-        return jsonify({"success": False, "message": "Failed to create user"}), 500
+        # Log failure
+        with open(LOG_FILE, 'a') as f:
+            f.write(f"{timestamp} - huntarr-web - ERROR - Failed to create user - check permissions\n")
+        return jsonify({"success": False, "message": "Failed to create user - check directory permissions"}), 500
 
 @app.route('/api/login', methods=['POST'])
 def api_login():

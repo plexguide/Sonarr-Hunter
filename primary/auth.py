@@ -53,12 +53,20 @@ def hash_username(username: str) -> str:
 
 def user_exists() -> bool:
     """Check if a user has been created"""
-    return USER_FILE.exists()
+    return USER_FILE.exists() and os.path.getsize(USER_FILE) > 0
 
 def create_user(username: str, password: str) -> bool:
     """Create a new user"""
     if not username or not password:
         return False
+        
+    # Ensure user directory exists with proper permissions
+    USER_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        # Set appropriate permissions if not running as root
+        os.chmod(USER_DIR, 0o755)
+    except:
+        pass
         
     # Hash the username and password
     username_hash = hash_username(username)
@@ -76,6 +84,11 @@ def create_user(username: str, password: str) -> bool:
     try:
         with open(USER_FILE, 'w') as f:
             json.dump(user_data, f)
+        # Set appropriate permissions on the file
+        try:
+            os.chmod(USER_FILE, 0o644)
+        except:
+            pass
         return True
     except Exception as e:
         print(f"Error creating user: {e}")
@@ -167,8 +180,8 @@ def authenticate_request():
             return redirect("/setup")
         return None
     
-    # Skip authentication for static files and the login page
-    if request.path.startswith(("/static/", "/login", "/api/login")) or request.path == "/favicon.ico":
+    # Skip authentication for static files and the login/setup pages
+    if request.path.startswith(("/static/", "/login", "/api/login", "/setup", "/api/setup")) or request.path == "/favicon.ico":
         return None
     
     # Check for valid session

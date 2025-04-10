@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Huntarr</title>
+    <title>Setup - Huntarr</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="icon" href="/static/favicon.ico">
     <style>
@@ -72,7 +72,8 @@
 <body class="dark-theme">
     <div class="login-container">
         <div class="login-header">
-            <h1>Login to Huntarr</h1>
+            <h1>Setup Huntarr</h1>
+            <p>Create your administrator account</p>
         </div>
         <div class="login-form">
             <div class="form-group">
@@ -83,62 +84,75 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="button" id="loginButton" class="login-button">Login</button>
-            <p id="errorMessage" class="error-message">Invalid username or password</p>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <button type="button" id="createAccountButton" class="login-button">Create Account</button>
+            <p id="errorMessage" class="error-message"></p>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const loginButton = document.getElementById('loginButton');
+            const createAccountButton = document.getElementById('createAccountButton');
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirm_password');
             const errorMessage = document.getElementById('errorMessage');
             
-            // Allow pressing Enter to login
-            passwordInput.addEventListener('keypress', function(e) {
+            // Allow pressing Enter to create account when on password confirm field
+            confirmPasswordInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    loginButton.click();
+                    createAccountButton.click();
                 }
             });
             
-            // Login button click handler
-            loginButton.addEventListener('click', function() {
+            // Create account button click handler
+            createAccountButton.addEventListener('click', function() {
                 const username = usernameInput.value;
                 const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
                 
-                if (!username || !password) {
-                    errorMessage.textContent = 'Username and password are required';
+                if (!username || !password || !confirmPassword) {
+                    errorMessage.textContent = 'All fields are required';
                     errorMessage.style.display = 'block';
                     return;
                 }
                 
-                // Send login request to API
-                fetch('/api/login', {
+                if (password !== confirmPassword) {
+                    errorMessage.textContent = 'Passwords do not match';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Send setup request to API
+                fetch('/api/setup', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         username: username,
-                        password: password
+                        password: password,
+                        confirm_password: confirmPassword
                     })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Redirect to main page on successful login
+                        // Redirect to main page on successful setup
                         window.location.href = '/';
                     } else {
                         // Show error message
-                        errorMessage.textContent = data.message || 'Invalid username or password';
+                        errorMessage.textContent = data.message || 'Failed to create account';
                         errorMessage.style.display = 'block';
                     }
                 })
                 .catch(error => {
                     errorMessage.textContent = 'An error occurred. Please try again.';
                     errorMessage.style.display = 'block';
-                    console.error('Login error:', error);
+                    console.error('Setup error:', error);
                 });
             });
         });
