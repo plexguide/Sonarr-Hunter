@@ -6,104 +6,34 @@
     <title>Setup - Huntarr</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="icon" href="/static/favicon.ico">
-    <style>
-        .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 30px;
-            background-color: var(--log-background);
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .login-form {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--input-border);
-            border-radius: 5px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-        }
-        
-        .login-button {
-            background-color: var(--button-bg);
-            color: var(--button-text);
-            border: none;
-            padding: 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        
-        .login-button:hover {
-            background-color: var(--button-hover);
-        }
-        
-        .error-message {
-            color: var(--error-color);
-            margin-top: 15px;
-            text-align: center;
-            display: none;
-        }
-        
-        .logo-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .logo-header img {
-            height: 40px;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-    </style>
 </head>
 <body class="dark-theme">
     <div class="login-container">
-        <div class="logo-header">
-            <img src="https://github.com/plexguide/Huntarr/blob/main/logo/40.png?raw=true" alt="Huntarr Logo">
+        <div class="auth-header">
+            <img src="https://github.com/plexguide/Huntarr/blob/main/logo/40.png?raw=true" alt="Huntarr Logo" class="huntarr-logo">
+            <h1>Huntarr</h1>
         </div>
-        <div class="login-header">
-            <h1>Setup Huntarr</h1>
-            <p>Create your administrator account</p>
-        </div>
-        <div class="login-form">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+        <div class="login-content">
+            <div class="login-header">
+                <h2>Setup Huntarr</h2>
+                <p>Create your administrator account</p>
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+            <div class="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+                <button type="button" id="createAccountButton" class="login-button">Create Account</button>
+                <p id="errorMessage" class="error-message" style="display: none;"></p>
             </div>
-            <div class="form-group">
-                <label for="confirm_password">Confirm Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
-            </div>
-            <button type="button" id="createAccountButton" class="login-button">Create Account</button>
-            <p id="errorMessage" class="error-message"></p>
         </div>
     </div>
 

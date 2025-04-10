@@ -37,6 +37,7 @@
     --service-not-configured: #f39c12;
     --welcome-panel-bg: #34495e;
     --info-box-bg: #2c3e50;
+    --main-content-bg: #34495e;
 }
 
 .dark-theme {
@@ -78,6 +79,7 @@
     --service-not-configured: #f39c12;
     --welcome-panel-bg: #2c3e50;
     --info-box-bg: #1a2530;
+    --main-content-bg: #2c3e50;
 }
 
 * {
@@ -111,7 +113,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1px;
+    margin-bottom: 0;
     flex-wrap: wrap;
 }
 
@@ -172,6 +174,16 @@ body {
     display: flex;
     flex-direction: column;
     margin-bottom: 20px;
+}
+
+/* Special style for home page to ensure full background */
+#homeContainer {
+    background-color: var(--main-content-bg);
+    color: var(--header-text);
+    padding: 20px;
+    border-left: 1px solid var(--container-border);
+    border-right: 1px solid var(--container-border);
+    border-bottom: 1px solid var(--container-border);
 }
 
 .log-controls {
@@ -514,8 +526,8 @@ input:checked + .toggle-slider:before {
     display: flex;
     background-color: var(--app-tab-bg);
     border-radius: 0;
-    margin-top: -1px;
-    margin-bottom: -1px;
+    margin-top: 0;
+    margin-bottom: 0;
     overflow: hidden;
 }
 
@@ -613,8 +625,7 @@ input:checked + .toggle-slider:before {
 /* Welcome page styles */
 .welcome-panel {
     padding: 20px;
-    background-color: var(--welcome-panel-bg);
-    border-radius: 8px;
+    background-color: transparent;
     color: var(--header-text);
     margin-bottom: 20px;
 }
@@ -687,17 +698,6 @@ input:checked + .toggle-slider:before {
     vertical-align: middle;
 }
 
-/* Add styling for welcome page content */
-#homeContainer {
-    padding: 0;
-}
-
-/* Fix for navigation in user pages */
-.header .title-link {
-    display: flex;
-    align-items: center;
-}
-
 /* Fix reset button on login page */
 .reset-link {
     color: var(--button-bg);
@@ -707,6 +707,85 @@ input:checked + .toggle-slider:before {
 
 .reset-link:hover {
     text-decoration: underline;
+}
+
+/* Login and setup page styling */
+.auth-header {
+    background-color: var(--header-bg);
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+    text-align: center;
+    margin-bottom: 0;
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 100px auto;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.login-content {
+    background-color: var(--log-background);
+    padding: 30px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.login-button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.login-button:hover {
+    background-color: var(--button-hover);
+}
+
+.error-message {
+    color: var(--error-color);
+    margin-top: 15px;
+    text-align: center;
+}
+
+.reset-instructions {
+    margin-top: 20px;
+    font-size: 14px;
+    text-align: center;
 }
 
 @media (max-width: 768px) {

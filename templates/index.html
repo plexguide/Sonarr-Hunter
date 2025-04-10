@@ -26,14 +26,6 @@
             </div>
         </div>
 
-        <!-- App Selector Tabs -->
-        <div class="app-selector">
-            <button class="app-tab active" data-app="sonarr">Sonarr</button>
-            <button class="app-tab" data-app="radarr">Radarr</button>
-            <button class="app-tab" data-app="lidarr">Lidarr</button>
-            <button class="app-tab" data-app="readarr">Readarr</button>
-        </div>
-
         <div id="homeContainer" class="content-section">
             <div class="welcome-panel">
                 <h2>Welcome to Huntarr, <span id="username">User</span>!</h2>
@@ -77,6 +69,14 @@
         </div>
 
         <div id="logsContainer" class="content-section" style="display: none;">
+            <!-- App Selector Tabs (only for logs view) -->
+            <div class="app-selector">
+                <button class="app-tab active" data-app="sonarr">Sonarr</button>
+                <button class="app-tab" data-app="radarr">Radarr</button>
+                <button class="app-tab" data-app="lidarr">Lidarr</button>
+                <button class="app-tab" data-app="readarr">Readarr</button>
+            </div>
+
             <div class="log-controls">
                 <div class="connection-status">
                     Status: <span id="status" class="status-disconnected">Disconnected</span>
@@ -93,6 +93,14 @@
         </div>
 
         <div id="settingsContainer" class="content-section" style="display: none;">
+            <!-- App Selector Tabs (only for settings view) -->
+            <div class="app-selector">
+                <button class="app-tab active" data-app="sonarr">Sonarr</button>
+                <button class="app-tab" data-app="radarr">Radarr</button>
+                <button class="app-tab" data-app="lidarr">Lidarr</button>
+                <button class="app-tab" data-app="readarr">Readarr</button>
+            </div>
+
             <div class="settings-form">
                 <div id="settingsApp" class="settings-app-content">
                     <!-- App-specific settings will be loaded here -->
