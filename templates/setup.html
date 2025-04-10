@@ -6,6 +6,123 @@
     <title>Setup - Huntarr</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="icon" href="/static/favicon.ico">
+    <style>
+        .setup-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .step {
+            padding: 8px 12px;
+            background-color: var(--settings-bg);
+            border-radius: 5px;
+            font-weight: bold;
+            flex: 1;
+            text-align: center;
+            margin: 0 5px;
+            opacity: 0.6;
+        }
+        
+        .step.active {
+            background-color: var(--button-bg);
+            color: white;
+            opacity: 1;
+        }
+        
+        .step.completed {
+            background-color: var(--save-button-bg);
+            color: white;
+            opacity: 1;
+        }
+        
+        .setup-screen {
+            display: none;
+        }
+        
+        .setup-screen.active {
+            display: block;
+        }
+        
+        .buttons-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .qr-code-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .qr-code {
+            max-width: 200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .secret-key {
+            font-family: monospace;
+            padding: 8px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        .verification-code {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .verification-code input {
+            width: 200px;
+            padding: 8px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            text-align: center;
+            letter-spacing: 2px;
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        
+        .next-button, .prev-button, .finish-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .next-button, .finish-button {
+            background-color: var(--button-bg);
+            color: white;
+        }
+        
+        .prev-button {
+            background-color: var(--reset-button-bg);
+            color: white;
+        }
+        
+        .skip-2fa {
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .skip-link {
+            color: var(--button-bg);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body class="dark-theme">
     <div class="login-container">
@@ -14,63 +131,183 @@
             <h1>Huntarr</h1>
         </div>
         <div class="login-content">
-            <div class="login-header">
-                <h2>Setup Huntarr</h2>
-                <p>Create your administrator account</p>
+            <div class="setup-steps">
+                <div id="step1" class="step active">1. Create Account</div>
+                <div id="step2" class="step">2. Setup 2FA (Optional)</div>
+                <div id="step3" class="step">3. Finish</div>
             </div>
-            <div class="login-form">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
+            
+            <div id="accountSetup" class="setup-screen active">
+                <div class="login-header">
+                    <h2>Create Your Account</h2>
+                    <p>Set up your administrator credentials</p>
                 </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    <div class="buttons-container">
+                        <div></div> <!-- Empty div for alignment -->
+                        <button type="button" id="accountNextButton" class="next-button">Next</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="confirm_password">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required>
-                </div>
-                <button type="button" id="createAccountButton" class="login-button">Create Account</button>
-                <p id="errorMessage" class="error-message" style="display: none;"></p>
             </div>
+            
+            <div id="twoFactorSetup" class="setup-screen">
+                <div class="login-header">
+                    <h2>Setup Two-Factor Authentication</h2>
+                    <p>Enhance your account security (optional)</p>
+                </div>
+                <div class="qr-code-container">
+                    <p>Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+                    <div class="qr-code" id="qrCode">
+                        <!-- QR code will be inserted here -->
+                    </div>
+                    <p>Or enter this code manually in your app:</p>
+                    <div class="secret-key" id="secretKey">ABCDEFGHIJKLMNOP</div>
+                    
+                    <div class="verification-code">
+                        <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6">
+                    </div>
+                    
+                    <div class="skip-2fa">
+                        <a id="skip2FALink" class="skip-link">Skip 2FA setup</a>
+                    </div>
+                </div>
+                <div class="buttons-container">
+                    <button type="button" id="twoFactorPrevButton" class="prev-button">Back</button>
+                    <button type="button" id="twoFactorNextButton" class="next-button">Verify & Continue</button>
+                </div>
+            </div>
+            
+            <div id="setupComplete" class="setup-screen">
+                <div class="login-header">
+                    <h2>Setup Complete</h2>
+                    <p>Your Huntarr account has been created successfully!</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <p>You can now proceed to the main interface and configure your media applications.</p>
+                    <p>Remember to test your API connections for each application you want to use.</p>
+                </div>
+                <div class="buttons-container">
+                    <button type="button" id="setupPrevButton" class="prev-button">Back</button>
+                    <button type="button" id="finishSetupButton" class="finish-button">Go to Dashboard</button>
+                </div>
+            </div>
+            
+            <p id="errorMessage" class="error-message" style="display: none;"></p>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const createAccountButton = document.getElementById('createAccountButton');
+            // Elements
+            const steps = document.querySelectorAll('.step');
+            const screens = document.querySelectorAll('.setup-screen');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Account setup elements
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
             const confirmPasswordInput = document.getElementById('confirm_password');
-            const errorMessage = document.getElementById('errorMessage');
+            const accountNextButton = document.getElementById('accountNextButton');
             
-            // Allow pressing Enter to create account when on password confirm field
-            confirmPasswordInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    createAccountButton.click();
-                }
-            });
+            // 2FA setup elements
+            const qrCodeElement = document.getElementById('qrCode');
+            const secretKeyElement = document.getElementById('secretKey');
+            const verificationCodeInput = document.getElementById('verificationCode');
+            const skip2FALink = document.getElementById('skip2FALink');
+            const twoFactorPrevButton = document.getElementById('twoFactorPrevButton');
+            const twoFactorNextButton = document.getElementById('twoFactorNextButton');
             
-            // Create account button click handler
-            createAccountButton.addEventListener('click', function() {
+            // Complete setup elements
+            const setupPrevButton = document.getElementById('setupPrevButton');
+            const finishSetupButton = document.getElementById('finishSetupButton');
+            
+            // Current step tracking
+            let currentStep = 1;
+            let accountCreated = false;
+            let twoFactorEnabled = false;
+            
+            // Store user data
+            let userData = {
+                username: '',
+                password: ''
+            };
+            
+            // Show a specific step
+            function showStep(step) {
+                steps.forEach((s, index) => {
+                    if (index + 1 < step) {
+                        s.classList.remove('active');
+                        s.classList.add('completed');
+                    } else if (index + 1 === step) {
+                        s.classList.add('active');
+                        s.classList.remove('completed');
+                    } else {
+                        s.classList.remove('active');
+                        s.classList.remove('completed');
+                    }
+                });
+                
+                screens.forEach((screen, index) => {
+                    if (index + 1 === step) {
+                        screen.classList.add('active');
+                    } else {
+                        screen.classList.remove('active');
+                    }
+                });
+                
+                currentStep = step;
+            }
+            
+            // Show error message
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Account creation
+            accountNextButton.addEventListener('click', function() {
                 const username = usernameInput.value;
                 const password = passwordInput.value;
                 const confirmPassword = confirmPasswordInput.value;
                 
                 if (!username || !password || !confirmPassword) {
-                    errorMessage.textContent = 'All fields are required';
-                    errorMessage.style.display = 'block';
+                    showError('All fields are required');
                     return;
                 }
                 
                 if (password !== confirmPassword) {
-                    errorMessage.textContent = 'Passwords do not match';
-                    errorMessage.style.display = 'block';
+                    showError('Passwords do not match');
                     return;
                 }
                 
-                // Send setup request to API
+                // Store user data
+                userData.username = username;
+                userData.password = password;
+                
+                if (accountCreated) {
+                    // If account already created, just move to next step
+                    showStep(2);
+                    return;
+                }
+                
+                // Create user account
                 fetch('/api/setup', {
                     method: 'POST',
                     headers: {
@@ -85,19 +322,94 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Redirect to main page on successful setup
-                        window.location.href = '/';
+                        accountCreated = true;
+                        
+                        // Generate 2FA setup
+                        fetch('/api/user/generate-2fa')
+                            .then(response => response.json())
+                            .then(twoFactorData => {
+                                if (twoFactorData.success) {
+                                    qrCodeElement.innerHTML = `<img src="${twoFactorData.qr_code_url}" alt="QR Code">`;
+                                    secretKeyElement.textContent = twoFactorData.secret;
+                                    showStep(2);
+                                } else {
+                                    showError('Failed to generate 2FA setup: ' + twoFactorData.message);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error generating 2FA:', error);
+                                showError('Failed to generate 2FA setup');
+                            });
                     } else {
-                        // Show error message
-                        errorMessage.textContent = data.message || 'Failed to create account';
-                        errorMessage.style.display = 'block';
+                        showError(data.message || 'Failed to create account');
                     }
                 })
                 .catch(error => {
-                    errorMessage.textContent = 'An error occurred. Please try again.';
-                    errorMessage.style.display = 'block';
                     console.error('Setup error:', error);
+                    showError('An error occurred. Please try again.');
                 });
+            });
+            
+            // 2FA setup navigation
+            twoFactorPrevButton.addEventListener('click', function() {
+                showStep(1);
+            });
+            
+            twoFactorNextButton.addEventListener('click', function() {
+                const code = verificationCodeInput.value;
+                if (!code) {
+                    showError('Please enter the verification code');
+                    return;
+                }
+                
+                // Verify 2FA code
+                fetch('/api/user/verify-2fa', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code: code })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        twoFactorEnabled = true;
+                        showStep(3);
+                    } else {
+                        showError(data.message || 'Invalid verification code');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error verifying 2FA code:', error);
+                    showError('Failed to verify code');
+                });
+            });
+            
+            // Skip 2FA setup
+            skip2FALink.addEventListener('click', function() {
+                showStep(3);
+            });
+            
+            // Complete setup navigation
+            setupPrevButton.addEventListener('click', function() {
+                showStep(2);
+            });
+            
+            finishSetupButton.addEventListener('click', function() {
+                window.location.href = '/';
+            });
+            
+            // Allow pressing Enter to continue
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    if (currentStep === 1) {
+                        accountNextButton.click();
+                    } else if (currentStep === 2) {
+                        twoFactorNextButton.click();
+                    } else if (currentStep === 3) {
+                        finishSetupButton.click();
+                    }
+                }
             });
         });
     </script>

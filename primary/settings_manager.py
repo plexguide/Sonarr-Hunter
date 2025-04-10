@@ -10,6 +10,7 @@ import json
 import pathlib
 import logging
 from typing import Dict, Any, Optional
+from primary import keys_manager
 
 # Create a simple logger for settings_manager
 logging.basicConfig(level=logging.INFO)
@@ -27,8 +28,6 @@ DEFAULT_SETTINGS = {
         "dark_mode": True
     },
     "app_type": "sonarr",  # Default app type
-    "api_key": "",
-    "api_url": "",
     "huntarr": {
         # These will be loaded from default_configs.json based on app_type
     },
@@ -66,8 +65,6 @@ def get_app_defaults(app_type):
 def get_env_settings():
     """Get settings from environment variables"""
     env_settings = {
-        "api_key": os.environ.get("API_KEY", ""),
-        "api_url": os.environ.get("API_URL", ""),
         "app_type": os.environ.get("APP_TYPE", "sonarr").lower()
     }
     
@@ -139,7 +136,7 @@ def load_settings() -> Dict[str, Any]:
         
         # Apply environment settings, keeping track of whether they're huntarr or advanced
         for key, value in env_settings.items():
-            if key in ("api_key", "api_url", "app_type"):
+            if key in ("app_type"):
                 settings[key] = value
             elif key in ("api_timeout", "debug_mode", "command_wait_delay", 
                         "command_wait_attempts", "minimum_download_queue_size",
@@ -222,13 +219,15 @@ def get_app_type() -> str:
 
 def get_api_key() -> str:
     """Get the API key"""
-    settings = load_settings()
-    return settings.get("api_key", "")
+    app_type = get_app_type()
+    _, api_key = keys_manager.get_api_keys(app_type)
+    return api_key
 
 def get_api_url() -> str:
     """Get the API URL"""
-    settings = load_settings()
-    return settings.get("api_url", "")
+    app_type = get_app_type()
+    api_url, _ = keys_manager.get_api_keys(app_type)
+    return api_url
 
 # Initialize settings file if it doesn't exist
 if not SETTINGS_FILE.exists():

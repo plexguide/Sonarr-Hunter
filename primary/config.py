@@ -7,13 +7,13 @@ Handles all configuration settings with defaults
 import os
 import logging
 from primary import settings_manager
+from primary import keys_manager
 
 # Get app type
 APP_TYPE = settings_manager.get_app_type()
 
-# API Configuration
-API_KEY = settings_manager.get_api_key()
-API_URL = settings_manager.get_api_url()
+# API Configuration from keys_manager instead of settings_manager
+API_URL, API_KEY = keys_manager.get_api_keys(APP_TYPE)
 
 # Web UI is always enabled
 ENABLE_WEB_UI = True
@@ -74,14 +74,16 @@ def refresh_settings():
     global STATE_RESET_INTERVAL_HOURS, RANDOM_MISSING, RANDOM_UPGRADES
     global HUNT_MODE
     
+    # Reload APP_TYPE from settings
+    APP_TYPE = settings_manager.get_app_type()
+    
+    # Refresh API keys from keys_manager
+    API_URL, API_KEY = keys_manager.get_api_keys(APP_TYPE)
+    
     # Force reload all settings
     settings = settings_manager.get_all_settings()
     
     # Common settings
-    API_KEY = settings.get("api_key", API_KEY)
-    API_URL = settings.get("api_url", API_URL)
-    APP_TYPE = settings.get("app_type", APP_TYPE)
-    
     # Advanced settings
     advanced = settings.get("advanced", {})
     API_TIMEOUT = advanced.get("api_timeout", API_TIMEOUT)

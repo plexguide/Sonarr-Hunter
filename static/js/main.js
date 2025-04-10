@@ -33,6 +33,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const sonarrConnectionStatus = document.getElementById('sonarrConnectionStatus');
     const testSonarrConnectionButton = document.getElementById('testSonarrConnection');
     
+    // App settings - Radarr
+    const radarrApiUrlInput = document.getElementById('radarr_api_url');
+    const radarrApiKeyInput = document.getElementById('radarr_api_key');
+    const radarrConnectionStatus = document.getElementById('radarrConnectionStatus');
+    const testRadarrConnectionButton = document.getElementById('testRadarrConnection');
+    
+    // App settings - Lidarr
+    const lidarrApiUrlInput = document.getElementById('lidarr_api_url');
+    const lidarrApiKeyInput = document.getElementById('lidarr_api_key');
+    const lidarrConnectionStatus = document.getElementById('lidarrConnectionStatus');
+    const testLidarrConnectionButton = document.getElementById('testLidarrConnection');
+    
+    // App settings - Readarr
+    const readarrApiUrlInput = document.getElementById('readarr_api_url');
+    const readarrApiKeyInput = document.getElementById('readarr_api_key');
+    const readarrConnectionStatus = document.getElementById('readarrConnectionStatus');
+    const testReadarrConnectionButton = document.getElementById('testReadarrConnection');
+    
     // Settings form elements - Basic settings (Sonarr)
     const huntMissingShowsInput = document.getElementById('hunt_missing_shows');
     const huntUpgradeEpisodesInput = document.getElementById('hunt_upgrade_episodes');
@@ -200,49 +218,62 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update connection status on the home page
     function updateHomeConnectionStatus() {
-        // Sonarr status
-        if (sonarrHomeStatus) {
-            if (configuredApps.sonarr) {
-                sonarrHomeStatus.textContent = 'Configured';
-                sonarrHomeStatus.className = 'connection-badge connected';
-            } else {
-                sonarrHomeStatus.textContent = 'Not Configured';
-                sonarrHomeStatus.className = 'connection-badge not-connected';
-            }
-        }
-        
-        // Radarr status
-        if (radarrHomeStatus) {
-            if (configuredApps.radarr) {
-                radarrHomeStatus.textContent = 'Configured';
-                radarrHomeStatus.className = 'connection-badge connected';
-            } else {
-                radarrHomeStatus.textContent = 'Not Configured';
-                radarrHomeStatus.className = 'connection-badge not-connected';
-            }
-        }
-        
-        // Lidarr status
-        if (lidarrHomeStatus) {
-            if (configuredApps.lidarr) {
-                lidarrHomeStatus.textContent = 'Configured';
-                lidarrHomeStatus.className = 'connection-badge connected';
-            } else {
-                lidarrHomeStatus.textContent = 'Not Configured';
-                lidarrHomeStatus.className = 'connection-badge not-connected';
-            }
-        }
-        
-        // Readarr status
-        if (readarrHomeStatus) {
-            if (configuredApps.readarr) {
-                readarrHomeStatus.textContent = 'Configured';
-                readarrHomeStatus.className = 'connection-badge connected';
-            } else {
-                readarrHomeStatus.textContent = 'Not Configured';
-                readarrHomeStatus.className = 'connection-badge not-connected';
-            }
-        }
+        // Check current configured state
+        fetch('/api/configured-apps')
+            .then(response => response.json())
+            .then(data => {
+                // Update the configuredApps object
+                configuredApps.sonarr = data.sonarr || false;
+                configuredApps.radarr = data.radarr || false;
+                configuredApps.lidarr = data.lidarr || false;
+                configuredApps.readarr = data.readarr || false;
+                
+                // Update UI elements
+                // Sonarr status
+                if (sonarrHomeStatus) {
+                    if (configuredApps.sonarr) {
+                        sonarrHomeStatus.textContent = 'Configured';
+                        sonarrHomeStatus.className = 'connection-badge connected';
+                    } else {
+                        sonarrHomeStatus.textContent = 'Not Configured';
+                        sonarrHomeStatus.className = 'connection-badge not-connected';
+                    }
+                }
+                
+                // Radarr status
+                if (radarrHomeStatus) {
+                    if (configuredApps.radarr) {
+                        radarrHomeStatus.textContent = 'Configured';
+                        radarrHomeStatus.className = 'connection-badge connected';
+                    } else {
+                        radarrHomeStatus.textContent = 'Not Configured';
+                        radarrHomeStatus.className = 'connection-badge not-connected';
+                    }
+                }
+                
+                // Lidarr status
+                if (lidarrHomeStatus) {
+                    if (configuredApps.lidarr) {
+                        lidarrHomeStatus.textContent = 'Configured';
+                        lidarrHomeStatus.className = 'connection-badge connected';
+                    } else {
+                        lidarrHomeStatus.textContent = 'Not Configured';
+                        lidarrHomeStatus.className = 'connection-badge not-connected';
+                    }
+                }
+                
+                // Readarr status
+                if (readarrHomeStatus) {
+                    if (configuredApps.readarr) {
+                        readarrHomeStatus.textContent = 'Configured';
+                        readarrHomeStatus.className = 'connection-badge connected';
+                    } else {
+                        readarrHomeStatus.textContent = 'Not Configured';
+                        readarrHomeStatus.className = 'connection-badge not-connected';
+                    }
+                }
+            })
+            .catch(error => console.error('Error checking configured apps:', error));
     }
     
     // Update logs connection status
@@ -327,74 +358,94 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Test connection for Sonarr
-    if (testSonarrConnectionButton) {
-        testSonarrConnectionButton.addEventListener('click', function() {
-            const apiUrl = sonarrApiUrlInput.value;
-            const apiKey = sonarrApiKeyInput.value;
-            
-            if (!apiUrl || !apiKey) {
-                alert('Please enter both API URL and API Key before testing the connection.');
-                return;
-            }
-            
-            // Test API connection
-            if (sonarrConnectionStatus) {
-                sonarrConnectionStatus.textContent = 'Testing...';
-                sonarrConnectionStatus.className = 'connection-badge';
-            }
-            
-            fetch('/api/test-connection', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    app: 'sonarr',
-                    api_url: apiUrl,
-                    api_key: apiKey
-                })
+    // Test connection functions
+    function testConnection(app, urlInput, keyInput, statusElement) {
+        const apiUrl = urlInput.value;
+        const apiKey = keyInput.value;
+        
+        if (!apiUrl || !apiKey) {
+            alert(`Please enter both API URL and API Key for ${app.charAt(0).toUpperCase() + app.slice(1)} before testing the connection.`);
+            return;
+        }
+        
+        // Test API connection
+        if (statusElement) {
+            statusElement.textContent = 'Testing...';
+            statusElement.className = 'connection-badge';
+        }
+        
+        fetch('/api/test-connection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                app: app,
+                api_url: apiUrl,
+                api_key: apiKey
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    if (sonarrConnectionStatus) {
-                        sonarrConnectionStatus.textContent = 'Connected';
-                        sonarrConnectionStatus.className = 'connection-badge connected';
-                    }
-                    
-                    // Update configuration status
-                    configuredApps.sonarr = true;
-                    
-                    // Update home page status
-                    if (sonarrHomeStatus) {
-                        sonarrHomeStatus.textContent = 'Connected';
-                        sonarrHomeStatus.className = 'connection-badge connected';
-                    }
-                } else {
-                    if (sonarrConnectionStatus) {
-                        sonarrConnectionStatus.textContent = 'Connection Failed';
-                        sonarrConnectionStatus.className = 'connection-badge not-connected';
-                    }
-                    
-                    // Update configuration status
-                    configuredApps.sonarr = false;
-                    
-                    alert(`Connection failed: ${data.message}`);
-                }
-            })
-            .catch(error => {
-                console.error('Error testing connection:', error);
-                if (sonarrConnectionStatus) {
-                    sonarrConnectionStatus.textContent = 'Connection Error';
-                    sonarrConnectionStatus.className = 'connection-badge not-connected';
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (statusElement) {
+                    statusElement.textContent = 'Connected';
+                    statusElement.className = 'connection-badge connected';
                 }
                 
                 // Update configuration status
-                configuredApps.sonarr = false;
+                configuredApps[app] = true;
                 
-                alert('Error testing connection: ' + error.message);
-            });
+                // Update home page status
+                updateHomeConnectionStatus();
+            } else {
+                if (statusElement) {
+                    statusElement.textContent = 'Connection Failed';
+                    statusElement.className = 'connection-badge not-connected';
+                }
+                
+                // Update configuration status
+                configuredApps[app] = false;
+                
+                alert(`Connection failed: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            console.error(`Error testing ${app} connection:`, error);
+            if (statusElement) {
+                statusElement.textContent = 'Connection Error';
+                statusElement.className = 'connection-badge not-connected';
+            }
+            
+            // Update configuration status
+            configuredApps[app] = false;
+            
+            alert(`Error testing ${app} connection: ` + error.message);
+        });
+    }
+    
+    // Test connection for all apps
+    if (testSonarrConnectionButton) {
+        testSonarrConnectionButton.addEventListener('click', function() {
+            testConnection('sonarr', sonarrApiUrlInput, sonarrApiKeyInput, sonarrConnectionStatus);
+        });
+    }
+    
+    if (testRadarrConnectionButton) {
+        testRadarrConnectionButton.addEventListener('click', function() {
+            testConnection('radarr', radarrApiUrlInput, radarrApiKeyInput, radarrConnectionStatus);
+        });
+    }
+    
+    if (testLidarrConnectionButton) {
+        testLidarrConnectionButton.addEventListener('click', function() {
+            testConnection('lidarr', lidarrApiUrlInput, lidarrApiKeyInput, lidarrConnectionStatus);
+        });
+    }
+    
+    if (testReadarrConnectionButton) {
+        testReadarrConnectionButton.addEventListener('click', function() {
+            testConnection('readarr', readarrApiUrlInput, readarrApiKeyInput, readarrConnectionStatus);
         });
     }
     
@@ -405,26 +456,46 @@ document.addEventListener('DOMContentLoaded', function() {
         let hasChanges = false;
         
         // API connection settings
-        if (sonarrApiUrlInput && sonarrApiUrlInput.value !== originalSettings.api_url) hasChanges = true;
-        if (sonarrApiKeyInput && sonarrApiKeyInput.value !== originalSettings.api_key) hasChanges = true;
+        if (currentApp === 'sonarr') {
+            if (sonarrApiUrlInput && sonarrApiUrlInput.value !== originalSettings.api_url) hasChanges = true;
+            if (sonarrApiKeyInput && sonarrApiKeyInput.value !== originalSettings.api_key) hasChanges = true;
+        } else if (currentApp === 'radarr') {
+            if (radarrApiUrlInput && radarrApiUrlInput.dataset.originalValue !== undefined && 
+                radarrApiUrlInput.value !== radarrApiUrlInput.dataset.originalValue) hasChanges = true;
+            if (radarrApiKeyInput && radarrApiKeyInput.dataset.originalValue !== undefined && 
+                radarrApiKeyInput.value !== radarrApiKeyInput.dataset.originalValue) hasChanges = true;
+        } else if (currentApp === 'lidarr') {
+            if (lidarrApiUrlInput && lidarrApiUrlInput.dataset.originalValue !== undefined && 
+                lidarrApiUrlInput.value !== lidarrApiUrlInput.dataset.originalValue) hasChanges = true;
+            if (lidarrApiKeyInput && lidarrApiKeyInput.dataset.originalValue !== undefined && 
+                lidarrApiKeyInput.value !== lidarrApiKeyInput.dataset.originalValue) hasChanges = true;
+        } else if (currentApp === 'readarr') {
+            if (readarrApiUrlInput && readarrApiUrlInput.dataset.originalValue !== undefined && 
+                readarrApiUrlInput.value !== readarrApiUrlInput.dataset.originalValue) hasChanges = true;
+            if (readarrApiKeyInput && readarrApiKeyInput.dataset.originalValue !== undefined && 
+                readarrApiKeyInput.value !== readarrApiKeyInput.dataset.originalValue) hasChanges = true;
+        }
         
-        // Check Basic Settings
-        if (huntMissingShowsInput && parseInt(huntMissingShowsInput.value) !== originalSettings.huntarr.hunt_missing_shows) hasChanges = true;
-        if (huntUpgradeEpisodesInput && parseInt(huntUpgradeEpisodesInput.value) !== originalSettings.huntarr.hunt_upgrade_episodes) hasChanges = true;
-        if (sleepDurationInput && parseInt(sleepDurationInput.value) !== originalSettings.huntarr.sleep_duration) hasChanges = true;
-        if (stateResetIntervalInput && parseInt(stateResetIntervalInput.value) !== originalSettings.huntarr.state_reset_interval_hours) hasChanges = true;
-        if (monitoredOnlyInput && monitoredOnlyInput.checked !== originalSettings.huntarr.monitored_only) hasChanges = true;
-        if (skipFutureEpisodesInput && skipFutureEpisodesInput.checked !== originalSettings.huntarr.skip_future_episodes) hasChanges = true;
-        if (skipSeriesRefreshInput && skipSeriesRefreshInput.checked !== originalSettings.huntarr.skip_series_refresh) hasChanges = true;
-        
-        // Check Advanced Settings
-        if (apiTimeoutInput && parseInt(apiTimeoutInput.value) !== originalSettings.advanced.api_timeout) hasChanges = true;
-        if (debugModeInput && debugModeInput.checked !== originalSettings.advanced.debug_mode) hasChanges = true;
-        if (commandWaitDelayInput && parseInt(commandWaitDelayInput.value) !== originalSettings.advanced.command_wait_delay) hasChanges = true;
-        if (commandWaitAttemptsInput && parseInt(commandWaitAttemptsInput.value) !== originalSettings.advanced.command_wait_attempts) hasChanges = true;
-        if (minimumDownloadQueueSizeInput && parseInt(minimumDownloadQueueSizeInput.value) !== originalSettings.advanced.minimum_download_queue_size) hasChanges = true;
-        if (randomMissingInput && randomMissingInput.checked !== originalSettings.advanced.random_missing) hasChanges = true;
-        if (randomUpgradesInput && randomUpgradesInput.checked !== originalSettings.advanced.random_upgrades) hasChanges = true;
+        // Check Sonarr Settings
+        if (currentApp === 'sonarr') {
+            // Check Basic Settings
+            if (huntMissingShowsInput && parseInt(huntMissingShowsInput.value) !== originalSettings.huntarr.hunt_missing_shows) hasChanges = true;
+            if (huntUpgradeEpisodesInput && parseInt(huntUpgradeEpisodesInput.value) !== originalSettings.huntarr.hunt_upgrade_episodes) hasChanges = true;
+            if (sleepDurationInput && parseInt(sleepDurationInput.value) !== originalSettings.huntarr.sleep_duration) hasChanges = true;
+            if (stateResetIntervalInput && parseInt(stateResetIntervalInput.value) !== originalSettings.huntarr.state_reset_interval_hours) hasChanges = true;
+            if (monitoredOnlyInput && monitoredOnlyInput.checked !== originalSettings.huntarr.monitored_only) hasChanges = true;
+            if (skipFutureEpisodesInput && skipFutureEpisodesInput.checked !== originalSettings.huntarr.skip_future_episodes) hasChanges = true;
+            if (skipSeriesRefreshInput && skipSeriesRefreshInput.checked !== originalSettings.huntarr.skip_series_refresh) hasChanges = true;
+            
+            // Check Advanced Settings
+            if (apiTimeoutInput && parseInt(apiTimeoutInput.value) !== originalSettings.advanced.api_timeout) hasChanges = true;
+            if (debugModeInput && debugModeInput.checked !== originalSettings.advanced.debug_mode) hasChanges = true;
+            if (commandWaitDelayInput && parseInt(commandWaitDelayInput.value) !== originalSettings.advanced.command_wait_delay) hasChanges = true;
+            if (commandWaitAttemptsInput && parseInt(commandWaitAttemptsInput.value) !== originalSettings.advanced.command_wait_attempts) hasChanges = true;
+            if (minimumDownloadQueueSizeInput && parseInt(minimumDownloadQueueSizeInput.value) !== originalSettings.advanced.minimum_download_queue_size) hasChanges = true;
+            if (randomMissingInput && randomMissingInput.checked !== originalSettings.advanced.random_missing) hasChanges = true;
+            if (randomUpgradesInput && randomUpgradesInput.checked !== originalSettings.advanced.random_upgrades) hasChanges = true;
+        }
         
         // Enable/disable save buttons based on whether there are changes
         if (saveSettingsButton && saveSettingsBottomButton) {
@@ -444,10 +515,28 @@ document.addEventListener('DOMContentLoaded', function() {
         return hasChanges;
     }
     
-    // Add change event listeners to all form elements
+    // Add change event listeners for Sonarr form elements
     if (sonarrApiUrlInput && sonarrApiKeyInput) {
         sonarrApiUrlInput.addEventListener('input', checkForChanges);
         sonarrApiKeyInput.addEventListener('input', checkForChanges);
+    }
+    
+    // Add change event listeners for Radarr form elements
+    if (radarrApiUrlInput && radarrApiKeyInput) {
+        radarrApiUrlInput.addEventListener('input', checkForChanges);
+        radarrApiKeyInput.addEventListener('input', checkForChanges);
+    }
+    
+    // Add change event listeners for Lidarr form elements
+    if (lidarrApiUrlInput && lidarrApiKeyInput) {
+        lidarrApiUrlInput.addEventListener('input', checkForChanges);
+        lidarrApiKeyInput.addEventListener('input', checkForChanges);
+    }
+    
+    // Add change event listeners for Readarr form elements
+    if (readarrApiUrlInput && readarrApiKeyInput) {
+        readarrApiUrlInput.addEventListener('input', checkForChanges);
+        readarrApiKeyInput.addEventListener('input', checkForChanges);
     }
     
     if (huntMissingShowsInput && huntUpgradeEpisodesInput && stateResetIntervalInput && 
@@ -481,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Store original settings for comparison
                 originalSettings = JSON.parse(JSON.stringify(data));
                 
-                // Connection settings for the current app (currently only sonarr is implemented)
+                // Connection settings for the current app
                 if (app === 'sonarr' && sonarrApiUrlInput && sonarrApiKeyInput) {
                     sonarrApiUrlInput.value = data.api_url || '';
                     sonarrApiKeyInput.value = data.api_key || '';
@@ -546,6 +635,135 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (randomUpgradesInput) {
                         randomUpgradesInput.checked = advanced.random_upgrades !== false;
                     }
+                } else if (app === 'radarr' && radarrApiUrlInput && radarrApiKeyInput) {
+                    // For Radarr (and other non-Sonarr apps), load from app-settings endpoint
+                    fetch(`/api/app-settings?app=radarr`)
+                        .then(response => response.json())
+                        .then(appData => {
+                            if (appData.success) {
+                                radarrApiUrlInput.value = appData.api_url || '';
+                                radarrApiKeyInput.value = appData.api_key || '';
+                                
+                                // Store original values in data attributes for comparison
+                                radarrApiUrlInput.dataset.originalValue = appData.api_url || '';
+                                radarrApiKeyInput.dataset.originalValue = appData.api_key || '';
+                                
+                                // Update configured status
+                                configuredApps.radarr = !!(appData.api_url && appData.api_key);
+                                
+                                // Update connection status
+                                if (radarrConnectionStatus) {
+                                    if (appData.api_url && appData.api_key) {
+                                        radarrConnectionStatus.textContent = 'Configured';
+                                        radarrConnectionStatus.className = 'connection-badge connected';
+                                    } else {
+                                        radarrConnectionStatus.textContent = 'Not Configured';
+                                        radarrConnectionStatus.className = 'connection-badge not-connected';
+                                    }
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading Radarr settings:', error);
+                            
+                            // Default values
+                            radarrApiUrlInput.value = '';
+                            radarrApiKeyInput.value = '';
+                            radarrApiUrlInput.dataset.originalValue = '';
+                            radarrApiKeyInput.dataset.originalValue = '';
+                            configuredApps.radarr = false;
+                            
+                            if (radarrConnectionStatus) {
+                                radarrConnectionStatus.textContent = 'Not Configured';
+                                radarrConnectionStatus.className = 'connection-badge not-connected';
+                            }
+                        });
+                } else if (app === 'lidarr' && lidarrApiUrlInput && lidarrApiKeyInput) {
+                    // Load Lidarr settings
+                    fetch(`/api/app-settings?app=lidarr`)
+                        .then(response => response.json())
+                        .then(appData => {
+                            if (appData.success) {
+                                lidarrApiUrlInput.value = appData.api_url || '';
+                                lidarrApiKeyInput.value = appData.api_key || '';
+                                
+                                // Store original values in data attributes for comparison
+                                lidarrApiUrlInput.dataset.originalValue = appData.api_url || '';
+                                lidarrApiKeyInput.dataset.originalValue = appData.api_key || '';
+                                
+                                // Update configured status
+                                configuredApps.lidarr = !!(appData.api_url && appData.api_key);
+                                
+                                // Update connection status
+                                if (lidarrConnectionStatus) {
+                                    if (appData.api_url && appData.api_key) {
+                                        lidarrConnectionStatus.textContent = 'Configured';
+                                        lidarrConnectionStatus.className = 'connection-badge connected';
+                                    } else {
+                                        lidarrConnectionStatus.textContent = 'Not Configured';
+                                        lidarrConnectionStatus.className = 'connection-badge not-connected';
+                                    }
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading Lidarr settings:', error);
+                            
+                            // Default values
+                            lidarrApiUrlInput.value = '';
+                            lidarrApiKeyInput.value = '';
+                            lidarrApiUrlInput.dataset.originalValue = '';
+                            lidarrApiKeyInput.dataset.originalValue = '';
+                            configuredApps.lidarr = false;
+                            
+                            if (lidarrConnectionStatus) {
+                                lidarrConnectionStatus.textContent = 'Not Configured';
+                                lidarrConnectionStatus.className = 'connection-badge not-connected';
+                            }
+                        });
+                } else if (app === 'readarr' && readarrApiUrlInput && readarrApiKeyInput) {
+                    // Load Readarr settings
+                    fetch(`/api/app-settings?app=readarr`)
+                        .then(response => response.json())
+                        .then(appData => {
+                            if (appData.success) {
+                                readarrApiUrlInput.value = appData.api_url || '';
+                                readarrApiKeyInput.value = appData.api_key || '';
+                                
+                                // Store original values in data attributes for comparison
+                                readarrApiUrlInput.dataset.originalValue = appData.api_url || '';
+                                readarrApiKeyInput.dataset.originalValue = appData.api_key || '';
+                                
+                                // Update configured status
+                                configuredApps.readarr = !!(appData.api_url && appData.api_key);
+                                
+                                // Update connection status
+                                if (readarrConnectionStatus) {
+                                    if (appData.api_url && appData.api_key) {
+                                        readarrConnectionStatus.textContent = 'Configured';
+                                        readarrConnectionStatus.className = 'connection-badge connected';
+                                    } else {
+                                        readarrConnectionStatus.textContent = 'Not Configured';
+                                        readarrConnectionStatus.className = 'connection-badge not-connected';
+                                    }
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading Readarr settings:', error);
+                            
+                            // Default values
+                            readarrApiUrlInput.value = '';
+                            readarrApiKeyInput.value = '';
+                            readarrApiUrlInput.dataset.originalValue = '';
+                            readarrApiKeyInput.dataset.originalValue = '';
+                            configuredApps.readarr = false;
+                            
+                            if (readarrConnectionStatus) {
+                                readarrConnectionStatus.textContent = 'Not Configured';
+                                readarrConnectionStatus.className = 'connection-badge not-connected';
+                            }
+                        });
                 }
                 
                 // Update home page connection status
@@ -574,11 +792,29 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        const settings = {
-            app_type: currentApp,
-            api_url: sonarrApiUrlInput ? sonarrApiUrlInput.value : '',
-            api_key: sonarrApiKeyInput ? sonarrApiKeyInput.value : '',
-            huntarr: {
+        // Prepare settings object based on current app
+        let settings = {
+            app_type: currentApp
+        };
+        
+        // Add API connection settings
+        if (currentApp === 'sonarr' && sonarrApiUrlInput && sonarrApiKeyInput) {
+            settings.api_url = sonarrApiUrlInput.value || '';
+            settings.api_key = sonarrApiKeyInput.value || '';
+        } else if (currentApp === 'radarr' && radarrApiUrlInput && radarrApiKeyInput) {
+            settings.api_url = radarrApiUrlInput.value || '';
+            settings.api_key = radarrApiKeyInput.value || '';
+        } else if (currentApp === 'lidarr' && lidarrApiUrlInput && lidarrApiKeyInput) {
+            settings.api_url = lidarrApiUrlInput.value || '';
+            settings.api_key = lidarrApiKeyInput.value || '';
+        } else if (currentApp === 'readarr' && readarrApiUrlInput && readarrApiKeyInput) {
+            settings.api_url = readarrApiUrlInput.value || '';
+            settings.api_key = readarrApiKeyInput.value || '';
+        }
+        
+        // Add other settings based on which app is active
+        if (currentApp === 'sonarr') {
+            settings.huntarr = {
                 hunt_missing_shows: huntMissingShowsInput ? parseInt(huntMissingShowsInput.value) || 0 : 0,
                 hunt_upgrade_episodes: huntUpgradeEpisodesInput ? parseInt(huntUpgradeEpisodesInput.value) || 0 : 0,
                 sleep_duration: sleepDurationInput ? parseInt(sleepDurationInput.value) || 900 : 900,
@@ -586,8 +822,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 monitored_only: monitoredOnlyInput ? monitoredOnlyInput.checked : true,
                 skip_future_episodes: skipFutureEpisodesInput ? skipFutureEpisodesInput.checked : true,
                 skip_series_refresh: skipSeriesRefreshInput ? skipSeriesRefreshInput.checked : false
-            },
-            advanced: {
+            };
+            settings.advanced = {
                 debug_mode: debugModeInput ? debugModeInput.checked : false,
                 command_wait_delay: commandWaitDelayInput ? parseInt(commandWaitDelayInput.value) || 1 : 1,
                 command_wait_attempts: commandWaitAttemptsInput ? parseInt(commandWaitAttemptsInput.value) || 600 : 600,
@@ -595,8 +831,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 random_missing: randomMissingInput ? randomMissingInput.checked : true,
                 random_upgrades: randomUpgradesInput ? randomUpgradesInput.checked : true,
                 api_timeout: apiTimeoutInput ? parseInt(apiTimeoutInput.value) || 60 : 60
-            }
-        };
+            };
+        }
+        // Add similar blocks for other app types when they're implemented
         
         fetch('/api/settings', {
             method: 'POST',
@@ -609,21 +846,40 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 // Update original settings after successful save
-                originalSettings = JSON.parse(JSON.stringify(settings));
+                if (currentApp === 'sonarr') {
+                    originalSettings.api_url = settings.api_url;
+                    originalSettings.api_key = settings.api_key;
+                    
+                    // Update the rest of originalSettings
+                    if (settings.huntarr) originalSettings.huntarr = {...settings.huntarr};
+                    if (settings.advanced) originalSettings.advanced = {...settings.advanced};
+                } else if (currentApp === 'radarr') {
+                    // Store the original values in data attributes for comparison
+                    if (radarrApiUrlInput) radarrApiUrlInput.dataset.originalValue = settings.api_url;
+                    if (radarrApiKeyInput) radarrApiKeyInput.dataset.originalValue = settings.api_key;
+                } else if (currentApp === 'lidarr') {
+                    // Store the original values in data attributes for comparison
+                    if (lidarrApiUrlInput) lidarrApiUrlInput.dataset.originalValue = settings.api_url;
+                    if (lidarrApiKeyInput) lidarrApiKeyInput.dataset.originalValue = settings.api_key;
+                } else if (currentApp === 'readarr') {
+                    // Store the original values in data attributes for comparison
+                    if (readarrApiUrlInput) readarrApiUrlInput.dataset.originalValue = settings.api_url;
+                    if (readarrApiKeyInput) readarrApiKeyInput.dataset.originalValue = settings.api_key;
+                }
                 
                 // Update configuration status based on API URL and API key
-                configuredApps.sonarr = !!(settings.api_url && settings.api_key);
+                if (currentApp === 'sonarr') {
+                    configuredApps.sonarr = !!(settings.api_url && settings.api_key);
+                } else if (currentApp === 'radarr') {
+                    configuredApps.radarr = !!(settings.api_url && settings.api_key);
+                } else if (currentApp === 'lidarr') {
+                    configuredApps.lidarr = !!(settings.api_url && settings.api_key);
+                } else if (currentApp === 'readarr') {
+                    configuredApps.readarr = !!(settings.api_url && settings.api_key);
+                }
                 
                 // Update connection status
-                if (sonarrConnectionStatus) {
-                    if (settings.api_url && settings.api_key) {
-                        sonarrConnectionStatus.textContent = 'Configured';
-                        sonarrConnectionStatus.className = 'connection-badge connected';
-                    } else {
-                        sonarrConnectionStatus.textContent = 'Not Configured';
-                        sonarrConnectionStatus.className = 'connection-badge not-connected';
-                    }
-                }
+                updateConnectionStatus();
                 
                 // Update home page connection status
                 updateHomeConnectionStatus();
@@ -653,6 +909,43 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error saving settings:', error);
             alert('Error saving settings: ' + error.message);
         });
+    }
+    
+    // Function to update connection status
+    function updateConnectionStatus() {
+        if (currentApp === 'sonarr' && sonarrConnectionStatus) {
+            if (configuredApps.sonarr) {
+                sonarrConnectionStatus.textContent = 'Configured';
+                sonarrConnectionStatus.className = 'connection-badge connected';
+            } else {
+                sonarrConnectionStatus.textContent = 'Not Configured';
+                sonarrConnectionStatus.className = 'connection-badge not-connected';
+            }
+        } else if (currentApp === 'radarr' && radarrConnectionStatus) {
+            if (configuredApps.radarr) {
+                radarrConnectionStatus.textContent = 'Configured';
+                radarrConnectionStatus.className = 'connection-badge connected';
+            } else {
+                radarrConnectionStatus.textContent = 'Not Configured';
+                radarrConnectionStatus.className = 'connection-badge not-connected';
+            }
+        } else if (currentApp === 'lidarr' && lidarrConnectionStatus) {
+            if (configuredApps.lidarr) {
+                lidarrConnectionStatus.textContent = 'Configured';
+                lidarrConnectionStatus.className = 'connection-badge connected';
+            } else {
+                lidarrConnectionStatus.textContent = 'Not Configured';
+                lidarrConnectionStatus.className = 'connection-badge not-connected';
+            }
+        } else if (currentApp === 'readarr' && readarrConnectionStatus) {
+            if (configuredApps.readarr) {
+                readarrConnectionStatus.textContent = 'Configured';
+                readarrConnectionStatus.className = 'connection-badge connected';
+            } else {
+                readarrConnectionStatus.textContent = 'Not Configured';
+                readarrConnectionStatus.className = 'connection-badge not-connected';
+            }
+        }
     }
     
     // Function to reset settings

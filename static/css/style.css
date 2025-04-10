@@ -24,8 +24,6 @@
     --save-button-hover: #219955;
     --reset-button-bg: #e74c3c;
     --reset-button-hover: #c0392b;
-    --donation-banner-bg: #f8f9fa;
-    --donation-banner-border: #dee2e6;
     --badge-connected: #27ae60;
     --badge-not-connected: #e74c3c;
     --badge-text: #fff;
@@ -66,8 +64,6 @@
     --save-button-hover: #219955;
     --reset-button-bg: #e74c3c;
     --reset-button-hover: #c0392b;
-    --donation-banner-bg: #2c3e50;
-    --donation-banner-border: #1a2530;
     --badge-connected: #27ae60;
     --badge-not-connected: #e74c3c;
     --badge-text: #fff;
@@ -82,6 +78,7 @@
     --main-content-bg: #2c3e50;
 }
 
+/* Basic styles */
 * {
     margin: 0;
     padding: 0;
@@ -105,6 +102,7 @@ body {
     flex-direction: column;
 }
 
+/* Header styling */
 .header {
     background-color: var(--header-bg);
     color: var(--header-text);
@@ -134,12 +132,13 @@ body {
     text-decoration: underline;
 }
 
-.edition {
-    font-weight: normal;
-    font-style: italic;
-    opacity: 0.8;
+.huntarr-logo {
+    height: 40px;
+    margin-right: 10px;
+    vertical-align: middle;
 }
 
+/* Navigation buttons */
 .buttons {
     display: flex;
     gap: 10px;
@@ -165,6 +164,7 @@ body {
     font-weight: bold;
 }
 
+/* Content area */
 .content-section {
     flex: 1;
     background-color: var(--log-background);
@@ -176,7 +176,7 @@ body {
     margin-bottom: 20px;
 }
 
-/* Special style for home page to ensure full background */
+/* Home page specific */
 #homeContainer {
     background-color: var(--main-content-bg);
     color: var(--header-text);
@@ -186,6 +186,7 @@ body {
     border-bottom: 1px solid var(--container-border);
 }
 
+/* Log viewer */
 .log-controls {
     display: flex;
     justify-content: space-between;
@@ -266,6 +267,7 @@ body {
     color: var(--debug-color);
 }
 
+/* Footer */
 .footer {
     text-align: center;
     padding: 15px 0;
@@ -285,7 +287,7 @@ body {
     text-decoration: underline;
 }
 
-/* Theme toggle styles */
+/* Theme toggle */
 .theme-toggle {
     display: flex;
     align-items: center;
@@ -348,7 +350,7 @@ input:checked + .slider:before {
     font-size: 14px;
 }
 
-/* Settings page styles */
+/* Settings page */
 .settings-form {
     padding: 20px;
     overflow-y: auto;
@@ -384,7 +386,8 @@ input:checked + .slider:before {
 }
 
 .setting-item input[type="number"],
-.setting-item input[type="text"] {
+.setting-item input[type="text"],
+.setting-item input[type="password"] {
     width: 300px;
     padding: 8px;
     border: 1px solid var(--input-border);
@@ -461,7 +464,6 @@ input:checked + .slider:before {
     flex-shrink: 0;
 }
 
-/* Fixed width toggle button - this is the key fix */
 .setting-item .toggle-switch {
     width: 50px;
 }
@@ -477,7 +479,7 @@ input:checked + .slider:before {
     cursor: pointer;
     top: 0;
     left: 0;
-    width: 50px; /* Fixed width */
+    width: 50px;
     bottom: 0;
     background-color: var(--switch-bg);
     transition: .4s;
@@ -512,7 +514,6 @@ input:checked + .toggle-slider:before {
     opacity: 0.7;
 }
 
-/* Adjust the existing save button styles to ensure they work with the disabled state */
 .save-button:hover:not(.disabled-button) {
     background-color: var(--save-button-hover);
 }
@@ -521,7 +522,7 @@ input:checked + .toggle-slider:before {
     background-color: var(--reset-button-hover);
 }
 
-/* App selection tabs - Improved with borders */
+/* App selection tabs */
 .app-selector {
     display: flex;
     background-color: var(--app-tab-bg);
@@ -622,7 +623,7 @@ input:checked + .toggle-slider:before {
     margin: 10px 0;
 }
 
-/* Welcome page styles */
+/* Welcome page */
 .welcome-panel {
     padding: 20px;
     background-color: transparent;
@@ -691,39 +692,21 @@ input:checked + .toggle-slider:before {
     padding-bottom: 0;
 }
 
-/* Add Huntarr logo styling */
-.huntarr-logo {
-    height: 40px;
-    margin-right: 10px;
-    vertical-align: middle;
-}
-
-/* Fix reset button on login page */
-.reset-link {
-    color: var(--button-bg);
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.reset-link:hover {
-    text-decoration: underline;
-}
-
-/* Login and setup page styling */
-.auth-header {
-    background-color: var(--header-bg);
-    padding: 20px;
-    border-radius: 10px 10px 0 0;
-    text-align: center;
-    margin-bottom: 0;
-}
-
+/* Login and setup pages */
 .login-container {
     max-width: 400px;
     margin: 100px auto;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+}
+
+.auth-header {
+    background-color: var(--header-bg);
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+    text-align: center;
+    margin-bottom: 0;
 }
 
 .login-content {
@@ -788,6 +771,73 @@ input:checked + .toggle-slider:before {
     text-align: center;
 }
 
+.reset-link {
+    color: var(--button-bg);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.reset-link:hover {
+    text-decoration: underline;
+}
+
+/* User settings page */
+.user-container {
+    background-color: var(--log-background);
+    border: 1px solid var(--container-border);
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+.user-settings {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+}
+
+.logout-button {
+    background-color: var(--reset-button-bg);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    float: right;
+}
+
+.logout-button:hover {
+    background-color: var(--reset-button-hover);
+}
+
+.clear-float {
+    clear: both;
+}
+
+.status-message {
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    display: none;
+}
+
+.status-success {
+    background-color: rgba(39, 174, 96, 0.2);
+    color: #27ae60;
+}
+
+.status-error {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
     .header {
         flex-direction: column;

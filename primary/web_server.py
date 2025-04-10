@@ -16,11 +16,12 @@ import qrcode
 import pyotp
 import base64
 import io
-import requests  # Add this import for the test_connection function
+import requests
 from flask import Flask, render_template, Response, stream_with_context, request, jsonify, send_from_directory, redirect, session, url_for
 import logging
 from primary.config import API_URL
 from primary import settings_manager
+from primary import keys_manager
 from primary.utils.logger import setup_logger
 from primary.auth import (
     authenticate_request, user_exists, create_user, verify_user, create_session, 
@@ -176,8 +177,17 @@ def test_connection():
     api_url = data.get('api_url')
     api_key = data.get('api_key')
     
-    if not app_type or not api_url or not api_key:
-        return jsonify({"success": False, "message": "Missing required parameters"}), 400
+    if not app_type:
+        return jsonify({"success": False, "message": "Missing app type parameter"}), 400
+    
+    # If API URL and key aren't provided, get them from storage
+    if not api_url or not api_key:
+        stored_url, stored_key = keys_manager.get_api_keys(app_type)
+        api_url = api_url or stored_url
+        api_key = api_key or stored_key
+    
+    if not api_url or not api_key:
+        return jsonify({"success": False, "message": "Missing API URL or API key"}), 400
     
     try:
         # Test connection by making a simple request to the API
@@ -349,7 +359,41 @@ def stream_logs():
 @app.route('/api/settings', methods=['GET'])
 def get_settings():
     """Get all settings"""
-    return jsonify(settings_manager.get_all_settings())
+    # Get settings from settings_manager
+    settings = settings_manager.get_all_settings()
+    
+    # Add API keys from keys_manager for each app
+    apps = ['sonarr', 'radarr', 'lidarr', 'readarr']
+    for app in apps:
+        api_url, api_key = keys_manager.get_api_keys(app)
+        if app == settings.get('app_type', 'sonarr'):
+            # For current app, set at root level
+            settings['api_url'] = api_url
+            settings['api_key'] = api_key
+    
+    return jsonify(settings)
+
+@app.route('/api/app-settings', methods=['GET'])
+def get_app_settings():
+    """Get settings for a specific app"""
+    app = request.args.get('app')
+    if not app:
+        return jsonify({"success": False, "message": "App parameter required"}), 400
+    
+    # Get API keys for the requested app
+    api_url, api_key = keys_manager.get_api_keys(app)
+    
+    return jsonify({
+        "success": True,
+        "app": app,
+        "api_url": api_url,
+        "api_key": api_key
+    })
+
+@app.route('/api/configured-apps', methods=['GET'])
+def get_configured_apps():
+    """Get which apps are configured"""
+    return jsonify(keys_manager.list_configured_apps())
 
 @app.route('/api/settings', methods=['POST'])
 def update_settings():
@@ -365,13 +409,34 @@ def update_settings():
         old_advanced = old_settings.get("advanced", {})
         old_ui = old_settings.get("ui", {})
         
+        # Get current API URL and key
+        app_type = data.get('app_type', 'sonarr')
+        old_api_url, old_api_key = keys_manager.get_api_keys(app_type)
+        
         # Find changes
         huntarr_changes = {}
         advanced_changes = {}
         ui_changes = {}
+        api_changes = {}
         
         # Track if any real changes were made
         changes_made = False
+        
+        # Check API URL and key changes
+        new_api_url = data.get('api_url', '')
+        new_api_key = data.get('api_key', '')
+        
+        if old_api_url != new_api_url:
+            api_changes['api_url'] = {"old": old_api_url, "new": new_api_url}
+            changes_made = True
+        
+        if old_api_key != new_api_key:
+            api_changes['api_key'] = {"old": "****", "new": "****"}  # Don't log actual keys
+            changes_made = True
+        
+        # Save API keys if changed
+        if api_changes:
+            keys_manager.save_api_keys(app_type, new_api_url, new_api_key)
         
         # Update huntarr settings and track changes
         if "huntarr" in data:
@@ -411,6 +476,13 @@ def update_settings():
         if changes_made:
             with open(LOG_FILE, 'a') as f:
                 f.write(f"{timestamp} - huntarr-web - INFO - Settings updated by user\n")
+                
+                # Log API changes
+                for key, change in api_changes.items():
+                    if key == 'api_key':
+                        f.write(f"{timestamp} - huntarr-web - INFO - Changed API key for {app_type}\n")
+                    else:
+                        f.write(f"{timestamp} - huntarr-web - INFO - Changed {key} for {app_type} from {change['old']} to {change['new']}\n")
                 
                 # Log huntarr changes
                 for key, change in huntarr_changes.items():
