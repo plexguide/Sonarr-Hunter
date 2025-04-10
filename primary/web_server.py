@@ -506,7 +506,8 @@ def update_settings():
                     # Send a SIGUSR1 signal which we'll handle in main.py to restart the cycle
                     os.kill(main_pid, signal.SIGUSR1)
                     return jsonify({"success": True, "message": "Settings saved and cycle restarted", "changes_made": True})
-                except:
+                except Exception as signal_error:
+                    logger.error(f"Failed to send restart signal: {signal_error}")
                     # If signaling fails, just return success for the settings save
                     return jsonify({"success": True, "message": "Settings saved, but cycle not restarted", "changes_made": True})
             else:

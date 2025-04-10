@@ -7,7 +7,7 @@ Handles searching for missing episodes in Sonarr
 import random
 import time
 import datetime
-from typing import List
+from typing import List, Callable
 from primary.utils.logger import logger
 from primary.config import (
     HUNT_MISSING_SHOWS, 
@@ -24,11 +24,14 @@ from primary.api import (
 )
 from primary.state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_MISSING_FILE
 
-def process_missing_episodes() -> bool:
+def process_missing_episodes(restart_cycle_flag: Callable[[], bool] = lambda: False) -> bool:
     """
     Process shows that have missing episodes, but respect
     unmonitored seasons/episodes. We'll fetch episodes for each show
     and only search for episodes that are BOTH missing and monitored.
+    
+    Args:
+        restart_cycle_flag: Function that returns whether to restart the cycle
     
     Returns:
         True if any processing was done, False otherwise
@@ -46,6 +49,11 @@ def process_missing_episodes() -> bool:
         logger.info("No shows with missing episodes found.")
         return False
     
+    # Check for restart signal
+    if restart_cycle_flag():
+        logger.info("🔄 Received restart signal while getting missing shows list. Aborting...")
+        return False
+    
     logger.info(f"Found {len(shows_with_missing)} shows with missing episodes.")
 
     # Optionally filter to only monitored shows (if MONITORED_ONLY==true)
@@ -57,6 +65,11 @@ def process_missing_episodes() -> bool:
 
     if not shows_with_missing:
         logger.info("No monitored shows with missing episodes found.")
+        return False
+
+    # Check for restart signal
+    if restart_cycle_flag():
+        logger.info("🔄 Received restart signal after filtering shows. Aborting...")
         return False
 
     processed_missing_ids = load_processed_ids(PROCESSED_MISSING_FILE)
@@ -74,6 +87,11 @@ def process_missing_episodes() -> bool:
     current_date = datetime.datetime.now().date()
 
     for show in shows_with_missing:
+        # Check for restart signal before processing each show
+        if restart_cycle_flag():
+            logger.info("🔄 Received restart signal before processing show. Aborting...")
+            return processing_done
+            
         if shows_processed >= HUNT_MISSING_SHOWS:
             break
 
@@ -100,6 +118,11 @@ def process_missing_episodes() -> bool:
         if not monitored_missing_episodes:
             logger.info(f"No missing monitored episodes found for '{show_title}' — skipping.")
             continue
+
+        # Check for restart signal again
+        if restart_cycle_flag():
+            logger.info(f"🔄 Received restart signal while filtering episodes for '{show_title}'. Aborting...")
+            return processing_done
 
         # Skip future episodes if SKIP_FUTURE_EPISODES is enabled
         if SKIP_FUTURE_EPISODES:
@@ -135,6 +158,11 @@ def process_missing_episodes() -> bool:
                 logger.info(f"All missing episodes for '{show_title}' are future episodes - skipping.")
                 continue
 
+        # Check for restart signal again
+        if restart_cycle_flag():
+            logger.info(f"🔄 Received restart signal after filtering future episodes for '{show_title}'. Aborting...")
+            return processing_done
+
         logger.info(f"Found {len(monitored_missing_episodes)} missing monitored episode(s) for '{show_title}'.")
 
         # Refresh the series only if SKIP_SERIES_REFRESH is not enabled
@@ -147,6 +175,11 @@ def process_missing_episodes() -> bool:
             logger.info(f"Refresh command completed successfully.")
         else:
             logger.info(f" - Skipping series refresh (SKIP_SERIES_REFRESH=true)")
+            
+        # Check for restart signal again
+        if restart_cycle_flag():
+            logger.info(f"🔄 Received restart signal after refreshing series '{show_title}'. Aborting...")
+            return processing_done
 
         # Search specifically for these missing + monitored episodes
         episode_ids = [ep["id"] for ep in monitored_missing_episodes]
@@ -163,6 +196,11 @@ def process_missing_episodes() -> bool:
         save_processed_id(PROCESSED_MISSING_FILE, series_id)
         shows_processed += 1
         logger.info(f"Processed {shows_processed}/{HUNT_MISSING_SHOWS} missing shows this cycle.")
+        
+        # Check for restart signal after processing a show
+        if restart_cycle_flag():
+            logger.info(f"🔄 Received restart signal after processing show '{show_title}'. Aborting...")
+            break
 
     # Truncate processed list if needed
     truncate_processed_list(PROCESSED_MISSING_FILE)
