@@ -7,8 +7,8 @@ Handles searching for missing episodes in Sonarr
 import random
 import time
 import datetime
-from typing import List, Callable
-from primary.utils.logger import logger
+from typing import List
+from primary.utils.logger import logger, debug_log
 from primary.config import (
     HUNT_MISSING_SHOWS, 
     MONITORED_ONLY, 
@@ -24,14 +24,11 @@ from primary.api import (
 )
 from primary.state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_MISSING_FILE
 
-def process_missing_episodes(restart_cycle_flag: Callable[[], bool] = lambda: False) -> bool:
+def process_missing_episodes() -> bool:
     """
     Process shows that have missing episodes, but respect
     unmonitored seasons/episodes. We'll fetch episodes for each show
     and only search for episodes that are BOTH missing and monitored.
-    
-    Args:
-        restart_cycle_flag: Function that returns whether to restart the cycle
     
     Returns:
         True if any processing was done, False otherwise
@@ -45,13 +42,12 @@ def process_missing_episodes(restart_cycle_flag: Callable[[], bool] = lambda: Fa
 
     # Get shows that have missing episodes directly - more efficient than checking all shows
     shows_with_missing = get_series_with_missing_episodes()
+    
+    # Add more detailed logging about the API response
+    logger.debug(f"API Response for missing episodes: {shows_with_missing[:2] if shows_with_missing and len(shows_with_missing) > 2 else shows_with_missing}")
+    
     if not shows_with_missing:
         logger.info("No shows with missing episodes found.")
-        return False
-    
-    # Check for restart signal
-    if restart_cycle_flag():
-        logger.info("🔄 Received restart signal while getting missing shows list. Aborting...")
         return False
     
     logger.info(f"Found {len(shows_with_missing)} shows with missing episodes.")
@@ -67,40 +63,40 @@ def process_missing_episodes(restart_cycle_flag: Callable[[], bool] = lambda: Fa
         logger.info("No monitored shows with missing episodes found.")
         return False
 
-    # Check for restart signal
-    if restart_cycle_flag():
-        logger.info("🔄 Received restart signal after filtering shows. Aborting...")
-        return False
-
+    # Load previously processed show IDs
     processed_missing_ids = load_processed_ids(PROCESSED_MISSING_FILE)
+    logger.debug(f"Previously processed shows: {processed_missing_ids}")
+    
+    # Filter out shows that have already been processed
+    unprocessed_shows = [s for s in shows_with_missing if s.get("id") not in processed_missing_ids]
+    
+    if not unprocessed_shows:
+        logger.info("All shows with missing episodes have already been processed in this cycle.")
+        return False
+        
+    logger.info(f"Found {len(unprocessed_shows)} unprocessed shows with missing episodes.")
+    
     shows_processed = 0
     processing_done = False
 
     # Use RANDOM_MISSING setting
     if RANDOM_MISSING:
         logger.info("Using random selection for missing shows (RANDOM_MISSING=true)")
-        random.shuffle(shows_with_missing)
+        random.shuffle(unprocessed_shows)
     else:
         logger.info("Using sequential selection for missing shows (RANDOM_MISSING=false)")
 
     # Get current date for future episode filtering
     current_date = datetime.datetime.now().date()
 
-    for show in shows_with_missing:
-        # Check for restart signal before processing each show
-        if restart_cycle_flag():
-            logger.info("🔄 Received restart signal before processing show. Aborting...")
-            return processing_done
-            
+    for show in unprocessed_shows:
         if shows_processed >= HUNT_MISSING_SHOWS:
+            logger.info(f"Reached limit of {HUNT_MISSING_SHOWS} missing shows for this cycle.")
             break
 
         series_id = show.get("id")
         if not series_id:
-            continue
-
-        # If we already processed this show ID, skip
-        if series_id in processed_missing_ids:
+            logger.warning("Found show without ID, skipping.")
             continue
 
         show_title = show.get("title", "Unknown Show")
@@ -117,12 +113,9 @@ def process_missing_episodes(restart_cycle_flag: Callable[[], bool] = lambda: Fa
 
         if not monitored_missing_episodes:
             logger.info(f"No missing monitored episodes found for '{show_title}' — skipping.")
+            # Still mark as processed to avoid checking again in the next cycle
+            save_processed_id(PROCESSED_MISSING_FILE, series_id)
             continue
-
-        # Check for restart signal again
-        if restart_cycle_flag():
-            logger.info(f"🔄 Received restart signal while filtering episodes for '{show_title}'. Aborting...")
-            return processing_done
 
         # Skip future episodes if SKIP_FUTURE_EPISODES is enabled
         if SKIP_FUTURE_EPISODES:
@@ -156,12 +149,9 @@ def process_missing_episodes(restart_cycle_flag: Callable[[], bool] = lambda: Fa
             
             if not monitored_missing_episodes:
                 logger.info(f"All missing episodes for '{show_title}' are future episodes - skipping.")
+                # Still mark as processed to avoid checking again in the next cycle
+                save_processed_id(PROCESSED_MISSING_FILE, series_id)
                 continue
-
-        # Check for restart signal again
-        if restart_cycle_flag():
-            logger.info(f"🔄 Received restart signal after filtering future episodes for '{show_title}'. Aborting...")
-            return processing_done
 
         logger.info(f"Found {len(monitored_missing_episodes)} missing monitored episode(s) for '{show_title}'.")
 
@@ -175,11 +165,6 @@ def process_missing_episodes(restart_cycle_flag: Callable[[], bool] = lambda: Fa
             logger.info(f"Refresh command completed successfully.")
         else:
             logger.info(f" - Skipping series refresh (SKIP_SERIES_REFRESH=true)")
-            
-        # Check for restart signal again
-        if restart_cycle_flag():
-            logger.info(f"🔄 Received restart signal after refreshing series '{show_title}'. Aborting...")
-            return processing_done
 
         # Search specifically for these missing + monitored episodes
         episode_ids = [ep["id"] for ep in monitored_missing_episodes]
@@ -196,13 +181,11 @@ def process_missing_episodes(restart_cycle_flag: Callable[[], bool] = lambda: Fa
         save_processed_id(PROCESSED_MISSING_FILE, series_id)
         shows_processed += 1
         logger.info(f"Processed {shows_processed}/{HUNT_MISSING_SHOWS} missing shows this cycle.")
-        
-        # Check for restart signal after processing a show
-        if restart_cycle_flag():
-            logger.info(f"🔄 Received restart signal after processing show '{show_title}'. Aborting...")
-            break
 
     # Truncate processed list if needed
     truncate_processed_list(PROCESSED_MISSING_FILE)
+    
+    if shows_processed == 0:
+        logger.info("No missing shows processed in this cycle.")
     
     return processing_done

@@ -204,7 +204,17 @@ def get_missing_episodes(pageSize: int = 1000) -> Optional[Dict]:
         return None
     
     endpoint = f"wanted/missing?pageSize={pageSize}&includeSeriesInformation=true"
-    return arr_request(endpoint, method="GET")
+    result = arr_request(endpoint, method="GET")
+    
+    # Better debugging for missing episodes query
+    if result:
+        logger.debug(f"Found {result.get('totalRecords', 0)} total missing episodes")
+        if result.get('records'):
+            logger.debug(f"First few missing episodes: {result['records'][:2] if len(result['records']) > 2 else result['records']}")
+    else:
+        logger.warning("Missing episodes query returned no data")
+    
+    return result
 
 def get_series_with_missing_episodes() -> List[Dict]:
     """
@@ -216,43 +226,55 @@ def get_series_with_missing_episodes() -> List[Dict]:
         logger.error("get_series_with_missing_episodes() called but APP_TYPE is not sonarr")
         return []
     
+    # Log request attempt
+    logger.debug("Requesting missing episodes from Sonarr API")
+    
     missing_data = get_missing_episodes()
     if not missing_data or "records" not in missing_data:
+        logger.error("Failed to get missing episodes data or no 'records' field in response")
         return []
     
     # Group missing episodes by series ID
     series_with_missing = {}
     for episode in missing_data.get("records", []):
         series_id = episode.get("seriesId")
+        if not series_id:
+            logger.warning(f"Found episode without seriesId: {episode}")
+            continue
+            
         series_title = None
         
         # Try to get series info from the episode record
         if "series" in episode and isinstance(episode["series"], dict):
             series_info = episode["series"]
             series_title = series_info.get("title")
-        
-        if series_id not in series_with_missing:
+            
             # Initialize the series entry if it doesn't exist
-            if series_title:
-                # We have the series info from the episode
+            if series_id not in series_with_missing:
                 series_with_missing[series_id] = {
                     "id": series_id,
-                    "title": series_title,
+                    "title": series_title or "Unknown Show",
                     "monitored": series_info.get("monitored", False),
-                    "missingEpisodes": [episode]
+                    "missingEpisodes": []
                 }
-            else:
-                # We need to fetch the series info
+        else:
+            # If we don't have series info, need to fetch it
+            if series_id not in series_with_missing:
+                # Get series info directly
                 series_info = arr_request(f"series/{series_id}", method="GET")
                 if series_info:
                     series_with_missing[series_id] = {
                         "id": series_id,
                         "title": series_info.get("title", "Unknown Show"),
                         "monitored": series_info.get("monitored", False),
-                        "missingEpisodes": [episode]
+                        "missingEpisodes": []
                     }
-        else:
-            # Add the episode to the existing series entry
+                else:
+                    logger.warning(f"Could not get series info for ID {series_id}, skipping episode")
+                    continue
+        
+        # Add the episode to the series record
+        if series_id in series_with_missing:
             series_with_missing[series_id]["missingEpisodes"].append(episode)
     
     # Convert to list and add count for convenience
@@ -261,4 +283,5 @@ def get_series_with_missing_episodes() -> List[Dict]:
         series_data["missingEpisodeCount"] = len(series_data["missingEpisodes"])
         result.append(series_data)
     
+    logger.debug(f"Processed missing episodes data into {len(result)} series with missing episodes")
     return result

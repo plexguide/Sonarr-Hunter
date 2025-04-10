@@ -64,7 +64,48 @@ if APP_TYPE != "sonarr":
     SKIP_SERIES_REFRESH = False
 
 # Determine hunt mode
-HUNT_MODE = "both"  # Default
+def determine_hunt_mode():
+    """Determine the hunt mode based on current settings"""
+    if APP_TYPE == "sonarr":
+        if HUNT_MISSING_SHOWS > 0 and HUNT_UPGRADE_EPISODES > 0:
+            return "both"
+        elif HUNT_MISSING_SHOWS > 0:
+            return "missing"
+        elif HUNT_UPGRADE_EPISODES > 0:
+            return "upgrade"
+        else:
+            return "none"
+    elif APP_TYPE == "radarr":
+        if HUNT_MISSING_MOVIES > 0 and HUNT_UPGRADE_MOVIES > 0:
+            return "both"
+        elif HUNT_MISSING_MOVIES > 0:
+            return "missing"
+        elif HUNT_UPGRADE_MOVIES > 0:
+            return "upgrade"
+        else:
+            return "none"
+    elif APP_TYPE == "lidarr":
+        if HUNT_MISSING_ALBUMS > 0 and HUNT_UPGRADE_TRACKS > 0:
+            return "both"
+        elif HUNT_MISSING_ALBUMS > 0:
+            return "missing"
+        elif HUNT_UPGRADE_TRACKS > 0:
+            return "upgrade"
+        else:
+            return "none"
+    elif APP_TYPE == "readarr":
+        if HUNT_MISSING_BOOKS > 0 and HUNT_UPGRADE_BOOKS > 0:
+            return "both"
+        elif HUNT_MISSING_BOOKS > 0:
+            return "missing"
+        elif HUNT_UPGRADE_BOOKS > 0:
+            return "upgrade"
+        else:
+            return "none"
+    return "none"
+
+# Set the initial hunt mode
+HUNT_MODE = determine_hunt_mode()
 
 def refresh_settings():
     """Refresh configuration settings from the settings manager."""
@@ -129,49 +170,15 @@ def refresh_settings():
         SKIP_FUTURE_RELEASES = huntarr.get("skip_future_releases", SKIP_FUTURE_RELEASES)
         SKIP_AUTHOR_REFRESH = huntarr.get("skip_author_refresh", SKIP_AUTHOR_REFRESH)
     
-    # Determine hunt mode based on settings
-    if APP_TYPE == "sonarr":
-        if HUNT_MISSING_SHOWS > 0 and HUNT_UPGRADE_EPISODES > 0:
-            HUNT_MODE = "both"
-        elif HUNT_MISSING_SHOWS > 0:
-            HUNT_MODE = "missing"
-        elif HUNT_UPGRADE_EPISODES > 0:
-            HUNT_MODE = "upgrade"
-        else:
-            HUNT_MODE = "none"
-    elif APP_TYPE == "radarr":
-        if HUNT_MISSING_MOVIES > 0 and HUNT_UPGRADE_MOVIES > 0:
-            HUNT_MODE = "both"
-        elif HUNT_MISSING_MOVIES > 0:
-            HUNT_MODE = "missing"
-        elif HUNT_UPGRADE_MOVIES > 0:
-            HUNT_MODE = "upgrade"
-        else:
-            HUNT_MODE = "none"
-    elif APP_TYPE == "lidarr":
-        if HUNT_MISSING_ALBUMS > 0 and HUNT_UPGRADE_TRACKS > 0:
-            HUNT_MODE = "both"
-        elif HUNT_MISSING_ALBUMS > 0:
-            HUNT_MODE = "missing"
-        elif HUNT_UPGRADE_TRACKS > 0:
-            HUNT_MODE = "upgrade"
-        else:
-            HUNT_MODE = "none"
-    elif APP_TYPE == "readarr":
-        if HUNT_MISSING_BOOKS > 0 and HUNT_UPGRADE_BOOKS > 0:
-            HUNT_MODE = "both"
-        elif HUNT_MISSING_BOOKS > 0:
-            HUNT_MODE = "missing"
-        elif HUNT_UPGRADE_BOOKS > 0:
-            HUNT_MODE = "upgrade"
-        else:
-            HUNT_MODE = "none"
+    # Update hunt mode based on current settings
+    HUNT_MODE = determine_hunt_mode()
     
     # Log the refresh
     import logging
     logger = logging.getLogger("huntarr")
     logger.debug(f"Settings refreshed for app type: {APP_TYPE}")
     logger.debug(f"Settings refreshed: HUNT_MODE={HUNT_MODE}, SLEEP_DURATION={SLEEP_DURATION}")
+    logger.debug(f"Hunt settings: HUNT_MISSING_SHOWS={HUNT_MISSING_SHOWS}, HUNT_UPGRADE_EPISODES={HUNT_UPGRADE_EPISODES}")
 
 def log_configuration(logger):
     """Log the current configuration settings"""

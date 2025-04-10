@@ -71,8 +71,8 @@ def force_reload_all_modules():
         # Call the refresh function to ensure settings are updated
         config.refresh_settings()
         
-        # Log the reloaded settings for verification
-        logger.warning("⚠️ Settings reloaded from JSON file after restart signal ⚠️")
+        # Log the reloaded settings for verification - CHANGED TO INFO LEVEL
+        logger.info("Settings reloaded from JSON file")
         config.log_configuration(logger)
         
         return True
@@ -111,32 +111,46 @@ def main_loop() -> None:
         # Check if we should ignore the download queue size or if we are below the minimum queue size
         download_queue_size = get_download_queue_size()
         if MINIMUM_DOWNLOAD_QUEUE_SIZE < 0 or (MINIMUM_DOWNLOAD_QUEUE_SIZE >= 0 and download_queue_size <= MINIMUM_DOWNLOAD_QUEUE_SIZE):
-        
             # Process items based on APP_TYPE and HUNT_MODE
             if restart_cycle:
                 logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
                 continue
                 
             if APP_TYPE == "sonarr":
-                if HUNT_MODE in ["missing", "both"]:
+                # Get updated settings to ensure we're using the current values
+                from primary.config import HUNT_MISSING_SHOWS, HUNT_UPGRADE_EPISODES
+                
+                # First process missing shows if configured
+                if HUNT_MISSING_SHOWS > 0:
+                    logger.info(f"Configured to look for {HUNT_MISSING_SHOWS} missing shows")
                     from primary.missing import process_missing_episodes
                     if process_missing_episodes():
                         processing_done = True
+                    else:
+                        logger.info("No missing episodes processed - check if you have any missing episodes in Sonarr")
                     
                     # Check if restart signal received
                     if restart_cycle:
                         logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
                         continue
+                else:
+                    logger.info("Missing shows search disabled (HUNT_MISSING_SHOWS=0)")
                         
-                if HUNT_MODE in ["upgrade", "both"]:
+                # Then process quality upgrades if configured
+                if HUNT_UPGRADE_EPISODES > 0:
+                    logger.info(f"Configured to look for {HUNT_UPGRADE_EPISODES} quality upgrades")
                     from primary.upgrade import process_cutoff_upgrades
                     if process_cutoff_upgrades():
                         processing_done = True
+                    else:
+                        logger.info("No quality upgrades processed - check if you have any cutoff unmet episodes in Sonarr")
                     
                     # Check if restart signal received
                     if restart_cycle:
                         logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
                         continue
+                else:
+                    logger.info("Quality upgrades search disabled (HUNT_UPGRADE_EPISODES=0)")
             
             elif APP_TYPE == "radarr":
                 # TODO: Implement Radarr processing
