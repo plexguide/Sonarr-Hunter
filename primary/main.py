@@ -131,9 +131,6 @@ def main_loop() -> None:
                 if HUNT_MODE in ["upgrade", "both"]:
                     from primary.upgrade import process_cutoff_upgrades
                     if process_cutoff_upgrades():
-                        processing_done
-from primary.upgrade import process_cutoff_upgrades
-                    if process_cutoff_upgrades():
                         processing_done = True
                     
                     # Check if restart signal received
