@@ -61,8 +61,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            huntarr/4sonarr:latest
-            huntarr/4sonarr:${{ github.sha }}
+            huntarr/huntarr:latest
+            huntarr/huntarr:${{ github.sha }}
       
       # 7b) Build & Push if on 'dev' branch
       - name: Build and Push (dev)
@@ -73,8 +73,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            huntarr/4sonarr:dev
-            huntarr/4sonarr:${{ github.sha }}
+            huntarr/huntarr:dev
+            huntarr/huntarr:${{ github.sha }}
       
       # 7c) Build & Push if it's a tag/release
       - name: Build and Push (release)
@@ -85,8 +85,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            huntarr/4sonarr:${{ steps.meta.outputs.VERSION }}
-            huntarr/4sonarr:latest
+            huntarr/huntarr:${{ steps.meta.outputs.VERSION }}
+            huntarr/huntarr:latest
       
       # 7d) Build & Push for any other branch
       - name: Build and Push (feature branch)
@@ -97,8 +97,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            huntarr/4sonarr:${{ steps.meta.outputs.BRANCH }}
-            huntarr/4sonarr:${{ github.sha }}
+            huntarr/huntarr:${{ steps.meta.outputs.BRANCH }}
+            huntarr/huntarr:${{ github.sha }}
       
       # 7e) Just build on pull requests
       - name: Build (PR)

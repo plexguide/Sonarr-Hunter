@@ -8,22 +8,21 @@ import random
 import time
 import datetime
 from typing import List
-from utils.logger import logger
-from config import (
+from primary.utils.logger import logger, debug_log
+from primary.config import (
     HUNT_MISSING_SHOWS, 
     MONITORED_ONLY, 
-    RANDOM_SELECTION,
     RANDOM_MISSING,
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
 )
-from api import (
+from primary.api import (
     get_episodes_for_series, 
     refresh_series, 
     episode_search_episodes, 
     get_series_with_missing_episodes
 )
-from state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_MISSING_FILE
+from primary.state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_MISSING_FILE
 
 def process_missing_episodes() -> bool:
     """
@@ -43,6 +42,10 @@ def process_missing_episodes() -> bool:
 
     # Get shows that have missing episodes directly - more efficient than checking all shows
     shows_with_missing = get_series_with_missing_episodes()
+    
+    # Add more detailed logging about the API response
+    logger.debug(f"API Response for missing episodes: {shows_with_missing[:2] if shows_with_missing and len(shows_with_missing) > 2 else shows_with_missing}")
+    
     if not shows_with_missing:
         logger.info("No shows with missing episodes found.")
         return False
@@ -60,31 +63,40 @@ def process_missing_episodes() -> bool:
         logger.info("No monitored shows with missing episodes found.")
         return False
 
+    # Load previously processed show IDs
     processed_missing_ids = load_processed_ids(PROCESSED_MISSING_FILE)
+    logger.debug(f"Previously processed shows: {processed_missing_ids}")
+    
+    # Filter out shows that have already been processed
+    unprocessed_shows = [s for s in shows_with_missing if s.get("id") not in processed_missing_ids]
+    
+    if not unprocessed_shows:
+        logger.info("All shows with missing episodes have already been processed in this cycle.")
+        return False
+        
+    logger.info(f"Found {len(unprocessed_shows)} unprocessed shows with missing episodes.")
+    
     shows_processed = 0
     processing_done = False
 
-    # Use the specific RANDOM_MISSING setting 
-    # (no longer dependent on the master RANDOM_SELECTION setting)
+    # Use RANDOM_MISSING setting
     if RANDOM_MISSING:
         logger.info("Using random selection for missing shows (RANDOM_MISSING=true)")
-        random.shuffle(shows_with_missing)
+        random.shuffle(unprocessed_shows)
     else:
         logger.info("Using sequential selection for missing shows (RANDOM_MISSING=false)")
 
     # Get current date for future episode filtering
     current_date = datetime.datetime.now().date()
 
-    for show in shows_with_missing:
+    for show in unprocessed_shows:
         if shows_processed >= HUNT_MISSING_SHOWS:
+            logger.info(f"Reached limit of {HUNT_MISSING_SHOWS} missing shows for this cycle.")
             break
 
         series_id = show.get("id")
         if not series_id:
-            continue
-
-        # If we already processed this show ID, skip
-        if series_id in processed_missing_ids:
+            logger.warning("Found show without ID, skipping.")
             continue
 
         show_title = show.get("title", "Unknown Show")
@@ -101,6 +113,8 @@ def process_missing_episodes() -> bool:
 
         if not monitored_missing_episodes:
             logger.info(f"No missing monitored episodes found for '{show_title}' — skipping.")
+            # Still mark as processed to avoid checking again in the next cycle
+            save_processed_id(PROCESSED_MISSING_FILE, series_id)
             continue
 
         # Skip future episodes if SKIP_FUTURE_EPISODES is enabled
@@ -135,6 +149,8 @@ def process_missing_episodes() -> bool:
             
             if not monitored_missing_episodes:
                 logger.info(f"All missing episodes for '{show_title}' are future episodes - skipping.")
+                # Still mark as processed to avoid checking again in the next cycle
+                save_processed_id(PROCESSED_MISSING_FILE, series_id)
                 continue
 
         logger.info(f"Found {len(monitored_missing_episodes)} missing monitored episode(s) for '{show_title}'.")
@@ -168,5 +184,8 @@ def process_missing_episodes() -> bool:
 
     # Truncate processed list if needed
     truncate_processed_list(PROCESSED_MISSING_FILE)
+    
+    if shows_processed == 0:
+        logger.info("No missing shows processed in this cycle.")
     
     return processing_done

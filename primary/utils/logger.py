@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Logging configuration for Huntarr-Sonarr
+Logging configuration for Huntarr
 """
 
 import logging
@@ -29,14 +29,14 @@ def setup_logger(debug_mode=None):
     
     # Get DEBUG_MODE from config, but only if we haven't been given a value
     if debug_mode is None:
-        from config import DEBUG_MODE as CONFIG_DEBUG_MODE
+        from primary.config import DEBUG_MODE as CONFIG_DEBUG_MODE
         use_debug_mode = CONFIG_DEBUG_MODE
     else:
         use_debug_mode = debug_mode
     
     if logger is None:
         # First-time setup
-        logger = logging.getLogger("huntarr-sonarr")
+        logger = logging.getLogger("huntarr")
     else:
         # Reset handlers to avoid duplicates
         for handler in logger.handlers[:]:

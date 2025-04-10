@@ -8,27 +8,30 @@ import random
 import time
 import datetime
 import importlib
-from utils.logger import logger
-from config import (
+from typing import Callable
+from primary.utils.logger import logger
+from primary.config import (
     MONITORED_ONLY, 
-    RANDOM_SELECTION,
     RANDOM_UPGRADES,
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
 )
-from api import get_cutoff_unmet, get_cutoff_unmet_total_pages, refresh_series, episode_search_episodes, sonarr_request
-from state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_UPGRADE_FILE
+from primary.api import get_cutoff_unmet, get_cutoff_unmet_total_pages, refresh_series, episode_search_episodes, arr_request
+from primary.state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_UPGRADE_FILE
 
 def get_current_upgrade_limit():
     """Get the current HUNT_UPGRADE_EPISODES value directly from config"""
     # Force reload the config module to get the latest value
-    import config
+    from primary import config
     importlib.reload(config)
     return config.HUNT_UPGRADE_EPISODES
 
-def process_cutoff_upgrades() -> bool:
+def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: False) -> bool:
     """
     Process episodes that need quality upgrades (cutoff unmet).
+    
+    Args:
+        restart_cycle_flag: Function that returns whether to restart the cycle
     
     Returns:
         True if any processing was done, False otherwise
@@ -43,9 +46,19 @@ def process_cutoff_upgrades() -> bool:
         logger.info("HUNT_UPGRADE_EPISODES is set to 0, skipping quality upgrades")
         return False
 
+    # Check for restart signal
+    if restart_cycle_flag():
+        logger.info("🔄 Received restart signal before starting quality upgrades. Aborting...")
+        return False
+
     total_pages = get_cutoff_unmet_total_pages()
     if total_pages == 0:
         logger.info("No episodes found that need quality upgrades.")
+        return False
+
+    # Check for restart signal
+    if restart_cycle_flag():
+        logger.info("🔄 Received restart signal after getting total pages. Aborting...")
         return False
 
     logger.info(f"Found {total_pages} total pages of episodes that need quality upgrades.")
@@ -56,8 +69,7 @@ def process_cutoff_upgrades() -> bool:
     # Get current date for future episode filtering
     current_date = datetime.datetime.now().date()
 
-    # Use the specific RANDOM_UPGRADES setting
-    # (no longer dependent on the master RANDOM_SELECTION setting)
+    # Use RANDOM_UPGRADES setting
     should_use_random = RANDOM_UPGRADES
     
     # Initialize page variable for both modes
@@ -69,6 +81,11 @@ def process_cutoff_upgrades() -> bool:
         logger.info("Using sequential selection for quality upgrades (RANDOM_UPGRADES=false)")
 
     while True:
+        # Check for restart signal at the beginning of each page processing
+        if restart_cycle_flag():
+            logger.info("🔄 Received restart signal at start of page loop. Aborting...")
+            break
+            
         # Check again to make sure we're using the current limit
         # This ensures if settings changed during processing, we use the new value
         current_limit = get_current_upgrade_limit()
@@ -86,6 +103,12 @@ def process_cutoff_upgrades() -> bool:
 
         logger.info(f"Retrieving cutoff-unmet episodes (page={page} of {total_pages})...")
         cutoff_data = get_cutoff_unmet(page)
+        
+        # Check for restart signal after retrieving page
+        if restart_cycle_flag():
+            logger.info(f"🔄 Received restart signal after retrieving page {page}. Aborting...")
+            break
+            
         if not cutoff_data or "records" not in cutoff_data:
             logger.error(f"ERROR: Unable to retrieve cutoff–unmet data from Sonarr on page {page}.")
             
@@ -104,8 +127,18 @@ def process_cutoff_upgrades() -> bool:
         indices = list(range(total_eps))
         if should_use_random:
             random.shuffle(indices)
+            
+        # Check for restart signal before processing episodes
+        if restart_cycle_flag():
+            logger.info(f"🔄 Received restart signal before processing episodes on page {page}. Aborting...")
+            break
 
         for idx in indices:
+            # Check for restart signal before each episode
+            if restart_cycle_flag():
+                logger.info(f"🔄 Received restart signal during episode processing. Aborting...")
+                break
+                
             # Check again for the current limit in case it was changed during processing
             current_limit = get_current_upgrade_limit()
             
@@ -125,7 +158,7 @@ def process_cutoff_upgrades() -> bool:
             series_title = ep_obj.get("seriesTitle", None)
             if not series_title:
                 # fallback: request the series
-                series_data = sonarr_request(f"series/{series_id}", method="GET")
+                series_data = arr_request(f"series/{series_id}", method="GET")
                 if series_data:
                     series_title = series_data.get("title", "Unknown Series")
                 else:
@@ -144,6 +177,11 @@ def process_cutoff_upgrades() -> bool:
                     except (ValueError, TypeError):
                         # If date parsing fails, proceed with the episode
                         pass
+                        
+            # Check for restart signal before processing this episode
+            if restart_cycle_flag():
+                logger.info(f"🔄 Received restart signal before processing episode {ep_title}. Aborting...")
+                break
 
             logger.info(f"Processing upgrade for \"{series_title}\" - S{season_num}E{ep_num} - \"{ep_title}\" (Episode ID: {episode_id})")
 
@@ -155,12 +193,17 @@ def process_cutoff_upgrades() -> bool:
                     series_monitored = ep_obj["series"].get("monitored", False)
                 else:
                     # retrieve the series
-                    series_data = sonarr_request(f"series/{series_id}", "GET")
+                    series_data = arr_request(f"series/{series_id}", "GET")
                     series_monitored = series_data.get("monitored", False) if series_data else False
 
                 if not ep_monitored or not series_monitored:
                     logger.info("Skipping unmonitored episode or series.")
                     continue
+                    
+            # Check for restart signal before refreshing
+            if restart_cycle_flag():
+                logger.info(f"🔄 Received restart signal before refreshing series for {ep_title}. Aborting...")
+                break
 
             # Refresh the series only if SKIP_SERIES_REFRESH is not enabled
             if not SKIP_SERIES_REFRESH:
@@ -172,6 +215,11 @@ def process_cutoff_upgrades() -> bool:
                 logger.info(f"Refresh command completed successfully.")
             else:
                 logger.info(" - Skipping series refresh (SKIP_SERIES_REFRESH=true)")
+                
+            # Check for restart signal before searching
+            if restart_cycle_flag():
+                logger.info(f"🔄 Received restart signal before searching for {ep_title}. Aborting...")
+                break
 
             # Search for the episode (upgrade)
             logger.info(" - Searching for quality upgrade...")
@@ -189,12 +237,22 @@ def process_cutoff_upgrades() -> bool:
             else:
                 logger.warning(f"WARNING: Search command failed for episode ID {episode_id}.")
                 continue
+                
+            # Check for restart signal after processing an episode
+            if restart_cycle_flag():
+                logger.info(f"🔄 Received restart signal after processing episode {ep_title}. Aborting...")
+                break
 
         # Move to the next page if using sequential mode
         if not should_use_random:
             page += 1
         # In random mode, we just handle one random page this iteration,
         # then check if we've processed enough episodes or continue to another random page
+        
+        # Check for restart signal after processing a page
+        if restart_cycle_flag():
+            logger.info(f"🔄 Received restart signal after processing page {page}. Aborting...")
+            break
     
     # Log with the current limit, not the initial one
     current_limit = get_current_upgrade_limit()

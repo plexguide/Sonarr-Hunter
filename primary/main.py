@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Huntarr [Sonarr Edition] - Python Version
-Main entry point for the application
+Huntarr - Main entry point for the application
+Supports multiple Arr applications
 """
 
 import time
@@ -10,11 +10,10 @@ import os
 import socket
 import signal
 import importlib
-from utils.logger import logger
-from config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, ENABLE_WEB_UI, log_configuration, refresh_settings
-from missing import process_missing_episodes
-from state import check_state_reset, calculate_reset_time
-from api import get_download_queue_size
+from primary.utils.logger import logger
+from primary.config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, APP_TYPE, log_configuration, refresh_settings
+from primary.state import check_state_reset, calculate_reset_time
+from primary.api import get_download_queue_size
 
 # Flag to indicate if cycle should restart
 restart_cycle = False
@@ -33,7 +32,7 @@ def get_ip_address():
     """Get the host's IP address from API_URL for display"""
     try:
         from urllib.parse import urlparse
-        from config import API_URL
+        from primary.config import API_URL
         
         # Extract the hostname/IP from the API_URL
         parsed_url = urlparse(API_URL)
@@ -57,21 +56,23 @@ def force_reload_all_modules():
     """Force reload of all relevant modules to ensure fresh settings"""
     try:
         # Force reload the config module
-        import config
+        from primary import config
         importlib.reload(config)
         
-        # Reload any modules that might cache config values
-        import missing
-        importlib.reload(missing)
-        
-        import upgrade
-        importlib.reload(upgrade)
+        # Reload app-specific modules
+        if APP_TYPE == "sonarr":
+            from primary import missing
+            importlib.reload(missing)
+            
+            from primary import upgrade
+            importlib.reload(upgrade)
+        # TODO: Add other app type module reloading when implemented
         
         # Call the refresh function to ensure settings are updated
         config.refresh_settings()
         
-        # Log the reloaded settings for verification
-        logger.warning("⚠️ Settings reloaded from JSON file after restart signal ⚠️")
+        # Log the reloaded settings for verification - CHANGED TO INFO LEVEL
+        logger.info("Settings reloaded from JSON file")
         config.log_configuration(logger)
         
         return True
@@ -80,18 +81,17 @@ def force_reload_all_modules():
         return False
 
 def main_loop() -> None:
-    """Main processing loop for Huntarr-Sonarr"""
+    """Main processing loop for Huntarr"""
     global restart_cycle
     
-    # Log welcome message for web interface
-    logger.info("=== Huntarr [Sonarr Edition] Starting ===")
+    # Log welcome message
+    logger.info(f"=== Huntarr [{APP_TYPE.title()} Edition] Starting ===")
     
-    # Log web UI information if enabled
-    if ENABLE_WEB_UI:
-        server_ip = get_ip_address()
-        logger.info(f"Web interface available at http://{server_ip}:8988")
+    # Log web UI information (always enabled)
+    server_ip = get_ip_address()
+    logger.info(f"Web interface available at http://{server_ip}:9705")
     
-    logger.info("GitHub: https://github.com/plexguide/huntarr-sonarr")
+    logger.info("GitHub: https://github.com/plexguide/huntarr")
     
     while True:
         # Set restart_cycle flag to False at the beginning of each cycle
@@ -100,14 +100,10 @@ def main_loop() -> None:
         # Always force reload all modules at the start of each cycle
         force_reload_all_modules()
         
-        # Import after reload to ensure we get fresh values
-        from config import HUNT_MODE, HUNT_MISSING_SHOWS, HUNT_UPGRADE_EPISODES
-        from upgrade import process_cutoff_upgrades
-        
         # Check if state files need to be reset
         check_state_reset()
         
-        logger.info(f"=== Starting Huntarr-Sonarr cycle ===")
+        logger.info(f"=== Starting Huntarr cycle ===")
         
         # Track if any processing was done in this cycle
         processing_done = False
@@ -115,31 +111,61 @@ def main_loop() -> None:
         # Check if we should ignore the download queue size or if we are below the minimum queue size
         download_queue_size = get_download_queue_size()
         if MINIMUM_DOWNLOAD_QUEUE_SIZE < 0 or (MINIMUM_DOWNLOAD_QUEUE_SIZE >= 0 and download_queue_size <= MINIMUM_DOWNLOAD_QUEUE_SIZE):
-        
-            # Process shows/episodes based on HUNT_MODE
+            # Process items based on APP_TYPE and HUNT_MODE
             if restart_cycle:
                 logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
                 continue
                 
-            if HUNT_MODE in ["missing", "both"] and HUNT_MISSING_SHOWS > 0:
-                if process_missing_episodes():
-                    processing_done = True
+            if APP_TYPE == "sonarr":
+                # Get updated settings to ensure we're using the current values
+                from primary.config import HUNT_MISSING_SHOWS, HUNT_UPGRADE_EPISODES
                 
-                # Check if restart signal received
-                if restart_cycle:
-                    logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
-                    continue
+                # First process missing shows if configured
+                if HUNT_MISSING_SHOWS > 0:
+                    logger.info(f"Configured to look for {HUNT_MISSING_SHOWS} missing shows")
+                    from primary.missing import process_missing_episodes
+                    if process_missing_episodes():
+                        processing_done = True
+                    else:
+                        logger.info("No missing episodes processed - check if you have any missing episodes in Sonarr")
                     
-            if HUNT_MODE in ["upgrade", "both"] and HUNT_UPGRADE_EPISODES > 0:
-                logger.info(f"Starting upgrade process with HUNT_UPGRADE_EPISODES={HUNT_UPGRADE_EPISODES}")
+                    # Check if restart signal received
+                    if restart_cycle:
+                        logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
+                        continue
+                else:
+                    logger.info("Missing shows search disabled (HUNT_MISSING_SHOWS=0)")
+                        
+                # Then process quality upgrades if configured
+                if HUNT_UPGRADE_EPISODES > 0:
+                    logger.info(f"Configured to look for {HUNT_UPGRADE_EPISODES} quality upgrades")
+                    from primary.upgrade import process_cutoff_upgrades
+                    if process_cutoff_upgrades():
+                        processing_done = True
+                    else:
+                        logger.info("No quality upgrades processed - check if you have any cutoff unmet episodes in Sonarr")
+                    
+                    # Check if restart signal received
+                    if restart_cycle:
+                        logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
+                        continue
+                else:
+                    logger.info("Quality upgrades search disabled (HUNT_UPGRADE_EPISODES=0)")
+            
+            elif APP_TYPE == "radarr":
+                # TODO: Implement Radarr processing
+                logger.info("Radarr processing not yet implemented")
+                time.sleep(5)  # Short sleep to avoid log spam
                 
-                if process_cutoff_upgrades():
-                    processing_done = True
+            elif APP_TYPE == "lidarr":
+                # TODO: Implement Lidarr processing
+                logger.info("Lidarr processing not yet implemented")
+                time.sleep(5)  # Short sleep to avoid log spam
                 
-                # Check if restart signal received
-                if restart_cycle:
-                    logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
-                    continue
+            elif APP_TYPE == "readarr":
+                # TODO: Implement Readarr processing
+                logger.info("Readarr processing not yet implemented")
+                time.sleep(5)  # Short sleep to avoid log spam
 
         else:
             logger.info(f"Download queue size ({download_queue_size}) is above the minimum threshold ({MINIMUM_DOWNLOAD_QUEUE_SIZE}). Skipped processing.")
@@ -150,16 +176,14 @@ def main_loop() -> None:
         # Refresh settings before sleep to get the latest sleep_duration
         refresh_settings()
         # Import it directly from the settings manager to ensure latest value
-        from config import SLEEP_DURATION as CURRENT_SLEEP_DURATION
+        from primary.config import SLEEP_DURATION as CURRENT_SLEEP_DURATION
         
         # Sleep at the end of the cycle only
         logger.info(f"Cycle complete. Sleeping {CURRENT_SLEEP_DURATION}s before next cycle...")
-        logger.info("⭐ Tool Great? Donate @ https://donate.plex.one for Daughter's College Fund!")
         
-        # Log web UI information if enabled
-        if ENABLE_WEB_UI:
-            server_ip = get_ip_address()
-            logger.info(f"Web interface available at http://{server_ip}:8988")
+        # Log web UI information
+        server_ip = get_ip_address()
+        logger.info(f"Web interface available at http://{server_ip}:9705")
         
         # Sleep with progress updates for the web interface
         sleep_start = time.time()
@@ -186,7 +210,7 @@ if __name__ == "__main__":
     try:
         main_loop()
     except KeyboardInterrupt:
-        logger.info("Huntarr-Sonarr stopped by user.")
+        logger.info("Huntarr stopped by user.")
         sys.exit(0)
     except Exception as e:
         logger.exception(f"Unexpected error: {e}")

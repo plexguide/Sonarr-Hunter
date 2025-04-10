@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Settings - Huntarr</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><a href="/" class="title-link"><img src="https://github.com/plexguide/Huntarr/blob/main/logo/40.png?raw=true" alt="Huntarr Logo" class="huntarr-logo">Huntarr</a></h1>
+            <div class="buttons">
+                <button id="homeButton">Home</button>
+                <button id="logsButton">Logs</button>
+                <button id="settingsButton">Settings</button>
+                <button id="userButton" class="active">User</button>
+            </div>
+            <div class="theme-toggle">
+                <label class="switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider round"></span>
+                </label>
+                <span id="themeLabel">Light Mode</span>
+            </div>
+        </div>
+
+        <div id="userContainer" class="content-section">
+            <a href="/logout" class="logout-button">Logout</a>
+            <div class="clear-float"></div>
+            
+            <div class="user-settings">
+                <h2>User Account Settings</h2>
+                
+                <div class="settings-group">
+                    <h3>Change Username</h3>
+                    <div class="setting-item">
+                        <label for="currentUsername">Current Username:</label>
+                        <input type="text" id="currentUsername" placeholder="Enter current username" required>
+                    </div>
+                    <div class="setting-item">
+                        <label for="newUsername">New Username:</label>
+                        <input type="text" id="newUsername" placeholder="Enter new username" required>
+                    </div>
+                    <div class="setting-item">
+                        <label for="passwordForUsername">Password:</label>
+                        <input type="password" id="passwordForUsername" placeholder="Enter your password to confirm" required>
+                    </div>
+                    <div class="settings-buttons">
+                        <button id="changeUsernameButton" class="save-button">Change Username</button>
+                    </div>
+                    <div id="usernameStatus" class="status-message"></div>
+                </div>
+                
+                <div class="settings-group">
+                    <h3>Change Password</h3>
+                    <div class="setting-item">
+                        <label for="currentPassword">Current Password:</label>
+                        <input type="password" id="currentPassword" placeholder="Enter current password" required>
+                    </div>
+                    <div class="setting-item">
+                        <label for="newPassword">New Password:</label>
+                        <input type="password" id="newPassword" placeholder="Enter new password" required>
+                    </div>
+                    <div class="setting-item">
+                        <label for="confirmNewPassword">Confirm New Password:</label>
+                        <input type="password" id="confirmNewPassword" placeholder="Confirm new password" required>
+                    </div>
+                    <div class="settings-buttons">
+                        <button id="changePasswordButton" class="save-button">Change Password</button>
+                    </div>
+                    <div id="passwordStatus" class="status-message"></div>
+                </div>
+                
+                <div class="settings-group">
+                    <h3>Two-Factor Authentication (2FA)</h3>
+                    <div class="setting-item">
+                        <label for="enable2FA">Enable 2FA:</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enable2FA">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <p class="setting-help">Enable two-factor authentication for additional security</p>
+                    </div>
+                    
+                    <div id="setup2FAContainer" class="qr-code-container">
+                        <p>Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+                        <div class="qr-code" id="qrCode">
+                            <!-- QR code will be inserted here -->
+                        </div>
+                        <p>Or enter this code manually in your app:</p>
+                        <div class="secret-key" id="secretKey">ABCDEFGHIJKLMNOP</div>
+                        
+                        <div class="verification-code">
+                            <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6">
+                            <button id="verifyCodeButton">Verify & Enable</button>
+                        </div>
+                    </div>
+                    
+                    <div id="remove2FAContainer" style="display: none;">
+                        <p>Two-factor authentication is currently enabled. To disable it, enter your password:</p>
+                        <div class="setting-item">
+                            <label for="passwordFor2FA">Password:</label>
+                            <input type="password" id="passwordFor2FA" placeholder="Enter your password to confirm">
+                        </div>
+                        <div class="settings-buttons">
+                            <button id="disable2FAButton" class="reset-button">Disable 2FA</button>
+                        </div>
+                    </div>
+                    
+                    <div id="2faStatus" class="status-message"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>💰 Donate @ <a href="https://donate.plex.one" target="_blank">donate.plex.one</a> for Daughter's College Fund! ⭐ Also Star <a href="https://github.com/plexguide/huntarr" target="_blank">Huntarr on GitHub</a> if you find it useful!</p>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const homeButton = document.getElementById('homeButton');
+            const logsButton = document.getElementById('logsButton');
+            const settingsButton = document.getElementById('settingsButton');
+            const userButton = document.getElementById('userButton');
+            const themeToggle = document.getElementById('themeToggle');
+            const themeLabel = document.getElementById('themeLabel');
+            const enable2FACheckbox = document.getElementById('enable2FA');
+            const setup2FAContainer = document.getElementById('setup2FAContainer');
+            const remove2FAContainer = document.getElementById('remove2FAContainer');
+            const changeUsernameButton = document.getElementById('changeUsernameButton');
+            const changePasswordButton = document.getElementById('changePasswordButton');
+            const verifyCodeButton = document.getElementById('verifyCodeButton');
+            const disable2FAButton = document.getElementById('disable2FAButton');
+            
+            // Load theme
+            fetch('/api/settings/theme')
+                .then(response => response.json())
+                .then(data => {
+                    const isDarkMode = data.dark_mode || false;
+                    if (isDarkMode) {
+                        document.body.classList.add('dark-theme');
+                        themeToggle.checked = true;
+                        themeLabel.textContent = 'Dark Mode';
+                    } else {
+                        document.body.classList.remove('dark-theme');
+                        themeToggle.checked = false;
+                        themeLabel.textContent = 'Light Mode';
+                    }
+                })
+                .catch(error => console.error('Error loading theme:', error));
+            
+            // Theme toggle
+            themeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    document.body.classList.add('dark-theme');
+                    themeLabel.textContent = 'Dark Mode';
+                } else {
+                    document.body.classList.remove('dark-theme');
+                    themeLabel.textContent = 'Light Mode';
+                }
+                
+                fetch('/api/settings/theme', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ dark_mode: this.checked })
+                })
+                .catch(error => console.error('Error saving theme:', error));
+            });
+            
+            // Navigation
+            homeButton.addEventListener('click', function() {
+                window.location.href = '/';
+            });
+            
+            logsButton.addEventListener('click', function() {
+                window.location.href = '/#logs';
+            });
+            
+            settingsButton.addEventListener('click', function() {
+                window.location.href = '/settings';
+            });
+            
+            // Check 2FA status
+            fetch('/api/user/2fa-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.enabled) {
+                        enable2FACheckbox.checked = true;
+                        setup2FAContainer.style.display = 'none';
+                        remove2FAContainer.style.display = 'block';
+                    } else {
+                        enable2FACheckbox.checked = false;
+                        setup2FAContainer.style.display = 'none';
+                        remove2FAContainer.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error checking 2FA status:', error));
+            
+            // 2FA toggle
+            enable2FACheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Generate new 2FA secret
+                    fetch('/api/user/generate-2fa')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById('qrCode').innerHTML = `<img src="${data.qr_code_url}" alt="QR Code">`;
+                                document.getElementById('secretKey').textContent = data.secret;
+                                setup2FAContainer.style.display = 'block';
+                                remove2FAContainer.style.display = 'none';
+                            } else {
+                                showStatus('2faStatus', data.message, false);
+                                enable2FACheckbox.checked = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error generating 2FA:', error);
+                            showStatus('2faStatus', 'Failed to generate 2FA secret', false);
+                            enable2FACheckbox.checked = false;
+                        });
+                } else {
+                    setup2FAContainer.style.display = 'none';
+                    remove2FAContainer.style.display = 'block';
+                }
+            });
+            
+            // Verify 2FA code
+            verifyCodeButton.addEventListener('click', function() {
+                const code = document.getElementById('verificationCode').value;
+                if (!code) {
+                    showStatus('2faStatus', 'Please enter the verification code', false);
+                    return;
+                }
+                
+                fetch('/api/user/verify-2fa', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code: code })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showStatus('2faStatus', 'Two-factor authentication enabled successfully!', true);
+                        setup2FAContainer.style.display = 'none';
+                        remove2FAContainer.style.display = 'block';
+                    } else {
+                        showStatus('2faStatus', data.message || 'Invalid verification code', false);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error verifying 2FA code:', error);
+                    showStatus('2faStatus', 'Failed to verify code', false);
+                });
+            });
+            
+            // Disable 2FA
+            disable2FAButton.addEventListener('click', function() {
+                const password = document.getElementById('passwordFor2FA').value;
+                if (!password) {
+                    showStatus('2faStatus', 'Please enter your password', false);
+                    return;
+                }
+                
+                fetch('/api/user/disable-2fa', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password: password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showStatus('2faStatus', 'Two-factor authentication disabled successfully!', true);
+                        enable2FACheckbox.checked = false;
+                        setup2FAContainer.style.display = 'none';
+                        remove2FAContainer.style.display = 'none';
+                        document.getElementById('passwordFor2FA').value = '';
+                    } else {
+                        showStatus('2faStatus', data.message || 'Invalid password', false);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error disabling 2FA:', error);
+                    showStatus('2faStatus', 'Failed to disable 2FA', false);
+                });
+            });
+            
+            // Change username
+            changeUsernameButton.addEventListener('click', function() {
+                const currentUsername = document.getElementById('currentUsername').value;
+                const newUsername = document.getElementById('newUsername').value;
+                const password = document.getElementById('passwordForUsername').value;
+                
+                if (!currentUsername || !newUsername || !password) {
+                    showStatus('usernameStatus', 'All fields are required', false);
+                    return;
+                }
+                
+                if (currentUsername === newUsername) {
+                    showStatus('usernameStatus', 'New username must be different from current username', false);
+                    return;
+                }
+                
+                if (confirm('Changing your username will log you out. Continue?')) {
+                    fetch('/api/user/change-username', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            current_username: currentUsername,
+                            new_username: newUsername,
+                            password: password
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showStatus('usernameStatus', 'Username changed successfully! You will be logged out...', true);
+                            setTimeout(() => {
+                                window.location.href = '/logout';
+                            }, 2000);
+                        } else {
+                            showStatus('usernameStatus', data.message || 'Failed to change username', false);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error changing username:', error);
+                        showStatus('usernameStatus', 'Failed to change username', false);
+                    });
+                }
+            });
+            
+            // Change password
+            changePasswordButton.addEventListener('click', function() {
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+                
+                if (!currentPassword || !newPassword || !confirmNewPassword) {
+                    showStatus('passwordStatus', 'All fields are required', false);
+                    return;
+                }
+                
+                if (newPassword !== confirmNewPassword) {
+                    showStatus('passwordStatus', 'New passwords do not match', false);
+                    return;
+                }
+                
+                if (currentPassword === newPassword) {
+                    showStatus('passwordStatus', 'New password must be different from current password', false);
+                    return;
+                }
+                
+                if (confirm('Changing your password will log you out. Continue?')) {
+                    fetch('/api/user/change-password', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            current_password: currentPassword,
+                            new_password: newPassword
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showStatus('passwordStatus', 'Password changed successfully! You will be logged out...', true);
+                            setTimeout(() => {
+                                window.location.href = '/logout';
+                            }, 2000);
+                        } else {
+                            showStatus('passwordStatus', data.message || 'Failed to change password', false);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error changing password:', error);
+                        showStatus('passwordStatus', 'Failed to change password', false);
+                    });
+                }
+            });
+            
+            // Helper function to show status messages
+            function showStatus(elementId, message, isSuccess) {
+                const statusElement = document.getElementById(elementId);
+                statusElement.textContent = message;
+                statusElement.className = 'status-message ' + (isSuccess ? 'status-success' : 'status-error');
+                statusElement.style.display = 'block';
+                
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

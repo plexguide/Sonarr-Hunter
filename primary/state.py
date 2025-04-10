@@ -1,29 +1,44 @@
 #!/usr/bin/env python3
 """
-State management for Huntarr-Sonarr
-Handles tracking which shows/episodes have been processed
+State management for Huntarr
+Handles tracking which items have been processed
 """
 
 import os
 import time
 import pathlib
 from typing import List
-from utils.logger import logger
-from config import STATE_RESET_INTERVAL_HOURS
+from primary.utils.logger import logger
+from primary.config import STATE_RESET_INTERVAL_HOURS, APP_TYPE
 
 # State directory setup
 STATE_DIR = pathlib.Path("/config/stateful")
 STATE_DIR.mkdir(parents=True, exist_ok=True)
 
-PROCESSED_MISSING_FILE = STATE_DIR / "processed_missing_ids.txt"
-PROCESSED_UPGRADE_FILE = STATE_DIR / "processed_upgrade_ids.txt"
+# Create app-specific state file paths
+if APP_TYPE == "sonarr":
+    PROCESSED_MISSING_FILE = STATE_DIR / "processed_missing_sonarr.txt"
+    PROCESSED_UPGRADE_FILE = STATE_DIR / "processed_upgrade_sonarr.txt"
+elif APP_TYPE == "radarr":
+    PROCESSED_MISSING_FILE = STATE_DIR / "processed_missing_radarr.txt"
+    PROCESSED_UPGRADE_FILE = STATE_DIR / "processed_upgrade_radarr.txt"
+elif APP_TYPE == "lidarr":
+    PROCESSED_MISSING_FILE = STATE_DIR / "processed_missing_lidarr.txt"
+    PROCESSED_UPGRADE_FILE = STATE_DIR / "processed_upgrade_lidarr.txt"
+elif APP_TYPE == "readarr":
+    PROCESSED_MISSING_FILE = STATE_DIR / "processed_missing_readarr.txt"
+    PROCESSED_UPGRADE_FILE = STATE_DIR / "processed_upgrade_readarr.txt"
+else:
+    # Default fallback to sonarr
+    PROCESSED_MISSING_FILE = STATE_DIR / "processed_missing_sonarr.txt"
+    PROCESSED_UPGRADE_FILE = STATE_DIR / "processed_upgrade_sonarr.txt"
 
 # Create files if they don't exist
 PROCESSED_MISSING_FILE.touch(exist_ok=True)
 PROCESSED_UPGRADE_FILE.touch(exist_ok=True)
 
 def load_processed_ids(file_path: pathlib.Path) -> List[int]:
-    """Load processed show/episode IDs from a file."""
+    """Load processed item IDs from a file."""
     try:
         with open(file_path, 'r') as f:
             return [int(line.strip()) for line in f if line.strip().isdigit()]
@@ -32,7 +47,7 @@ def load_processed_ids(file_path: pathlib.Path) -> List[int]:
         return []
 
 def save_processed_id(file_path: pathlib.Path, obj_id: int) -> None:
-    """Save a processed show/episode ID to a file."""
+    """Save a processed item ID to a file."""
     try:
         with open(file_path, 'a') as f:
             f.write(f"{obj_id}\n")
