@@ -105,18 +105,31 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.error('Error saving theme:', error));
     });
     
-    // Tab switching
-    logsButton.addEventListener('click', function() {
-        window.location.href = '/';
-    });
-    
-    settingsButton.addEventListener('click', function() {
-        window.location.href = '/settings';
-    });
-    
-    userButton.addEventListener('click', function() {
-        window.location.href = '/user';
-    });
+    // Tab switching - Fixed to toggle visibility instead of redirecting
+    if (logsButton && settingsButton && logsContainer && settingsContainer) {
+        logsButton.addEventListener('click', function() {
+            logsContainer.style.display = 'flex';
+            settingsContainer.style.display = 'none';
+            logsButton.classList.add('active');
+            settingsButton.classList.remove('active');
+            userButton.classList.remove('active');
+        });
+        
+        settingsButton.addEventListener('click', function() {
+            logsContainer.style.display = 'none';
+            settingsContainer.style.display = 'flex';
+            logsButton.classList.remove('active');
+            settingsButton.classList.add('active');
+            userButton.classList.remove('active');
+            
+            // Make sure settings are loaded when switching to settings tab
+            loadSettings();
+        });
+        
+        userButton.addEventListener('click', function() {
+            window.location.href = '/user';
+        });
+    }
     
     // Log management
     clearLogsButton.addEventListener('click', function() {
@@ -402,9 +415,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sleepDurationInput) {
         updateSleepDurationDisplay();
     }
-    if (window.location.pathname === '/settings') {
+    
+    // Check if we're on the settings page by checking URL path
+    const isSettingsPage = window.location.pathname === '/settings';
+    
+    // If on settings page, show settings initially
+    if (isSettingsPage && logsContainer && settingsContainer) {
+        logsContainer.style.display = 'none';
+        settingsContainer.style.display = 'flex';
+        logsButton.classList.remove('active');
+        settingsButton.classList.add('active');
+        userButton.classList.remove('active');
         loadSettings();
+    } else {
+        // On any other page, load settings only if we're on the main page
+        if (window.location.pathname === '/' && settingsContainer) {
+            settingsContainer.style.display = 'none';
+            loadSettings();
+        }
     }
+    
     if (logsElement) {
         connectEventSource();
     }
