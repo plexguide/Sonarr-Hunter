@@ -21,6 +21,9 @@
 * Lidarr [Not Incorporated Yet]
 * Readarr [ Not Incorporated Yet]
 
+# FOR ANYONE WHO WANTS TO TEST THE (BETA/DEV) Version
+
+* [CLICK HERE](https://github.com/plexguide/Huntarr/tree/dev) and read the instructions. Note that after you make configuration changes in the UI, run `docker restart hunter` for the settings to kick in. Working to ensure that once changes are made, the changes are made immediately. 
 
 **NOTE**: This utilizes Sonarr API Version - `5`. Legacy name of this program: Sonarr Hunter.
 
