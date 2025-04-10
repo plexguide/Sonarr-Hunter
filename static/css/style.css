@@ -26,6 +26,14 @@
     --reset-button-hover: #c0392b;
     --donation-banner-bg: #f8f9fa;
     --donation-banner-border: #dee2e6;
+    --badge-connected: #27ae60;
+    --badge-not-connected: #e74c3c;
+    --badge-text: #fff;
+    --app-tab-bg: #34495e;
+    --app-tab-text: #ecf0f1;
+    --app-tab-active: #3498db;
+    --app-tab-hover: #2980b9;
+    --service-not-configured: #f39c12;
 }
 
 .dark-theme {
@@ -56,6 +64,14 @@
     --reset-button-hover: #c0392b;
     --donation-banner-bg: #2c3e50;
     --donation-banner-border: #1a2530;
+    --badge-connected: #27ae60;
+    --badge-not-connected: #e74c3c;
+    --badge-text: #fff;
+    --app-tab-bg: #1a2530;
+    --app-tab-text: #ecf0f1;
+    --app-tab-active: #3498db;
+    --app-tab-hover: #2980b9;
+    --service-not-configured: #f39c12;
 }
 
 * {
@@ -347,8 +363,9 @@ input:checked + .slider:before {
     margin-right: 10px;
 }
 
-.setting-item input[type="number"] {
-    width: 100px;
+.setting-item input[type="number"],
+.setting-item input[type="text"] {
+    width: 300px;
     padding: 8px;
     border: 1px solid var(--input-border);
     border-radius: 5px;
@@ -484,6 +501,110 @@ input:checked + .toggle-slider:before {
     background-color: var(--reset-button-hover);
 }
 
+/* App selection tabs */
+.app-selector {
+    display: flex;
+    background-color: var(--app-tab-bg);
+    border-radius: 0;
+    margin-top: -1px;
+    margin-bottom: -1px;
+    overflow: hidden;
+}
+/* App selection tabs */
+.app-selector {
+    display: flex;
+    background-color: var(--app-tab-bg);
+    border-radius: 0;
+    margin-top: -1px;
+    margin-bottom: -1px;
+    overflow: hidden;
+}
+
+.app-tab {
+    background-color: var(--app-tab-bg);
+    color: var(--app-tab-text);
+    border: none;
+    padding: 10px 20px;
+    flex: 1;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.app-tab:hover {
+    background-color: var(--app-tab-hover);
+}
+
+.app-tab.active {
+    background-color: var(--app-tab-active);
+}
+
+/* App settings sections */
+.app-settings {
+    display: none;
+}
+
+.app-settings.active {
+    display: block;
+}
+
+/* Connection badge */
+.connection-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.connection-badge.connected {
+    background-color: var(--badge-connected);
+    color: var(--badge-text);
+}
+
+.connection-badge.not-connected {
+    background-color: var(--badge-not-connected);
+    color: var(--badge-text);
+}
+
+.test-connection-button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s;
+}
+
+.test-connection-button:hover {
+    background-color: var(--button-hover);
+}
+
+/* Service not configured message */
+.service-not-configured {
+    color: var(--service-not-configured);
+    font-weight: bold;
+    font-style: italic;
+    padding: 10px;
+    border: 1px dashed var(--service-not-configured);
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.code-block {
+    background-color: #000;
+    color: #f8f8f8;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
 @media (max-width: 768px) {
     .header {
         flex-direction: column;
@@ -502,5 +623,14 @@ input:checked + .toggle-slider:before {
     
     .setting-help {
         margin-left: 0;
+    }
+    
+    .app-selector {
+        flex-wrap: wrap;
+    }
+    
+    .app-tab {
+        flex: none;
+        width: 50%;
     }
 }

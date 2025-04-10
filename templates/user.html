@@ -124,28 +124,6 @@
             cursor: pointer;
         }
         
-        .reset-instructions {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: var(--settings-bg);
-            border: 1px solid var(--settings-border);
-            border-radius: 8px;
-        }
-        
-        .reset-instructions h3 {
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
-        
-        .reset-instructions pre {
-            background-color: var(--input-bg);
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-family: monospace;
-            margin-top: 10px;
-        }
-        
         .status-message {
             padding: 10px;
             margin-top: 10px;
@@ -162,12 +140,43 @@
             background-color: rgba(231, 76, 60, 0.2);
             color: #e74c3c;
         }
+        
+        .logout-button {
+            background-color: var(--reset-button-bg);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            float: right;
+        }
+        
+        .logout-button:hover {
+            background-color: var(--reset-button-hover);
+        }
+        
+        .code-block {
+            background-color: #000;
+            color: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .clear-float {
+            clear: both;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1><a href="https://github.com/plexguide/huntarr" target="_blank" class="title-link">Huntarr <span class="edition">[Sonarr Edition]</span></a></h1>
+            <h1><a href="/" class="title-link">Huntarr</a></h1>
             <div class="buttons">
                 <button id="logsButton">Logs</button>
                 <button id="settingsButton">Settings</button>
@@ -183,6 +192,9 @@
         </div>
 
         <div id="userContainer" class="content-section">
+            <a href="/logout" class="logout-button">Logout</a>
+            <div class="clear-float"></div>
+            
             <div class="user-settings">
                 <h2>User Account Settings</h2>
                 
@@ -263,25 +275,6 @@
                     </div>
                     
                     <div id="2faStatus" class="status-message"></div>
-                </div>
-                
-                <div class="reset-instructions">
-                    <h3>Forgot Password?</h3>
-                    <p>If you've forgotten your password, you'll need to reset it by removing the credentials file:</p>
-                    <ol>
-                        <li>Stop the Huntarr container:
-                            <pre>docker stop huntarr</pre>
-                        </li>
-                        <li>Delete the credentials file from your configuration volume:
-                            <pre>rm /path/to/your/config/user/credentials.json</pre>
-                            <p>For typical Docker setups, this would be something like:</p>
-                            <pre>rm /mnt/user/appdata/huntarr/user/credentials.json</pre>
-                        </li>
-                        <li>Restart the Huntarr container:
-                            <pre>docker start huntarr</pre>
-                        </li>
-                        <li>You'll be prompted to create a new account when accessing the web interface again.</li>
-                    </ol>
                 </div>
             </div>
         </div>

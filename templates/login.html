@@ -74,12 +74,13 @@
             text-align: center;
         }
         
-        .reset-instructions a {
+        .reset-link {
             color: var(--button-bg);
             text-decoration: none;
+            cursor: pointer;
         }
         
-        .reset-instructions a:hover {
+        .reset-link:hover {
             text-decoration: underline;
         }
     </style>
@@ -115,7 +116,7 @@
             </button>
             <p id="errorMessage" class="error-message">{{ error }}</p>
             <div class="reset-instructions">
-                <p>Forgot your password? <a href="#" onclick="showResetInstructions(); return false;">Reset it</a></p>
+                <p>Forgot your username or password? <a href="/reset-password" class="reset-link">Reset it</a></p>
             </div>
         </form>
     </div>
@@ -129,10 +130,6 @@
                 }
             });
         });
-        
-        function showResetInstructions() {
-            alert('To reset your password:\n\n1. Stop the Huntarr container:\n   docker stop huntarr\n\n2. Delete the credentials file:\n   rm /path/to/your/config/user/credentials.json\n\n3. Restart the container:\n   docker start huntarr\n\nYou will be prompted to create a new account when you access the web interface again.');
-        }
     </script>
 </body>
 </html>

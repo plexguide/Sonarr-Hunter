@@ -16,6 +16,7 @@ import qrcode
 import pyotp
 import base64
 import io
+import requests  # Add this import for the test_connection function
 from flask import Flask, render_template, Response, stream_with_context, request, jsonify, send_from_directory, redirect, session, url_for
 import logging
 from primary.config import API_URL
@@ -91,6 +92,11 @@ def setup_page():
         f.write(f"{timestamp} - huntarr-web - INFO - Accessed setup page - no user exists yet\n")
     return render_template('setup.html')
 
+@app.route('/reset-password')
+def reset_password_page():
+    """Render the password reset instructions page"""
+    return render_template('reset-password.html')
+
 @app.route('/login', methods=['GET'])
 def login_page():
     """Render the login page"""
@@ -161,6 +167,42 @@ def api_setup():
         with open(LOG_FILE, 'a') as f:
             f.write(f"{timestamp} - huntarr-web - ERROR - Failed to create user - check permissions\n")
         return jsonify({"success": False, "message": "Failed to create user - check directory permissions"}), 500
+
+@app.route('/api/test-connection', methods=['POST'])
+def test_connection():
+    """Test connection to an Arr application"""
+    data = request.json
+    app_type = data.get('app')
+    api_url = data.get('api_url')
+    api_key = data.get('api_key')
+    
+    if not app_type or not api_url or not api_key:
+        return jsonify({"success": False, "message": "Missing required parameters"}), 400
+    
+    try:
+        # Test connection by making a simple request to the API
+        url = f"{api_url}/api/v3/system/status"
+        headers = {
+            "X-Api-Key": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        # Log the successful connection test
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(LOG_FILE, 'a') as f:
+            f.write(f"{timestamp} - huntarr-web - INFO - Connection test successful for {app_type}: {api_url}\n")
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        # Log the failed connection test
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(LOG_FILE, 'a') as f:
+            f.write(f"{timestamp} - huntarr-web - ERROR - Connection test failed for {app_type}: {api_url} - {str(e)}\n")
+        
+        return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
@@ -275,6 +317,8 @@ def send_static(path):
 @app.route('/logs')
 def stream_logs():
     """Stream logs to the client"""
+    app = request.args.get('app', 'sonarr')  # Default to 'sonarr' if not specified
+    
     def generate():
         # First get all existing logs
         if os.path.exists(LOG_FILE):
@@ -282,7 +326,9 @@ def stream_logs():
                 # Read the last 100 lines of the log file
                 lines = f.readlines()[-100:]
                 for line in lines:
-                    yield f"data: {line}\n\n"
+                    # Filter logs by app type
+                    if app == 'sonarr' or app in line.lower():
+                        yield f"data: {line}\n\n"
         
         # Then stream new logs as they appear
         with open(LOG_FILE, 'r') as f:
@@ -291,7 +337,9 @@ def stream_logs():
             while True:
                 line = f.readline()
                 if line:
-                    yield f"data: {line}\n\n"
+                    # Filter logs by app type
+                    if app == 'sonarr' or app in line.lower():
+                        yield f"data: {line}\n\n"
                 else:
                     time.sleep(0.1)
 

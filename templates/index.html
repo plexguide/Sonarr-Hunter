@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1><a href="https://github.com/plexguide/huntarr" target="_blank" class="title-link">Huntarr <span class="edition">[Sonarr Edition]</span></a></h1>
+            <h1>Huntarr</h1>
             <div class="buttons">
                 <button id="logsButton" class="active">Logs</button>
                 <button id="settingsButton">Settings</button>
@@ -23,6 +23,14 @@
                 </label>
                 <span id="themeLabel">Light Mode</span>
             </div>
+        </div>
+
+        <!-- App Selector Tabs -->
+        <div class="app-selector">
+            <button class="app-tab active" data-app="sonarr">Sonarr</button>
+            <button class="app-tab" data-app="radarr">Radarr</button>
+            <button class="app-tab" data-app="lidarr">Lidarr</button>
+            <button class="app-tab" data-app="readarr">Readarr</button>
         </div>
 
         <div id="logsContainer" class="content-section">
@@ -43,118 +51,246 @@
 
         <div id="settingsContainer" class="content-section" style="display: none;">
             <div class="settings-form">
-                <h2>Huntarr Settings</h2>
-                
-                <!-- Add buttons here near the top -->
-                <div class="settings-buttons top-buttons">
-                    <button id="saveSettings" class="save-button">Save Settings</button>
-                    <button id="resetSettings" class="reset-button">Reset to Defaults</button>
+                <div id="settingsApp" class="settings-app-content">
+                    <!-- App-specific settings will be loaded here -->
                 </div>
                 
-                <div class="settings-group">
-                    <h3>Hunt Settings</h3>
-                    <div class="setting-item">
-                        <label for="hunt_missing_shows">Hunt Missing Shows:</label>
-                        <input type="number" id="hunt_missing_shows" min="0" step="1">
-                        <p class="setting-help">Maximum number of missing shows to process per cycle. Set to 0 to disable.</p>
+                <!-- Sonarr Settings -->
+                <div id="sonarrSettings" class="app-settings">
+                    <h2>Sonarr Settings</h2>
+                    
+                    <!-- Add buttons here near the top -->
+                    <div class="settings-buttons top-buttons">
+                        <button id="saveSettings" class="save-button">Save Settings</button>
+                        <button id="resetSettings" class="reset-button">Reset to Defaults</button>
                     </div>
-                    <div class="setting-item">
-                        <label for="hunt_upgrade_episodes">Hunt Upgrade Episodes:</label>
-                        <input type="number" id="hunt_upgrade_episodes" min="0" step="1">
-                        <p class="setting-help">Maximum number of episodes to upgrade per cycle. Set to 0 to disable.</p>
-                    </div>
-                </div>
-                
-                <div class="settings-group">
-                    <h3>Timing Settings</h3>
-                    <div class="setting-item">
-                        <label for="sleep_duration">Sleep Duration (seconds):</label>
-                        <div class="duration-input">
-                            <input type="number" id="sleep_duration" min="60" step="60">
-                            <span id="sleep_duration_hours">≈ 15 minutes</span>
+                    
+                    <div class="settings-group">
+                        <h3>Connection Settings</h3>
+                        <div class="setting-item">
+                            <label for="sonarr_api_url">Sonarr URL:</label>
+                            <input type="text" id="sonarr_api_url" placeholder="http://your-sonarr-address:8989">
+                            <p class="setting-help">URL to your Sonarr instance (e.g., http://localhost:8989)</p>
                         </div>
-                        <p class="setting-help">Time to wait between cycles in seconds (minimum 60 seconds)</p>
+                        <div class="setting-item">
+                            <label for="sonarr_api_key">API Key:</label>
+                            <input type="text" id="sonarr_api_key" placeholder="Enter your Sonarr API key">
+                            <p class="setting-help">Your Sonarr API key (found in Settings > General)</p>
+                        </div>
+                        <div class="setting-item">
+                            <label>Connection Status:</label>
+                            <span id="sonarrConnectionStatus" class="connection-badge not-connected">Not Connected</span>
+                            <button id="testSonarrConnection" class="test-connection-button">Test Connection</button>
+                        </div>
                     </div>
-                    <div class="setting-item">
-                        <label for="state_reset_interval_hours">State Reset Interval (hours):</label>
-                        <input type="number" id="state_reset_interval_hours" min="0" step="1">
-                        <p class="setting-help">Hours after which processed items will be forgotten. Set to 0 to never reset.</p>
+                    
+                    <div class="settings-group">
+                        <h3>Hunt Settings</h3>
+                        <div class="setting-item">
+                            <label for="hunt_missing_shows">Hunt Missing Shows:</label>
+                            <input type="number" id="hunt_missing_shows" min="0" step="1">
+                            <p class="setting-help">Maximum number of missing shows to process per cycle. Set to 0 to disable.</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="hunt_upgrade_episodes">Hunt Upgrade Episodes:</label>
+                            <input type="number" id="hunt_upgrade_episodes" min="0" step="1">
+                            <p class="setting-help">Maximum number of episodes to upgrade per cycle. Set to 0 to disable.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <h3>Timing Settings</h3>
+                        <div class="setting-item">
+                            <label for="sleep_duration">Sleep Duration (seconds):</label>
+                            <div class="duration-input">
+                                <input type="number" id="sleep_duration" min="60" step="60">
+                                <span id="sleep_duration_hours">≈ 15 minutes</span>
+                            </div>
+                            <p class="setting-help">Time to wait between cycles in seconds (minimum 60 seconds)</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="state_reset_interval_hours">State Reset Interval (hours):</label>
+                            <input type="number" id="state_reset_interval_hours" min="0" step="1">
+                            <p class="setting-help">Hours after which processed items will be forgotten. Set to 0 to never reset.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <h3>Processing Options</h3>
+                        <div class="setting-item">
+                            <label for="monitored_only">Monitored Only:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="monitored_only">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <p class="setting-help">Only process monitored shows and episodes</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="random_missing">Random Missing Shows:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="random_missing">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <p class="setting-help">Select missing shows randomly instead of sequentially</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="random_upgrades">Random Upgrades:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="random_upgrades">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <p class="setting-help">Select upgrade episodes randomly instead of sequentially</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="skip_future_episodes">Skip Future Episodes:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="skip_future_episodes">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <p class="setting-help">Skip processing episodes with future air dates</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="skip_series_refresh">Skip Series Refresh:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="skip_series_refresh">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <p class="setting-help">Skip refreshing series metadata before processing (reduces disk activity)</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Advanced Settings</h3>
+                        <div class="setting-item">
+                            <label for="api_timeout">API Timeout (seconds):</label>
+                            <input type="number" id="api_timeout" min="10" step="1">
+                            <p class="setting-help">Timeout in seconds for API requests to Sonarr (minimum 10 seconds)</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="debug_mode">Debug Mode:</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="debug_mode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <p class="setting-help">Enable detailed debug logging (takes effect immediately)</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="command_wait_delay">Command Wait Delay:</label>
+                            <input type="number" id="command_wait_delay" min="1" step="1">
+                            <p class="setting-help">Delay in seconds between checking for command status</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="command_wait_attempts">Command Wait Attempts:</label>
+                            <input type="number" id="command_wait_attempts" min="10" step="1">
+                            <p class="setting-help">Number of attempts to check for command completion before giving up</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="minimum_download_queue_size">Minimum Queue Size:</label>
+                            <input type="number" id="minimum_download_queue_size" min="-1" step="1">
+                            <p class="setting-help">Minimum items in download queue before starting hunt. Set to -1 to disable check.</p>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="settings-group">
-                    <h3>Processing Options</h3>
-                    <div class="setting-item">
-                        <label for="monitored_only">Monitored Only:</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="monitored_only">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <p class="setting-help">Only process monitored shows and episodes</p>
+                <!-- Radarr Settings (placeholder) -->
+                <div id="radarrSettings" class="app-settings" style="display: none;">
+                    <h2>Radarr Settings</h2>
+                    
+                    <div class="settings-buttons top-buttons">
+                        <button id="saveRadarrSettings" class="save-button">Save Settings</button>
+                        <button id="resetRadarrSettings" class="reset-button">Reset to Defaults</button>
                     </div>
-                    <div class="setting-item">
-                        <label for="random_missing">Random Missing Shows:</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="random_missing">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <p class="setting-help">Select missing shows randomly instead of sequentially</p>
+                    
+                    <div class="settings-group">
+                        <h3>Connection Settings</h3>
+                        <div class="setting-item">
+                            <label for="radarr_api_url">Radarr URL:</label>
+                            <input type="text" id="radarr_api_url" placeholder="http://your-radarr-address:7878">
+                            <p class="setting-help">URL to your Radarr instance (e.g., http://localhost:7878)</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="radarr_api_key">API Key:</label>
+                            <input type="text" id="radarr_api_key" placeholder="Enter your Radarr API key">
+                            <p class="setting-help">Your Radarr API key (found in Settings > General)</p>
+                        </div>
+                        <div class="setting-item">
+                            <label>Connection Status:</label>
+                            <span id="radarrConnectionStatus" class="connection-badge not-connected">Not Connected</span>
+                            <button id="testRadarrConnection" class="test-connection-button">Test Connection</button>
+                        </div>
                     </div>
-                    <div class="setting-item">
-                        <label for="random_upgrades">Random Upgrades:</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="random_upgrades">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <p class="setting-help">Select upgrade episodes randomly instead of sequentially</p>
-                    </div>
-                    <div class="setting-item">
-                        <label for="skip_future_episodes">Skip Future Episodes:</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="skip_future_episodes">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <p class="setting-help">Skip processing episodes with future air dates</p>
-                    </div>
-                    <div class="setting-item">
-                        <label for="skip_series_refresh">Skip Series Refresh:</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="skip_series_refresh">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <p class="setting-help">Skip refreshing series metadata before processing (reduces disk activity)</p>
+                    
+                    <div class="settings-group">
+                        <h3>Hunt Settings</h3>
+                        <p class="service-not-configured">Radarr integration is not fully implemented yet. Please configure the connection settings first.</p>
                     </div>
                 </div>
-
-                <div class="settings-group">
-                    <h3>Advanced Settings</h3>
-                    <div class="setting-item">
-                        <label for="api_timeout">API Timeout (seconds):</label>
-                        <input type="number" id="api_timeout" min="10" step="1">
-                        <p class="setting-help">Timeout in seconds for API requests to Sonarr (minimum 10 seconds)</p>
+                
+                <!-- Lidarr Settings (placeholder) -->
+                <div id="lidarrSettings" class="app-settings" style="display: none;">
+                    <h2>Lidarr Settings</h2>
+                    
+                    <div class="settings-buttons top-buttons">
+                        <button id="saveLidarrSettings" class="save-button">Save Settings</button>
+                        <button id="resetLidarrSettings" class="reset-button">Reset to Defaults</button>
                     </div>
-                    <div class="setting-item">
-                        <label for="debug_mode">Debug Mode:</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="debug_mode">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <p class="setting-help">Enable detailed debug logging (takes effect immediately)</p>
+                    
+                    <div class="settings-group">
+                        <h3>Connection Settings</h3>
+                        <div class="setting-item">
+                            <label for="lidarr_api_url">Lidarr URL:</label>
+                            <input type="text" id="lidarr_api_url" placeholder="http://your-lidarr-address:8686">
+                            <p class="setting-help">URL to your Lidarr instance (e.g., http://localhost:8686)</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="lidarr_api_key">API Key:</label>
+                            <input type="text" id="lidarr_api_key" placeholder="Enter your Lidarr API key">
+                            <p class="setting-help">Your Lidarr API key (found in Settings > General)</p>
+                        </div>
+                        <div class="setting-item">
+                            <label>Connection Status:</label>
+                            <span id="lidarrConnectionStatus" class="connection-badge not-connected">Not Connected</span>
+                            <button id="testLidarrConnection" class="test-connection-button">Test Connection</button>
+                        </div>
                     </div>
-                    <div class="setting-item">
-                        <label for="command_wait_delay">Command Wait Delay:</label>
-                        <input type="number" id="command_wait_delay" min="1" step="1">
-                        <p class="setting-help">Delay in seconds between checking for command status</p>
+                    
+                    <div class="settings-group">
+                        <h3>Hunt Settings</h3>
+                        <p class="service-not-configured">Lidarr integration is not fully implemented yet. Please configure the connection settings first.</p>
                     </div>
-                    <div class="setting-item">
-                        <label for="command_wait_attempts">Command Wait Attempts:</label>
-                        <input type="number" id="command_wait_attempts" min="10" step="1">
-                        <p class="setting-help">Number of attempts to check for command completion before giving up</p>
+                </div>
+                
+                <!-- Readarr Settings (placeholder) -->
+                <div id="readarrSettings" class="app-settings" style="display: none;">
+                    <h2>Readarr Settings</h2>
+                    
+                    <div class="settings-buttons top-buttons">
+                        <button id="saveReadarrSettings" class="save-button">Save Settings</button>
+                        <button id="resetReadarrSettings" class="reset-button">Reset to Defaults</button>
                     </div>
-                    <div class="setting-item">
-                        <label for="minimum_download_queue_size">Minimum Queue Size:</label>
-                        <input type="number" id="minimum_download_queue_size" min="-1" step="1">
-                        <p class="setting-help">Minimum items in download queue before starting hunt. Set to -1 to disable check.</p>
+                    
+                    <div class="settings-group">
+                        <h3>Connection Settings</h3>
+                        <div class="setting-item">
+                            <label for="readarr_api_url">Readarr URL:</label>
+                            <input type="text" id="readarr_api_url" placeholder="http://your-readarr-address:8787">
+                            <p class="setting-help">URL to your Readarr instance (e.g., http://localhost:8787)</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="readarr_api_key">API Key:</label>
+                            <input type="text" id="readarr_api_key" placeholder="Enter your Readarr API key">
+                            <p class="setting-help">Your Readarr API key (found in Settings > General)</p>
+                        </div>
+                        <div class="setting-item">
+                            <label>Connection Status:</label>
+                            <span id="readarrConnectionStatus" class="connection-badge not-connected">Not Connected</span>
+                            <button id="testReadarrConnection" class="test-connection-button">Test Connection</button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <h3>Hunt Settings</h3>
+                        <p class="service-not-configured">Readarr integration is not fully implemented yet. Please configure the connection settings first.</p>
                     </div>
                 </div>
                 
