@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
+    const homeButton = document.getElementById('homeButton');
     const logsButton = document.getElementById('logsButton');
     const settingsButton = document.getElementById('settingsButton');
     const userButton = document.getElementById('userButton');
+    const homeContainer = document.getElementById('homeContainer');
     const logsContainer = document.getElementById('logsContainer');
     const settingsContainer = document.getElementById('settingsContainer');
     const logsElement = document.getElementById('logs');
@@ -15,6 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // App tabs
     const appTabs = document.querySelectorAll('.app-tab');
     const appSettings = document.querySelectorAll('.app-settings');
+    
+    // Connection status elements on home page
+    const sonarrHomeStatus = document.getElementById('sonarrHomeStatus');
+    const radarrHomeStatus = document.getElementById('radarrHomeStatus');
+    const lidarrHomeStatus = document.getElementById('lidarrHomeStatus');
+    const readarrHomeStatus = document.getElementById('readarrHomeStatus');
     
     // Current selected app
     let currentApp = 'sonarr';
@@ -65,9 +73,11 @@ document.addEventListener('DOMContentLoaded', function() {
             appTabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
             
-            // Update active settings panel
-            appSettings.forEach(s => s.style.display = 'none');
-            document.getElementById(`${app}Settings`).style.display = 'block';
+            // Update active settings panel if on settings page
+            if (settingsContainer && settingsContainer.style.display !== 'none') {
+                appSettings.forEach(s => s.style.display = 'none');
+                document.getElementById(`${app}Settings`).style.display = 'block';
+            }
             
             // Update current app
             currentApp = app;
@@ -76,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loadSettings(app);
             
             // For logs, we need to refresh the log stream
-            if (logsElement) {
+            if (logsElement && logsContainer.style.display !== 'none') {
                 // Clear the logs first
                 logsElement.innerHTML = '';
                 // Reconnect the event source
@@ -152,24 +162,92 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.error('Error saving theme:', error));
     });
     
-    // Tab switching - Toggle visibility instead of redirecting
-    if (logsButton && settingsButton && logsContainer && settingsContainer) {
+    // Get user's name for welcome message
+    function getUserInfo() {
+        // This is a placeholder - in a real implementation, you'd likely have an API
+        // to get the current user's information
+        const username = document.getElementById('username');
+        if (username) {
+            username.textContent = 'User'; // Default placeholder
+        }
+    }
+    
+    // Update connection status on the home page
+    function updateHomeConnectionStatus() {
+        // Sonarr status
+        if (sonarrHomeStatus) {
+            if (sonarrApiUrlInput && sonarrApiKeyInput && 
+                sonarrApiUrlInput.value && sonarrApiKeyInput.value) {
+                sonarrHomeStatus.textContent = 'Configured';
+                sonarrHomeStatus.className = 'connection-badge connected';
+            } else {
+                sonarrHomeStatus.textContent = 'Not Configured';
+                sonarrHomeStatus.className = 'connection-badge not-connected';
+            }
+        }
+        
+        // Add similar checks for other services when implemented
+        // For now, we'll just show them as not configured
+        if (radarrHomeStatus) {
+            radarrHomeStatus.textContent = 'Not Configured';
+            radarrHomeStatus.className = 'connection-badge not-connected';
+        }
+        
+        if (lidarrHomeStatus) {
+            lidarrHomeStatus.textContent = 'Not Configured';
+            lidarrHomeStatus.className = 'connection-badge not-connected';
+        }
+        
+        if (readarrHomeStatus) {
+            readarrHomeStatus.textContent = 'Not Configured';
+            readarrHomeStatus.className = 'connection-badge not-connected';
+        }
+    }
+    
+    // Tab switching - Toggle visibility of containers
+    if (homeButton && logsButton && settingsButton && homeContainer && logsContainer && settingsContainer) {
+        homeButton.addEventListener('click', function() {
+            homeContainer.style.display = 'flex';
+            logsContainer.style.display = 'none';
+            settingsContainer.style.display = 'none';
+            homeButton.classList.add('active');
+            logsButton.classList.remove('active');
+            settingsButton.classList.remove('active');
+            userButton.classList.remove('active');
+            
+            // Update connection status on home page
+            updateHomeConnectionStatus();
+        });
+        
         logsButton.addEventListener('click', function() {
+            homeContainer.style.display = 'none';
             logsContainer.style.display = 'flex';
             settingsContainer.style.display = 'none';
+            homeButton.classList.remove('active');
             logsButton.classList.add('active');
             settingsButton.classList.remove('active');
             userButton.classList.remove('active');
+            
+            // Reconnect to logs for the current app
+            if (logsElement) {
+                connectEventSource(currentApp);
+            }
         });
         
         settingsButton.addEventListener('click', function() {
+            homeContainer.style.display = 'none';
             logsContainer.style.display = 'none';
             settingsContainer.style.display = 'flex';
+            homeButton.classList.remove('active');
             logsButton.classList.remove('active');
             settingsButton.classList.add('active');
             userButton.classList.remove('active');
             
-            // Make sure settings are loaded when switching to settings tab
+            // Show the settings for the current app
+            appSettings.forEach(s => s.style.display = 'none');
+            document.getElementById(`${currentApp}Settings`).style.display = 'block';
+            
+            // Make sure settings are loaded
             loadSettings(currentApp);
         });
         
@@ -179,13 +257,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Log management
-    clearLogsButton.addEventListener('click', function() {
-        logsElement.innerHTML = '';
-    });
+    if (clearLogsButton) {
+        clearLogsButton.addEventListener('click', function() {
+            logsElement.innerHTML = '';
+        });
+    }
     
     // Auto-scroll function
     function scrollToBottom() {
-        if (autoScrollCheckbox.checked) {
+        if (autoScrollCheckbox && autoScrollCheckbox.checked && logsElement) {
             logsElement.scrollTop = logsElement.scrollHeight;
         }
     }
@@ -221,6 +301,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     sonarrConnectionStatus.textContent = 'Connected';
                     sonarrConnectionStatus.className = 'connection-badge connected';
+                    
+                    // Update home page status
+                    if (sonarrHomeStatus) {
+                        sonarrHomeStatus.textContent = 'Connected';
+                        sonarrHomeStatus.className = 'connection-badge connected';
+                    }
                 } else {
                     sonarrConnectionStatus.textContent = 'Connection Failed';
                     sonarrConnectionStatus.className = 'connection-badge not-connected';
@@ -243,38 +329,40 @@ document.addEventListener('DOMContentLoaded', function() {
         let hasChanges = false;
         
         // API connection settings
-        if (sonarrApiUrlInput.value !== originalSettings.api_url) hasChanges = true;
-        if (sonarrApiKeyInput.value !== originalSettings.api_key) hasChanges = true;
+        if (sonarrApiUrlInput && sonarrApiUrlInput.value !== originalSettings.api_url) hasChanges = true;
+        if (sonarrApiKeyInput && sonarrApiKeyInput.value !== originalSettings.api_key) hasChanges = true;
         
         // Check Basic Settings
-        if (parseInt(huntMissingShowsInput.value) !== originalSettings.huntarr.hunt_missing_shows) hasChanges = true;
-        if (parseInt(huntUpgradeEpisodesInput.value) !== originalSettings.huntarr.hunt_upgrade_episodes) hasChanges = true;
-        if (parseInt(sleepDurationInput.value) !== originalSettings.huntarr.sleep_duration) hasChanges = true;
-        if (parseInt(stateResetIntervalInput.value) !== originalSettings.huntarr.state_reset_interval_hours) hasChanges = true;
-        if (monitoredOnlyInput.checked !== originalSettings.huntarr.monitored_only) hasChanges = true;
-        if (skipFutureEpisodesInput.checked !== originalSettings.huntarr.skip_future_episodes) hasChanges = true;
-        if (skipSeriesRefreshInput.checked !== originalSettings.huntarr.skip_series_refresh) hasChanges = true;
+        if (huntMissingShowsInput && parseInt(huntMissingShowsInput.value) !== originalSettings.huntarr.hunt_missing_shows) hasChanges = true;
+        if (huntUpgradeEpisodesInput && parseInt(huntUpgradeEpisodesInput.value) !== originalSettings.huntarr.hunt_upgrade_episodes) hasChanges = true;
+        if (sleepDurationInput && parseInt(sleepDurationInput.value) !== originalSettings.huntarr.sleep_duration) hasChanges = true;
+        if (stateResetIntervalInput && parseInt(stateResetIntervalInput.value) !== originalSettings.huntarr.state_reset_interval_hours) hasChanges = true;
+        if (monitoredOnlyInput && monitoredOnlyInput.checked !== originalSettings.huntarr.monitored_only) hasChanges = true;
+        if (skipFutureEpisodesInput && skipFutureEpisodesInput.checked !== originalSettings.huntarr.skip_future_episodes) hasChanges = true;
+        if (skipSeriesRefreshInput && skipSeriesRefreshInput.checked !== originalSettings.huntarr.skip_series_refresh) hasChanges = true;
         
         // Check Advanced Settings
-        if (parseInt(apiTimeoutInput.value) !== originalSettings.advanced.api_timeout) hasChanges = true;
-        if (debugModeInput.checked !== originalSettings.advanced.debug_mode) hasChanges = true;
-        if (parseInt(commandWaitDelayInput.value) !== originalSettings.advanced.command_wait_delay) hasChanges = true;
-        if (parseInt(commandWaitAttemptsInput.value) !== originalSettings.advanced.command_wait_attempts) hasChanges = true;
-        if (parseInt(minimumDownloadQueueSizeInput.value) !== originalSettings.advanced.minimum_download_queue_size) hasChanges = true;
-        if (randomMissingInput.checked !== originalSettings.advanced.random_missing) hasChanges = true;
-        if (randomUpgradesInput.checked !== originalSettings.advanced.random_upgrades) hasChanges = true;
+        if (apiTimeoutInput && parseInt(apiTimeoutInput.value) !== originalSettings.advanced.api_timeout) hasChanges = true;
+        if (debugModeInput && debugModeInput.checked !== originalSettings.advanced.debug_mode) hasChanges = true;
+        if (commandWaitDelayInput && parseInt(commandWaitDelayInput.value) !== originalSettings.advanced.command_wait_delay) hasChanges = true;
+        if (commandWaitAttemptsInput && parseInt(commandWaitAttemptsInput.value) !== originalSettings.advanced.command_wait_attempts) hasChanges = true;
+        if (minimumDownloadQueueSizeInput && parseInt(minimumDownloadQueueSizeInput.value) !== originalSettings.advanced.minimum_download_queue_size) hasChanges = true;
+        if (randomMissingInput && randomMissingInput.checked !== originalSettings.advanced.random_missing) hasChanges = true;
+        if (randomUpgradesInput && randomUpgradesInput.checked !== originalSettings.advanced.random_upgrades) hasChanges = true;
         
         // Enable/disable save buttons based on whether there are changes
-        saveSettingsButton.disabled = !hasChanges;
-        saveSettingsBottomButton.disabled = !hasChanges;
-        
-        // Apply visual indicator based on disabled state
-        if (hasChanges) {
-            saveSettingsButton.classList.remove('disabled-button');
-            saveSettingsBottomButton.classList.remove('disabled-button');
-        } else {
-            saveSettingsButton.classList.add('disabled-button');
-            saveSettingsBottomButton.classList.add('disabled-button');
+        if (saveSettingsButton && saveSettingsBottomButton) {
+            saveSettingsButton.disabled = !hasChanges;
+            saveSettingsBottomButton.disabled = !hasChanges;
+            
+            // Apply visual indicator based on disabled state
+            if (hasChanges) {
+                saveSettingsButton.classList.remove('disabled-button');
+                saveSettingsBottomButton.classList.remove('disabled-button');
+            } else {
+                saveSettingsButton.classList.add('disabled-button');
+                saveSettingsBottomButton.classList.add('disabled-button');
+            }
         }
         
         return hasChanges;
@@ -308,8 +396,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load settings from API
     function loadSettings(app = 'sonarr') {
-        if (!saveSettingsButton) return; // Skip if not on settings page
-        
         fetch('/api/settings')
             .then(response => response.json())
             .then(data => {
@@ -320,46 +406,79 @@ document.addEventListener('DOMContentLoaded', function() {
                 originalSettings = JSON.parse(JSON.stringify(data));
                 
                 // Connection settings
-                if (app === 'sonarr') {
+                if (app === 'sonarr' && sonarrApiUrlInput && sonarrApiKeyInput) {
                     sonarrApiUrlInput.value = data.api_url || '';
                     sonarrApiKeyInput.value = data.api_key || '';
                     
                     // Update connection status
-                    if (data.api_url && data.api_key) {
-                        sonarrConnectionStatus.textContent = 'Configured';
-                        sonarrConnectionStatus.className = 'connection-badge connected';
-                    } else {
-                        sonarrConnectionStatus.textContent = 'Not Configured';
-                        sonarrConnectionStatus.className = 'connection-badge not-connected';
+                    if (sonarrConnectionStatus) {
+                        if (data.api_url && data.api_key) {
+                            sonarrConnectionStatus.textContent = 'Configured';
+                            sonarrConnectionStatus.className = 'connection-badge connected';
+                        } else {
+                            sonarrConnectionStatus.textContent = 'Not Configured';
+                            sonarrConnectionStatus.className = 'connection-badge not-connected';
+                        }
                     }
                     
-                    // Fill form with current settings - Basic settings
-                    huntMissingShowsInput.value = huntarr.hunt_missing_shows !== undefined ? huntarr.hunt_missing_shows : 1;
-                    huntUpgradeEpisodesInput.value = huntarr.hunt_upgrade_episodes !== undefined ? huntarr.hunt_upgrade_episodes : 5;
-                    sleepDurationInput.value = huntarr.sleep_duration || 900;
-                    updateSleepDurationDisplay();
-                    stateResetIntervalInput.value = huntarr.state_reset_interval_hours || 168;
-                    monitoredOnlyInput.checked = huntarr.monitored_only !== false;
-                    skipFutureEpisodesInput.checked = huntarr.skip_future_episodes !== false;
-                    skipSeriesRefreshInput.checked = huntarr.skip_series_refresh === true;
+                    // Sonarr-specific settings
+                    if (huntMissingShowsInput) {
+                        huntMissingShowsInput.value = huntarr.hunt_missing_shows !== undefined ? huntarr.hunt_missing_shows : 1;
+                    }
+                    if (huntUpgradeEpisodesInput) {
+                        huntUpgradeEpisodesInput.value = huntarr.hunt_upgrade_episodes !== undefined ? huntarr.hunt_upgrade_episodes : 5;
+                    }
+                    if (sleepDurationInput) {
+                        sleepDurationInput.value = huntarr.sleep_duration || 900;
+                        updateSleepDurationDisplay();
+                    }
+                    if (stateResetIntervalInput) {
+                        stateResetIntervalInput.value = huntarr.state_reset_interval_hours || 168;
+                    }
+                    if (monitoredOnlyInput) {
+                        monitoredOnlyInput.checked = huntarr.monitored_only !== false;
+                    }
+                    if (skipFutureEpisodesInput) {
+                        skipFutureEpisodesInput.checked = huntarr.skip_future_episodes !== false;
+                    }
+                    if (skipSeriesRefreshInput) {
+                        skipSeriesRefreshInput.checked = huntarr.skip_series_refresh === true;
+                    }
                     
-                    // Fill form with current settings - Advanced settings
-                    apiTimeoutInput.value = advanced.api_timeout || 60;
-                    debugModeInput.checked = advanced.debug_mode === true;
-                    commandWaitDelayInput.value = advanced.command_wait_delay || 1;
-                    commandWaitAttemptsInput.value = advanced.command_wait_attempts || 600;
-                    minimumDownloadQueueSizeInput.value = advanced.minimum_download_queue_size || -1;
-                    
-                    // Handle random settings
-                    randomMissingInput.checked = advanced.random_missing !== false;
-                    randomUpgradesInput.checked = advanced.random_upgrades !== false;
+                    // Advanced settings
+                    if (apiTimeoutInput) {
+                        apiTimeoutInput.value = advanced.api_timeout || 60;
+                    }
+                    if (debugModeInput) {
+                        debugModeInput.checked = advanced.debug_mode === true;
+                    }
+                    if (commandWaitDelayInput) {
+                        commandWaitDelayInput.value = advanced.command_wait_delay || 1;
+                    }
+                    if (commandWaitAttemptsInput) {
+                        commandWaitAttemptsInput.value = advanced.command_wait_attempts || 600;
+                    }
+                    if (minimumDownloadQueueSizeInput) {
+                        minimumDownloadQueueSizeInput.value = advanced.minimum_download_queue_size || -1;
+                    }
+                    if (randomMissingInput) {
+                        randomMissingInput.checked = advanced.random_missing !== false;
+                    }
+                    if (randomUpgradesInput) {
+                        randomUpgradesInput.checked = advanced.random_upgrades !== false;
+                    }
                 }
                 
+                // Update home page connection status
+                updateHomeConnectionStatus();
+                
                 // Initialize save buttons state
-                saveSettingsButton.disabled = true;
-                saveSettingsBottomButton.disabled = true;
-                saveSettingsButton.classList.add('disabled-button');
-                saveSettingsBottomButton.classList.add('disabled-button');
+                if (saveSettingsButton && saveSettingsBottomButton) {
+                    saveSettingsButton.disabled = true;
+                    saveSettingsBottomButton.disabled = true;
+                    saveSettingsButton.classList.add('disabled-button');
+                    saveSettingsBottomButton.classList.add('disabled-button');
+                }
             })
             .catch(error => console.error('Error loading settings:', error));
     }
@@ -373,25 +492,26 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const settings = {
             app_type: currentApp,
-            api_url: sonarrApiUrlInput.value,
-            api_key: sonarrApiKeyInput.value,
+            api_url: sonarrApiUrlInput ? sonarrApiUrlInput.value : '',
+            api_key: sonarrApiKeyInput ? sonarrApiKeyInput.value : '',
             huntarr: {
-                hunt_missing_shows: parseInt(huntMissingShowsInput.value) || 0,
-                hunt_upgrade_episodes: parseInt(huntUpgradeEpisodesInput.value) || 0,
-                sleep_duration: parseInt(sleepDurationInput.value) || 900,
-                state_reset_interval_hours: parseInt(stateResetIntervalInput.value) || 168,
-                monitored_only: monitoredOnlyInput.checked,
-                skip_future_episodes: skipFutureEpisodesInput.checked,
-                skip_series_refresh: skipSeriesRefreshInput.checked
+                hunt_missing_shows: huntMissingShowsInput ? parseInt(huntMissingShowsInput.value) || 0 : 0,
+                hunt_upgrade_episodes: huntUpgradeEpisodesInput ? parseInt(huntUpgradeEpisodesInput.value) || 0 : 0,
+                sleep_duration: sleepDurationInput ? parseInt(sleepDurationInput.value) || 900 : 900,
+                state_reset_interval_hours: stateResetIntervalInput ? parseInt(stateResetIntervalInput.value) || 168 : 168,
+                monitored_only: monitoredOnlyInput ? monitoredOnlyInput.checked : true,
+                skip_future_episodes: skipFutureEpisodesInput ? skipFutureEpisodesInput.checked : true,
+                skip_series_refresh: skipSeriesRefreshInput ? skipSeriesRefreshInput.checked : false
             },
             advanced: {
-                api_timeout: parseInt(apiTimeoutInput.value) || 60,
-                debug_mode: debugModeInput.checked,
-                command_wait_delay: parseInt(commandWaitDelayInput.value) || 1,
-                command_wait_attempts: parseInt(commandWaitAttemptsInput.value) || 600,
-                minimum_download_queue_size: parseInt(minimumDownloadQueueSizeInput.value) || -1,
-                random_missing: randomMissingInput.checked,
-                random_upgrades: randomUpgradesInput.checked
+                api_timeout: apiTimeoutInput ? parseInt(apiTimeoutInput.value) || 60 : 60,
+                debug_mode: debugModeInput ? debugModeInput.checked : false
+                debug_mode: debugModeInput ? debugModeInput.checked : false,
+                command_wait_delay: commandWaitDelayInput ? parseInt(commandWaitDelayInput.value) || 1 : 1,
+                command_wait_attempts: commandWaitAttemptsInput ? parseInt(commandWaitAttemptsInput.value) || 600 : 600,
+                minimum_download_queue_size: minimumDownloadQueueSizeInput ? parseInt(minimumDownloadQueueSizeInput.value) || -1 : -1,
+                random_missing: randomMissingInput ? randomMissingInput.checked : true,
+                random_upgrades: randomUpgradesInput ? randomUpgradesInput.checked : true
             }
         };
         
@@ -409,19 +529,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 originalSettings = JSON.parse(JSON.stringify(settings));
                 
                 // Update connection status
-                if (settings.api_url && settings.api_key) {
-                    sonarrConnectionStatus.textContent = 'Configured';
-                    sonarrConnectionStatus.className = 'connection-badge connected';
-                } else {
-                    sonarrConnectionStatus.textContent = 'Not Configured';
-                    sonarrConnectionStatus.className = 'connection-badge not-connected';
+                if (sonarrConnectionStatus) {
+                    if (settings.api_url && settings.api_key) {
+                        sonarrConnectionStatus.textContent = 'Configured';
+                        sonarrConnectionStatus.className = 'connection-badge connected';
+                    } else {
+                        sonarrConnectionStatus.textContent = 'Not Configured';
+                        sonarrConnectionStatus.className = 'connection-badge not-connected';
+                    }
                 }
                 
+                // Update home page connection status
+                updateHomeConnectionStatus();
+                
                 // Disable save buttons
-                saveSettingsButton.disabled = true;
-                saveSettingsBottomButton.disabled = true;
-                saveSettingsButton.classList.add('disabled-button');
-                saveSettingsBottomButton.classList.add('disabled-button');
+                if (saveSettingsButton && saveSettingsBottomButton) {
+                    saveSettingsButton.disabled = true;
+                    saveSettingsBottomButton.disabled = true;
+                    saveSettingsButton.classList.add('disabled-button');
+                    saveSettingsBottomButton.classList.add('disabled-button');
+                }
                 
                 // Show success message
                 if (data.changes_made) {
@@ -451,6 +578,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     alert('Settings reset to defaults and cycle restarted.');
                     loadSettings(currentApp);
+                    
+                    // Update home page connection status
+                    updateHomeConnectionStatus();
                 } else {
                     alert('Error resetting settings: ' + (data.message || 'Unknown error'));
                 }
@@ -484,13 +614,17 @@ document.addEventListener('DOMContentLoaded', function() {
         eventSource = new EventSource(`/logs?app=${app}`);
         
         eventSource.onopen = function() {
-            statusElement.textContent = 'Connected';
-            statusElement.className = 'status-connected';
+            if (statusElement) {
+                statusElement.textContent = 'Connected';
+                statusElement.className = 'status-connected';
+            }
         };
         
         eventSource.onerror = function() {
-            statusElement.textContent = 'Disconnected';
-            statusElement.className = 'status-disconnected';
+            if (statusElement) {
+                statusElement.textContent = 'Disconnected';
+                statusElement.className = 'status-disconnected';
+            }
             
             // Attempt to reconnect after 5 seconds
             setTimeout(() => connectEventSource(app), 5000);
@@ -524,7 +658,7 @@ document.addEventListener('DOMContentLoaded', function() {
         logsElement.addEventListener('scroll', function() {
             // If we're at the bottom or near it (within 20px), ensure auto-scroll stays on
             const atBottom = (logsElement.scrollHeight - logsElement.scrollTop - logsElement.clientHeight) < 20;
-            if (!atBottom && autoScrollCheckbox.checked) {
+            if (!atBottom && autoScrollCheckbox && autoScrollCheckbox.checked) {
                 // User manually scrolled up, disable auto-scroll
                 autoScrollCheckbox.checked = false;
             }
@@ -546,26 +680,43 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSleepDurationDisplay();
     }
     
-    // Check if we're on the settings page by checking URL path
-    const isSettingsPage = window.location.pathname === '/settings';
+    // Get user info for welcome page
+    getUserInfo();
     
-    // If on settings page, show settings initially
-    if (isSettingsPage && logsContainer && settingsContainer) {
-        logsContainer.style.display = 'none';
-        settingsContainer.style.display = 'flex';
-        logsButton.classList.remove('active');
-        settingsButton.classList.add('active');
-        userButton.classList.remove('active');
-        loadSettings(currentApp);
-    } else {
-        // On any other page, load settings only if we're on the main page
-        if (window.location.pathname === '/' && settingsContainer) {
-            settingsContainer.style.display = 'none';
-            loadSettings(currentApp);
-        }
+    // Load settings for initial app
+    loadSettings(currentApp);
+    
+    // Check if we're on the settings page by URL path
+    const path = window.location.pathname;
+    
+    // Show proper content based on path or hash
+    if (path === '/settings') {
+        // Show settings page
+        if (homeContainer) homeContainer.style.display = 'none';
+        if (logsContainer) logsContainer.style.display = 'none';
+        if (settingsContainer) settingsContainer.style.display = 'flex';
+        
+        if (homeButton) homeButton.classList.remove('active');
+        if (logsButton) logsButton.classList.remove('active');
+        if (settingsButton) settingsButton.classList.add('active');
+        if (userButton) userButton.classList.remove('active');
+    } else if (path === '/') {
+        // Default to home page
+        if (homeContainer) homeContainer.style.display = 'flex';
+        if (logsContainer) logsContainer.style.display = 'none';
+        if (settingsContainer) settingsContainer.style.display = 'none';
+        
+        if (homeButton) homeButton.classList.add('active');
+        if (logsButton) logsButton.classList.remove('active');
+        if (settingsButton) settingsButton.classList.remove('active');
+        if (userButton) userButton.classList.remove('active');
+        
+        // Update connection status on home page
+        updateHomeConnectionStatus();
     }
     
-    if (logsElement) {
+    // Connect to logs if we're on the logs page
+    if (logsElement && logsContainer && logsContainer.style.display !== 'none') {
         connectEventSource(currentApp);
     }
 });
