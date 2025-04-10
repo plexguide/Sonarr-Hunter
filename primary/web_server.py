@@ -536,4 +536,4 @@ if __name__ == "__main__":
         f.write(f"{timestamp} - huntarr-web - INFO - Web interface available at http://{ip_address}:8988\n")
     
     # Run the Flask app
-    app.run(host='0.0.0.0', port=8988, debug=False, threaded=True)
+    app.run(host='0.0.0.0', port=9705, debug=False, threaded=True)
