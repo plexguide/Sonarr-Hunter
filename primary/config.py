@@ -8,6 +8,7 @@ import os
 import logging
 import importlib
 from primary import settings_manager
+from primary.utils.logger import logger
 
 # Get app type
 APP_TYPE = settings_manager.get_app_type()
@@ -127,6 +128,7 @@ def refresh_settings():
     # Reload RANDOM_UPGRADES from settings
     RANDOM_UPGRADES = settings_manager.get_setting("advanced", "random_upgrades", True)
 
+    # Log the refreshed settings
     logger.debug(f"Settings refreshed: RANDOM_UPGRADES={RANDOM_UPGRADES}")
 
 def log_configuration(logger):
