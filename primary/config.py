@@ -30,6 +30,8 @@ SLEEP_DURATION = settings_manager.get_setting("huntarr", "sleep_duration", 900)
 STATE_RESET_INTERVAL_HOURS = settings_manager.get_setting("huntarr", "state_reset_interval_hours", 168)
 RANDOM_MISSING = settings_manager.get_setting("advanced", "random_missing", True)
 RANDOM_UPGRADES = settings_manager.get_setting("advanced", "random_upgrades", True)
+# Add a new variable for log refresh interval
+LOG_REFRESH_INTERVAL_SECONDS = settings_manager.get_setting("huntarr", "log_refresh_interval_seconds", 30)
 
 # App-specific settings based on APP_TYPE
 if APP_TYPE == "sonarr":

@@ -1069,6 +1069,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Add countdown logic for log refresh
+    function startLogCountdown(sleepDuration, refreshInterval) {
+        const countdownElement = document.getElementById('logCountdown');
+        if (!countdownElement || refreshInterval <= 0) return;
+
+        let remainingTime = sleepDuration;
+
+        const interval = setInterval(() => {
+            remainingTime -= refreshInterval;
+            if (remainingTime <= 0) {
+                countdownElement.textContent = 'Cycle starting...';
+                clearInterval(interval);
+            } else {
+                countdownElement.textContent = `Next cycle in ${remainingTime} seconds`;
+            }
+        }, refreshInterval * 1000);
+    }
+
+    // Call this function when the cycle starts
+    startLogCountdown(sleepDuration, logRefreshInterval);
+    
     // Initialize
     loadTheme();
     if (sleepDurationInput) {
