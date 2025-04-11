@@ -166,7 +166,10 @@ body {
     text-align: center;
 }
 
-.buttons button:hover,
+.buttons button:hover {
+    background-color: var(--button-hover);
+}
+
 .buttons button.active {
     background-color: var(--button-hover);
     font-weight: bold;
@@ -543,6 +546,7 @@ input:checked + .toggle-slider:before {
     margin-top: 0;
     margin-bottom: 0;
     overflow: hidden;
+    border-bottom: 1px solid var(--app-tab-border);
 }
 
 .app-tab {
@@ -556,6 +560,7 @@ input:checked + .toggle-slider:before {
     font-size: 14px;
     font-weight: bold;
     transition: background-color 0.3s;
+    text-align: center;
 }
 
 .app-tab:not(:last-child) {
@@ -641,7 +646,7 @@ input:checked + .toggle-slider:before {
     padding: 20px;
     background-color: transparent;
     color: var(--header-text);
-    margin-bottom: 20px;
+    margin-bottom: 0;
 }
 
 .welcome-panel h2 {
@@ -863,15 +868,14 @@ input:checked + .toggle-slider:before {
 }
 
 .user-settings {
-    padding: 0;
+    padding: 20px;
     overflow-y: auto;
-    max-height: calc(100vh - 200px);
+    max-height: calc(100vh - 250px);
 }
 
 .user-settings h2 {
     margin-bottom: 20px;
     font-size: 24px;
-    color: var(--header-text);
 }
 
 .logout-button {
@@ -882,7 +886,7 @@ input:checked + .toggle-slider:before {
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
-    margin: 15px 20px 5px auto;
+    margin: 15px 20px 0 auto;
     display: block;
     width: fit-content;
 }
