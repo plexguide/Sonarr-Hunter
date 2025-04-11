@@ -20,6 +20,7 @@ logger = setup_logger()
 from primary.config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, APP_TYPE, log_configuration, refresh_settings
 from primary.state import check_state_reset, calculate_reset_time
 from primary.api import get_download_queue_size
+from primary.utils.app_utils import get_ip_address  # Use centralized function
 
 # Flag to indicate if cycle should restart
 restart_cycle = False
@@ -34,29 +35,7 @@ def signal_handler(signum, frame):
 # Register signal handler for SIGUSR1
 signal.signal(signal.SIGUSR1, signal_handler)
 
-def get_ip_address():
-    """Get the host's IP address from API_URL for display"""
-    try:
-        from urllib.parse import urlparse
-        from primary.config import API_URL
-        
-        # Extract the hostname/IP from the API_URL
-        parsed_url = urlparse(API_URL)
-        hostname = parsed_url.netloc
-        
-        # Remove port if present
-        if ':' in hostname:
-            hostname = hostname.split(':')[0]
-            
-        return hostname
-    except Exception as e:
-        # Fallback to the current method if there's an issue
-        try:
-            hostname = socket.gethostname()
-            ip = socket.gethostbyname(hostname)
-            return ip
-        except:
-            return "YOUR_SERVER_IP"
+# Removed duplicate get_ip_address(); now using get_ip_address() from app_utils
 
 def force_reload_all_modules():
     """Force reload of all relevant modules to ensure fresh settings"""
