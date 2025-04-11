@@ -791,16 +791,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // If no changes, don't do anything
             return;
         }
-        
-        // Ask user if they want to restart the container for changes to take effect immediately
-        const restartContainer = confirm('Save settings and restart the container for changes to take effect immediately?\n\nClick OK to restart container or Cancel to not do anything and go back.');
-        
+
         // Prepare settings object based on current app
         let settings = {
-            app_type: currentApp,
-            restart_container: restartContainer  // Add restart flag
+            app_type: currentApp
         };
-        
+
         // Add API connection settings
         if (currentApp === 'sonarr' && sonarrApiUrlInput && sonarrApiKeyInput) {
             settings.api_url = sonarrApiUrlInput.value || '';
@@ -815,7 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
             settings.api_url = readarrApiUrlInput.value || '';
             settings.api_key = readarrApiKeyInput.value || '';
         }
-        
+
         // Add other settings based on which app is active
         if (currentApp === 'sonarr') {
             settings.huntarr = {
@@ -831,14 +827,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 debug_mode: debugModeInput ? debugModeInput.checked : false,
                 command_wait_delay: commandWaitDelayInput ? parseInt(commandWaitDelayInput.value) || 1 : 1,
                 command_wait_attempts: commandWaitAttemptsInput ? parseInt(commandWaitAttemptsInput.value) || 600 : 600,
-                minimum_download_queue_size: minimumDownloadQueueSizeInput ? parseInt(minimumDownloadQueueSizeInput.value) || -1 : -1,
+                minimumDownloadQueueSize: minimumDownloadQueueSizeInput ? parseInt(minimumDownloadQueueSizeInput.value) || -1 : -1,
                 random_missing: randomMissingInput ? randomMissingInput.checked : true,
                 random_upgrades: randomUpgradesInput ? randomUpgradesInput.checked : true,
                 api_timeout: apiTimeoutInput ? parseInt(apiTimeoutInput.value) || 60 : 60
             };
         }
         // Add similar blocks for other app types when they're implemented
-        
+
         fetch('/api/settings', {
             method: 'POST',
             headers: {
@@ -849,12 +845,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Check if operation was cancelled
-                if (data.cancelled) {
-                    alert('Operation cancelled - no changes were saved.');
-                    return;
-                }
-                
                 // Update original settings after successful save
                 if (currentApp === 'sonarr') {
                     originalSettings.api_url = settings.api_url;
@@ -903,15 +893,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     saveSettingsBottomButton.disabled = true;
                     saveSettingsButton.classList.add('disabled-button');
                     saveSettingsBottomButton.classList.add('disabled-button');
-                }
-                
-                // Handle restart case differently
-                if (data.restarting) {
-                    alert('Settings saved successfully. Container is now restarting. The page will reload in 5 seconds.');
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 5000);
-                    return;
                 }
                 
                 // Show success message
@@ -970,35 +951,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to reset settings
     function resetSettings() {
         if (confirm('Are you sure you want to reset all settings to default values?')) {
-            const restartContainer = confirm('Reset settings and restart the container for changes to take effect immediately?\n\nClick OK to restart container, or Cancel to just reset settings without restart.');
-            
             fetch('/api/settings/reset', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ 
-                    app: currentApp,
-                    restart_container: restartContainer
+                    app: currentApp
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Check if operation was cancelled
-                    if (data.cancelled) {
-                        alert('Operation cancelled - settings were not reset.');
-                        return;
-                    }
-                    
-                    if (data.restarting) {
-                        alert('Settings reset to defaults. Container is now restarting. The page will reload in 5 seconds.');
-                        setTimeout(function() {
-                            window.location.reload();
-                        }, 5000);
-                        return;
-                    }
-                    
                     alert('Settings reset to defaults and cycle restarted.');
                     loadSettings(currentApp);
                     
@@ -1103,6 +1067,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 scrollToBottom();
             }
         });
+    }
+    
+    // Add countdown logic for log refresh specific to the logs page
+    function startLogCountdown(sleepDuration, refreshInterval) {
+        const countdownElement = document.getElementById('logCountdown');
+        if (!countdownElement || refreshInterval <= 0) return;
+
+        let remainingTime = sleepDuration;
+
+        const interval = setInterval(() => {
+            remainingTime -= refreshInterval;
+            if (remainingTime <= 0) {
+                countdownElement.textContent = 'Cycle starting...';
+                clearInterval(interval);
+            } else {
+                countdownElement.textContent = `Next cycle in ${remainingTime} seconds`;
+            }
+        }, refreshInterval * 1000);
+    }
+
+    // Call this function only when the logs page is active
+    if (logsContainer && logsContainer.style.display !== 'none') {
+        startLogCountdown(sleepDuration, logRefreshInterval);
     }
     
     // Initialize

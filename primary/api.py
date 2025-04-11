@@ -46,12 +46,71 @@ def arr_request(endpoint: str, method: str = "GET", data: Dict = None) -> Option
             logger.error(f"Unsupported HTTP method: {method}")
             return None
         
+        # Check for 401 Unauthorized or other error status codes
+        if response.status_code == 401:
+            logger.error(f"API request error: 401 Client Error: Unauthorized for url: {url}")
+            return None
+        
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
         logger.error(f"API request error: {e}")
         return None
+
+def check_connection() -> bool:
+    """
+    Check if we can connect to the Arr API.
+    Returns True if connection is successful, False otherwise.
+    """
+    # First explicitly check if API URL and Key are configured
+    if not API_URL:
+        logger.error("API URL is not configured in settings. Please set it up in the Settings page.")
+        return False
     
+    if not API_KEY:
+        logger.error("API Key is not configured in settings. Please set it up in the Settings page.")
+        return False
+    
+    # Log what we're attempting to connect to
+    logger.debug(f"Attempting to connect to {APP_TYPE.title()} at {API_URL}")
+    
+    # Try to access the system/status endpoint which should be available on all Arr applications
+    try:
+        endpoint = "system/status"
+            
+        # Determine the API version based on app type
+        if APP_TYPE == "sonarr":
+            api_base = "api/v3"
+        elif APP_TYPE == "radarr":
+            api_base = "api/v3"
+        elif APP_TYPE == "lidarr":
+            api_base = "api/v1"
+        elif APP_TYPE == "readarr":
+            api_base = "api/v1"
+        else:
+            # Default to v3 for unknown app types
+            api_base = "api/v3"
+        
+        url = f"{API_URL}/{api_base}/{endpoint}"
+        headers = {
+            "X-Api-Key": API_KEY,
+            "Content-Type": "application/json"
+        }
+        
+        logger.debug(f"Testing connection with URL: {url}")
+        response = session.get(url, headers=headers, timeout=API_TIMEOUT)
+        
+        if response.status_code == 401:
+            logger.error(f"Connection test failed: 401 Client Error: Unauthorized - Invalid API key for {APP_TYPE.title()}")
+            return False
+            
+        response.raise_for_status()
+        logger.info(f"Connection to {APP_TYPE.title()} at {API_URL} successful")
+        return True
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Connection test failed: {e}")
+        return False
+
 def wait_for_command(command_id: int):
     logger.debug(f"Waiting for command {command_id} to complete...")
     attempts = 0

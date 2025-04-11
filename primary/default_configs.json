@@ -13,7 +13,8 @@
       "command_wait_attempts": 600,
       "minimum_download_queue_size": -1,
       "random_missing": true,
-      "random_upgrades": true
+      "random_upgrades": true,
+      "log_refresh_interval_seconds": 30
     },
     "radarr": {
       "api_timeout": 60,
@@ -25,7 +26,8 @@
       "command_wait_attempts": 600,
       "minimum_download_queue_size": -1,
       "random_missing": true,
-      "random_upgrades": true
+      "random_upgrades": true,
+      "log_refresh_interval_seconds": 30
     },
     "lidarr": {
       "api_timeout": 60,
@@ -37,7 +39,8 @@
       "command_wait_attempts": 600,
       "minimum_download_queue_size": -1,
       "random_missing": true,
-      "random_upgrades": true
+      "random_upgrades": true,
+      "log_refresh_interval_seconds": 30
     },
     "readarr": {
       "api_timeout": 60,
@@ -49,6 +52,7 @@
       "command_wait_attempts": 600,
       "minimum_download_queue_size": -1,
       "random_missing": true,
-      "random_upgrades": true
+      "random_upgrades": true,
+      "log_refresh_interval_seconds": 30
     }
   }

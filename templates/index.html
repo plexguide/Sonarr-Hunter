@@ -35,19 +35,19 @@
                 <div class="connection-list">
                     <div class="connection-item">
                         <span class="connection-name">Sonarr:</span>
-                        <span id="sonarrHomeStatus" class="connection-badge not-connected">Not Configured</span>
+                        <span id="sonarrHomeStatus" class="connection-badge not-connected">Not Connected</span>
                     </div>
                     <div class="connection-item">
                         <span class="connection-name">Radarr:</span>
-                        <span id="radarrHomeStatus" class="connection-badge not-connected">Not Configured</span>
+                        <span id="radarrHomeStatus" class="connection-badge not-connected">Not Connected</span>
                     </div>
                     <div class="connection-item">
                         <span class="connection-name">Lidarr:</span>
-                        <span id="lidarrHomeStatus" class="connection-badge not-connected">Not Configured</span>
+                        <span id="lidarrHomeStatus" class="connection-badge not-connected">Not Connected</span>
                     </div>
                     <div class="connection-item">
                         <span class="connection-name">Readarr:</span>
-                        <span id="readarrHomeStatus" class="connection-badge not-connected">Not Configured</span>
+                        <span id="readarrHomeStatus" class="connection-badge not-connected">Not Connected</span>
                     </div>
                 </div>
                 
@@ -76,7 +76,12 @@
                 <button class="app-tab" data-app="lidarr">Lidarr</button>
                 <button class="app-tab" data-app="readarr">Readarr</button>
             </div>
-
+            <!-- Removed the countdown timer from the logs area -->
+            <div class="logs-countdown" style="display: none;">
+                <!-- Removed countdown display -->
+            </div>
+            <!-- Add a countdown display element for the logs page -->
+            <div id="logCountdown" class="log-countdown"></div>
             <div class="log-controls">
                 <div class="connection-status">
                     Status: <span id="status" class="status-disconnected">Disconnected</span>
@@ -163,6 +168,11 @@
                             <label for="state_reset_interval_hours">State Reset Interval (hours):</label>
                             <input type="number" id="state_reset_interval_hours" min="0" step="1">
                             <p class="setting-help">Hours after which processed items will be forgotten. Set to 0 to never reset.</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="log_refresh_interval_seconds">Log Refresh Interval (seconds):</label>
+                            <input type="number" id="log_refresh_interval_seconds" min="0" step="1">
+                            <p class="setting-help">Time interval for log refresh countdown. Set to 0 to disable.</p>
                         </div>
                     </div>
                     

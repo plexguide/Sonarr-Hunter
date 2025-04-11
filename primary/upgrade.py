@@ -16,6 +16,7 @@ from primary.config import (
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
 )
+from primary import settings_manager
 from primary.api import get_cutoff_unmet, get_cutoff_unmet_total_pages, refresh_series, episode_search_episodes, arr_request
 from primary.state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_UPGRADE_FILE
 
@@ -25,6 +26,9 @@ def get_current_upgrade_limit():
     from primary import config
     importlib.reload(config)
     return config.HUNT_UPGRADE_EPISODES
+
+# Ensure RANDOM_UPGRADES is dynamically reloaded at the start of each cycle
+# Updated logic to reload settings before processing upgrades
 
 def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: False) -> bool:
     """
@@ -36,9 +40,14 @@ def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: Fal
     Returns:
         True if any processing was done, False otherwise
     """
+    # Reload settings to ensure the latest values are used
+    from primary.config import refresh_settings
+    refresh_settings()
+
     # Get the current value directly at the start of processing
     HUNT_UPGRADE_EPISODES = get_current_upgrade_limit()
-    
+    RANDOM_UPGRADES = settings_manager.get_setting("advanced", "random_upgrades", True)
+
     logger.info("=== Checking for Quality Upgrades (Cutoff Unmet) ===")
 
     # Skip if HUNT_UPGRADE_EPISODES is set to 0
@@ -52,6 +61,12 @@ def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: Fal
         return False
 
     total_pages = get_cutoff_unmet_total_pages()
+
+    # If we got an error (-1) from the API request, return early
+    if total_pages < 0:
+        logger.error("Failed to get cutoff unmet data due to API error. Skipping this cycle.")
+        return False
+
     if total_pages == 0:
         logger.info("No episodes found that need quality upgrades.")
         return False
@@ -71,7 +86,9 @@ def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: Fal
 
     # Use RANDOM_UPGRADES setting
     should_use_random = RANDOM_UPGRADES
-    
+
+    logger.info(f"Using {'random' if should_use_random else 'sequential'} selection for quality upgrades (RANDOM_UPGRADES={should_use_random})")
+
     # Initialize page variable for both modes
     page = 1
     
