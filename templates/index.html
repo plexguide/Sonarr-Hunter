@@ -364,12 +364,16 @@
     <script>
         // Countdown timer for logs area only
         var countdownElement = document.getElementById("logsCountdown");
-        var remaining = parseInt(countdownElement.innerText);
+        var initialCountdown = parseInt(countdownElement.innerText);
+        var remaining = initialCountdown;
         function updateCountdown() {
             if(remaining > 0) {
                 remaining -= 1;
-                countdownElement.innerText = remaining;
+            } else {
+                // When cycle restarts, reset the countdown timer
+                remaining = initialCountdown;
             }
+            countdownElement.innerText = remaining;
         }
         setInterval(updateCountdown, 1000);
     </script>
