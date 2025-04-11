@@ -180,7 +180,7 @@ body {
 #homeContainer {
     background-color: var(--main-content-bg);
     color: var(--text-color);
-    padding: 20px;
+    padding: 10px 20px;
     border-left: 1px solid var(--container-border);
     border-right: 1px solid var(--container-border);
     border-bottom: 1px solid var(--container-border);
