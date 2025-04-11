@@ -42,6 +42,10 @@ LOG_FILE = "/tmp/huntarr-logs/huntarr.log"
 LOG_DIR = pathlib.Path("/tmp/huntarr-logs")
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
+# Add logger setup at the top of the file
+logger = logging.getLogger("huntarr-web")
+logging.basicConfig(level=logging.DEBUG)
+
 # Authentication middleware
 @app.before_request
 def before_request():
@@ -227,7 +231,7 @@ def test_connection():
         return jsonify({"success": True})
     except Exception as e:
         # Log the failed connection test
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%:%S")
         with open(LOG_FILE, 'a') as f:
             f.write(f"{timestamp} - huntarr-web - ERROR - Connection test failed for {app_type}: {api_url} - {str(e)}\n")
         
@@ -542,6 +546,14 @@ def update_settings():
                     restart_thread.daemon = True
                     restart_thread.start()
                     
+                    logger.info("Restarting container as requested by the user.")
+                    try:
+                        os.system("kill 1")
+                        logger.info("Container restart command executed successfully.")
+                    except Exception as e:
+                        logger.error(f"Failed to restart container: {e}")
+                        return jsonify({"success": False, "message": "Failed to restart container."}), 500
+
                     return jsonify({
                         "success": True, 
                         "message": "Settings saved and container is restarting...", 
@@ -580,6 +592,7 @@ def update_settings():
             return jsonify({"success": True, "message": "No changes detected", "changes_made": False})
             
     except Exception as e:
+        logger.error(f"Error updating settings: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/api/settings/reset', methods=['POST'])
