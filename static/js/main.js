@@ -791,16 +791,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // If no changes, don't do anything
             return;
         }
-        
-        // Ask user if they want to restart the container for changes to take effect immediately
-        const restartContainer = confirm('Save settings and restart the container for changes to take effect immediately?\n\nClick OK to restart container or Cancel to not do anything and go back.');
-        
+
         // Prepare settings object based on current app
         let settings = {
-            app_type: currentApp,
-            restart_container: restartContainer  // Add restart flag
+            app_type: currentApp
         };
-        
+
         // Add API connection settings
         if (currentApp === 'sonarr' && sonarrApiUrlInput && sonarrApiKeyInput) {
             settings.api_url = sonarrApiUrlInput.value || '';
@@ -815,7 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
             settings.api_url = readarrApiUrlInput.value || '';
             settings.api_key = readarrApiKeyInput.value || '';
         }
-        
+
         // Add other settings based on which app is active
         if (currentApp === 'sonarr') {
             settings.huntarr = {
@@ -838,7 +834,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         }
         // Add similar blocks for other app types when they're implemented
-        
+
         fetch('/api/settings', {
             method: 'POST',
             headers: {
@@ -849,12 +845,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Check if operation was cancelled
-                if (data.cancelled) {
-                    alert('Operation cancelled - no changes were saved.');
-                    return;
-                }
-                
                 // Update original settings after successful save
                 if (currentApp === 'sonarr') {
                     originalSettings.api_url = settings.api_url;
@@ -903,15 +893,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     saveSettingsBottomButton.disabled = true;
                     saveSettingsButton.classList.add('disabled-button');
                     saveSettingsBottomButton.classList.add('disabled-button');
-                }
-                
-                // Handle restart case differently
-                if (data.restarting) {
-                    alert('Settings saved successfully. Container is now restarting. The page will reload in 5 seconds.');
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 5000);
-                    return;
                 }
                 
                 // Show success message
@@ -970,35 +951,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to reset settings
     function resetSettings() {
         if (confirm('Are you sure you want to reset all settings to default values?')) {
-            const restartContainer = confirm('Reset settings and restart the container for changes to take effect immediately?\n\nClick OK to restart container, or Cancel to just reset settings without restart.');
-            
             fetch('/api/settings/reset', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ 
-                    app: currentApp,
-                    restart_container: restartContainer
+                    app: currentApp
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Check if operation was cancelled
-                    if (data.cancelled) {
-                        alert('Operation cancelled - settings were not reset.');
-                        return;
-                    }
-                    
-                    if (data.restarting) {
-                        alert('Settings reset to defaults. Container is now restarting. The page will reload in 5 seconds.');
-                        setTimeout(function() {
-                            window.location.reload();
-                        }, 5000);
-                        return;
-                    }
-                    
                     alert('Settings reset to defaults and cycle restarted.');
                     loadSettings(currentApp);
                     
