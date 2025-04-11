@@ -10,7 +10,6 @@ import json
 import pathlib
 import logging
 from typing import Dict, Any, Optional
-from primary import keys_manager
 
 # Create a simple logger for settings_manager
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +27,7 @@ DEFAULT_SETTINGS = {
         "dark_mode": True
     },
     "app_type": "sonarr",  # Default app type
+    "connections": {},     # Holds API URLs and keys
     "huntarr": {
         # These will be loaded from default_configs.json based on app_type
     },
@@ -98,8 +98,8 @@ def get_env_settings():
 def load_settings() -> Dict[str, Any]:
     """
     Load settings with the following priority:
-    1. User-defined settings in the settings file
-    2. Environment variables
+    1. User-defined settings in the huntarr.json file
+    2. Environment variables 
     3. Default settings for the selected app_type
     """
     try:
@@ -218,16 +218,16 @@ def get_app_type() -> str:
     return settings.get("app_type", "sonarr")
 
 def get_api_key() -> str:
-    """Get the API key"""
-    app_type = get_app_type()
-    _, api_key = keys_manager.get_api_keys(app_type)
-    return api_key
+    """Get the API key from the connections section"""
+    settings = load_settings()
+    app_type = settings.get("app_type", "sonarr")
+    return settings.get("connections", {}).get(app_type, {}).get("api_key", "")
 
 def get_api_url() -> str:
-    """Get the API URL"""
-    app_type = get_app_type()
-    api_url, _ = keys_manager.get_api_keys(app_type)
-    return api_url
+    """Get the API URL from the connections section"""
+    settings = load_settings()
+    app_type = settings.get("app_type", "sonarr")
+    return settings.get("connections", {}).get(app_type, {}).get("api_url", "")
 
 # Initialize settings file if it doesn't exist
 if not SETTINGS_FILE.exists():

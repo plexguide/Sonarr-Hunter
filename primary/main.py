@@ -55,7 +55,11 @@ def get_ip_address():
 def force_reload_all_modules():
     """Force reload of all relevant modules to ensure fresh settings"""
     try:
-        # Force reload the config module
+        # Force reload the settings_manager first
+        from primary import settings_manager
+        importlib.reload(settings_manager)
+        
+        # Then reload config which depends on settings_manager
         from primary import config
         importlib.reload(config)
         
@@ -71,8 +75,8 @@ def force_reload_all_modules():
         # Call the refresh function to ensure settings are updated
         config.refresh_settings()
         
-        # Log the reloaded settings for verification - CHANGED TO INFO LEVEL
-        logger.info("Settings reloaded from JSON file")
+        # Log the reloaded settings for verification
+        logger.info("Settings reloaded from huntarr.json file")
         config.log_configuration(logger)
         
         return True

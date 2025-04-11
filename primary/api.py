@@ -63,21 +63,12 @@ def check_connection() -> bool:
     Returns True if connection is successful, False otherwise.
     """
     if not API_URL or not API_KEY:
-        logger.error("API URL or API Key not configured. Please set up your connection.")
+        logger.error("API URL or API Key not configured. Please set up your connection in Settings.")
         return False
         
     # Try to access the system/status endpoint which should be available on all Arr applications
     try:
-        if APP_TYPE == "sonarr":
-            endpoint = "system/status"
-        elif APP_TYPE == "radarr":
-            endpoint = "system/status"
-        elif APP_TYPE == "lidarr":
-            endpoint = "system/status"
-        elif APP_TYPE == "readarr":
-            endpoint = "system/status"
-        else:
-            endpoint = "system/status"
+        endpoint = "system/status"
             
         # Determine the API version based on app type
         if APP_TYPE == "sonarr":

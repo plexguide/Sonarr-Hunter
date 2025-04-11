@@ -6,14 +6,15 @@ Handles all configuration settings with defaults
 
 import os
 import logging
+import importlib
 from primary import settings_manager
-from primary import keys_manager
 
 # Get app type
 APP_TYPE = settings_manager.get_app_type()
 
-# API Configuration from keys_manager instead of settings_manager
-API_URL, API_KEY = keys_manager.get_api_keys(APP_TYPE)
+# API Configuration directly from settings_manager
+API_URL = settings_manager.get_api_url()
+API_KEY = settings_manager.get_api_key()
 
 # Web UI is always enabled
 ENABLE_WEB_UI = True
@@ -118,8 +119,9 @@ def refresh_settings():
     # Reload APP_TYPE from settings
     APP_TYPE = settings_manager.get_app_type()
     
-    # Refresh API keys from keys_manager
-    API_URL, API_KEY = keys_manager.get_api_keys(APP_TYPE)
+    # Refresh API keys from settings_manager
+    API_URL = settings_manager.get_api_url()
+    API_KEY = settings_manager.get_api_key()
     
     # Force reload all settings
     settings = settings_manager.get_all_settings()

@@ -186,7 +186,13 @@ def test_connection():
     
     try:
         # Test connection by making a simple request to the API
-        url = f"{api_url}/api/v3/system/status"
+        # Determine the API version based on app type
+        if app_type == "sonarr" or app_type == "radarr":
+            api_base = "api/v3"
+        else:
+            api_base = "api/v1"
+            
+        url = f"{api_url}/{api_base}/system/status"
         headers = {
             "X-Api-Key": api_key,
             "Content-Type": "application/json"
@@ -194,6 +200,9 @@ def test_connection():
         
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
+        
+        # If connection successful, save the keys
+        keys_manager.save_api_keys(app_type, api_url, api_key)
         
         # Log the successful connection test
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -253,7 +262,7 @@ def api_generate_2fa():
 
 @app.route('/api/user/verify-2fa', methods=['POST'])
 def api_verify_2fa():
-    """Verify a 2FA code and enable 2FA if valid"""
+    """Verify a FA code and enable 2FA if valid"""
     data = request.json
     code = data.get('code')
     
