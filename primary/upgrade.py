@@ -26,6 +26,9 @@ def get_current_upgrade_limit():
     importlib.reload(config)
     return config.HUNT_UPGRADE_EPISODES
 
+# Ensure RANDOM_UPGRADES is read correctly at the start of the cycle
+# Updated logic to reload settings before processing upgrades
+
 def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: False) -> bool:
     """
     Process episodes that need quality upgrades (cutoff unmet).
@@ -36,9 +39,13 @@ def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: Fal
     Returns:
         True if any processing was done, False otherwise
     """
+    # Reload settings to ensure the latest values are used
+    from primary.config import refresh_settings
+    refresh_settings()
+
     # Get the current value directly at the start of processing
     HUNT_UPGRADE_EPISODES = get_current_upgrade_limit()
-    
+
     logger.info("=== Checking for Quality Upgrades (Cutoff Unmet) ===")
 
     # Skip if HUNT_UPGRADE_EPISODES is set to 0
@@ -52,12 +59,12 @@ def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: Fal
         return False
 
     total_pages = get_cutoff_unmet_total_pages()
-    
+
     # If we got an error (-1) from the API request, return early
     if total_pages < 0:
         logger.error("Failed to get cutoff unmet data due to API error. Skipping this cycle.")
         return False
-        
+
     if total_pages == 0:
         logger.info("No episodes found that need quality upgrades.")
         return False
@@ -77,7 +84,9 @@ def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: Fal
 
     # Use RANDOM_UPGRADES setting
     should_use_random = RANDOM_UPGRADES
-    
+
+    logger.info(f"Using {'random' if should_use_random else 'sequential'} selection for quality upgrades (RANDOM_UPGRADES={should_use_random})")
+
     # Initialize page variable for both modes
     page = 1
     
