@@ -176,15 +176,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTheme(isDarkMode);
                 if (themeToggle) themeToggle.checked = isDarkMode;
                 if (themeLabel) themeLabel.textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
+                
+                // Store theme preference in localStorage
+                localStorage.setItem('huntarr-theme', isDarkMode ? 'dark' : 'light');
             })
             .catch(error => console.error('Error loading theme:', error));
     }
     
     function setTheme(isDark) {
         if (isDark) {
+            document.documentElement.classList.add('dark-theme');
             document.body.classList.add('dark-theme');
             if (themeLabel) themeLabel.textContent = 'Dark Mode';
         } else {
+            document.documentElement.classList.remove('dark-theme');
             document.body.classList.remove('dark-theme');
             if (themeLabel) themeLabel.textContent = 'Light Mode';
         }
@@ -194,6 +199,9 @@ document.addEventListener('DOMContentLoaded', function() {
         themeToggle.addEventListener('change', function() {
             const isDarkMode = this.checked;
             setTheme(isDarkMode);
+            
+            // Store theme preference in localStorage
+            localStorage.setItem('huntarr-theme', isDarkMode ? 'dark' : 'light');
             
             fetch('/api/settings/theme', {
                 method: 'POST',

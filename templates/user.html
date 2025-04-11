@@ -6,6 +6,13 @@
     <title>User Settings - Huntarr</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="icon" href="/static/favicon.ico">
+    <script>
+        // Prevent theme flicker by applying theme before page loads
+        const storedTheme = localStorage.getItem('huntarr-theme');
+        if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark-theme');
+        }
+    </script>
 </head>
 <body>
     <div class="container">
