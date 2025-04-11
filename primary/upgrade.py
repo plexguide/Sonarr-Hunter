@@ -16,6 +16,7 @@ from primary.config import (
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
 )
+from primary import settings_manager
 from primary.api import get_cutoff_unmet, get_cutoff_unmet_total_pages, refresh_series, episode_search_episodes, arr_request
 from primary.state import load_processed_ids, save_processed_id, truncate_processed_list, PROCESSED_UPGRADE_FILE
 
