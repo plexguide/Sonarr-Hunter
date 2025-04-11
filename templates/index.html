@@ -377,5 +377,20 @@
     </div>
 
     <script src="/static/js/main.js"></script>
+    <script>
+        // Apply immediate theme and prevent flashing on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Apply theme from localStorage immediately
+            const storedTheme = localStorage.getItem('huntarrTheme');
+            if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark-theme');
+                document.body.classList.add('dark-theme');
+                const themeToggle = document.getElementById('themeToggle');
+                const themeLabel = document.getElementById('themeLabel');
+                if (themeToggle) themeToggle.checked = true;
+                if (themeLabel) themeLabel.textContent = 'Dark Mode';
+            }
+        });
+    </script>
 </body>
 </html>

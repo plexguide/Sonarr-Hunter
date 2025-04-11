@@ -114,6 +114,7 @@ body {
     margin-bottom: 0;
     position: relative; /* Add this to create a positioning context */
     height: 60px; /* Fixed height to prevent jumping */
+    border-bottom: 1px solid var(--container-border);
 }
 
 .header h1 {
@@ -185,6 +186,11 @@ body {
     display: flex;
     flex-direction: column;
     margin-bottom: 20px;
+    background-color: var(--main-content-bg); 
+    border: 1px solid var(--container-border);
+    border-radius: 0 0 10px 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
 }
 
 /* Home page specific */
@@ -195,6 +201,9 @@ body {
     border-left: 1px solid var(--container-border);
     border-right: 1px solid var(--container-border);
     border-bottom: 1px solid var(--container-border);
+    background-color: var(--main-content-bg);
+    border: 1px solid var(--container-border);
+    border-radius: 0 0 10px 10px;
 }
 
 /* Log viewer */
@@ -378,6 +387,12 @@ input:checked + .slider:before {
     border: 1px solid var(--settings-border);
     border-radius: 8px;
     padding: 15px;
+    margin-bottom: 20px;
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    background-color: var(--settings-bg);
+    border: 1px solid var(--settings-border);
+    border-radius: 5px;
+    padding: 20px;
     margin-bottom: 20px;
 }
 
@@ -912,6 +927,9 @@ input:checked + .toggle-slider:before {
     display: flex;
     flex-direction: column;
     margin-bottom: 20px;
+    background-color: var(--main-content-bg);
+    border: 1px solid var(--container-border);
+    border-radius: 0 0 10px 10px;
 }
 
 .status-message {
@@ -965,4 +983,8 @@ input:checked + .toggle-slider:before {
         margin: 50px 20px;
         max-width: none;
     }
+}
+
+body, .content-section, .header, .settings-group {
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
 }

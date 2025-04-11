@@ -1152,4 +1152,119 @@ document.addEventListener('DOMContentLoaded', function() {
     if (logsElement && logsContainer && logsContainer.style.display !== 'none' && configuredApps[currentApp]) {
         connectEventSource(currentApp);
     }
+
+    // Add new event listener for popstate events to handle our SPA-style navigation
+    window.addEventListener('popstate', function(event) {
+        const path = window.location.pathname;
+        const hash = window.location.hash;
+        
+        // Show proper content based on path or hash
+        if (path === '/settings') {
+            // Show settings page
+            if (homeContainer) homeContainer.style.display = 'none';
+            if (logsContainer) logsContainer.style.display = 'none';
+            if (settingsContainer) settingsContainer.style.display = 'flex';
+            
+            if (homeButton) homeButton.classList.remove('active');
+            if (logsButton) logsButton.classList.remove('active');
+            if (settingsButton) settingsButton.classList.add('active');
+            if (userButton) userButton.classList.remove('active');
+            
+            // Show the settings for the current app
+            if (appSettings) {
+                appSettings.forEach(s => s.style.display = 'none');
+                const currentAppSettings = document.getElementById(`${currentApp}Settings`);
+                if (currentAppSettings) currentAppSettings.style.display = 'block';
+            }
+            
+            // Make sure settings are loaded
+            loadSettings(currentApp);
+        } else if (path === '/') {
+            // Check if hash is for logs
+            if (hash === '#logs') {
+                if (homeContainer) homeContainer.style.display = 'none';
+                if (logsContainer) logsContainer.style.display = 'flex';
+                if (settingsContainer) settingsContainer.style.display = 'none';
+                
+                if (homeButton) homeButton.classList.remove('active');
+                if (logsButton) logsButton.classList.add('active');
+                if (settingsButton) settingsButton.classList.remove('active');
+                if (userButton) userButton.classList.remove('active');
+                
+                // Update the connection status based on configuration
+                updateLogsConnectionStatus();
+                
+                // Reconnect to logs for the current app if configured
+                if (logsElement && configuredApps[currentApp]) {
+                    connectEventSource(currentApp);
+                }
+            } else {
+                // Default to home page
+                if (homeContainer) homeContainer.style.display = 'flex';
+                if (logsContainer) logsContainer.style.display = 'none';
+                if (settingsContainer) settingsContainer.style.display = 'none';
+                
+                if (homeButton) homeButton.classList.add('active');
+                if (logsButton) logsButton.classList.remove('active');
+                if (settingsButton) settingsButton.classList.remove('active');
+                if (userButton) userButton.classList.remove('active');
+                
+                // Update connection status on home page
+                updateHomeConnectionStatus();
+            }
+        }
+    });
+
+    // Update the click event handlers for navigation buttons to use the History API
+    if (homeButton && logsButton && settingsButton && homeContainer && logsContainer && settingsContainer) {
+        homeButton.addEventListener('click', function() {
+            // Use History API instead of changing display directly
+            history.pushState(null, "", '/');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+        });
+        
+        logsButton.addEventListener('click', function() {
+            // Use History API with hash for logs
+            history.pushState(null, "", '/#logs');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+        });
+        
+        settingsButton.addEventListener('click', function() {
+            // Use History API for settings
+            history.pushState(null, "", '/settings');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+        });
+        
+        userButton.addEventListener('click', function() {
+            // For user page, keep direct navigation for now
+            window.location.href = '/user';
+        });
+    }
+
+    // Add a function to apply consistent styling across all pages
+    function applyConsistentStyling() {
+        // Add a style element with consistent CSS rules
+        const style = document.createElement('style');
+        style.textContent = `
+            .content-section {
+                background-color: var(--main-content-bg); 
+                border: 1px solid var(--container-border);
+                border-radius: 0 0 10px 10px;
+            }
+            .header {
+                border-bottom: 1px solid var(--container-border);
+            }
+            .settings-group, .user-settings .settings-group {
+                background-color: var(--settings-bg);
+                border: 1px solid var(--settings-border);
+                border-radius: 5px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Call the function to apply consistent styling
+    applyConsistentStyling();
 });

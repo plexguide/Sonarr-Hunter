@@ -183,17 +183,24 @@
                 .catch(error => console.error('Error saving theme:', error));
             });
             
-            // Navigation
+            // Navigation - MODIFIED: Use AJAX instead of page reload to prevent flashing
             homeButton.addEventListener('click', function() {
-                window.location.href = '/';
+                // Instead of redirecting, use history API to change URL without reload
+                history.pushState(null, "", '/');
+                // Then trigger a popstate event which will be handled by main.js
+                window.dispatchEvent(new PopStateEvent('popstate'));
             });
             
             logsButton.addEventListener('click', function() {
-                window.location.href = '/#logs';
+                // Use hash change instead of direct navigation
+                history.pushState(null, "", '/#logs');
+                window.dispatchEvent(new PopStateEvent('popstate'));
             });
             
             settingsButton.addEventListener('click', function() {
-                window.location.href = '/settings';
+                // Use history API instead of direct navigation
+                history.pushState(null, "", '/settings');
+                window.dispatchEvent(new PopStateEvent('popstate'));
             });
             
             // Check 2FA status
@@ -413,6 +420,33 @@
                 }, 5000);
             }
         });
+        
+        // Add CSS fixes for consistent styling - this ensures the same background color and borders
+        (function() {
+            // Add a style element to ensure consistent styling across all pages
+            const style = document.createElement('style');
+            style.textContent = `
+                .content-section {
+                    background-color: var(--main-content-bg); 
+                    border: 1px solid var(--container-border);
+                    border-radius: 0 0 10px 10px;
+                }
+                .header {
+                    border-bottom: 1px solid var(--container-border);
+                }
+                .user-settings {
+                    padding: 20px;
+                }
+                .settings-group {
+                    background-color: var(--settings-bg);
+                    border: 1px solid var(--settings-border);
+                    border-radius: 5px;
+                    padding: 20px;
+                    margin-bottom: 20px;
+                }
+            `;
+            document.head.appendChild(style);
+        })();
     </script>
 </body>
 </html>
