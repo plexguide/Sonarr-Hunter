@@ -76,9 +76,9 @@
                 <button class="app-tab" data-app="lidarr">Lidarr</button>
                 <button class="app-tab" data-app="readarr">Readarr</button>
             </div>
-            <!-- Add countdown display in logs area -->
-            <div class="logs-countdown">
-                Next cycle in: <span id="logsCountdown">{{ sleep_duration }}</span> seconds
+            <!-- Removed the countdown timer from the logs area -->
+            <div class="logs-countdown" style="display: none;">
+                <!-- Removed countdown display -->
             </div>
             <div class="log-controls">
                 <div class="connection-status">
@@ -361,21 +361,5 @@
     </div>
 
     <script src="/static/js/main.js"></script>
-    <script>
-        // Countdown timer for logs area only
-        var countdownElement = document.getElementById("logsCountdown");
-        var initialCountdown = parseInt(countdownElement.innerText);
-        var remaining = initialCountdown;
-        function updateCountdown() {
-            if(remaining > 0) {
-                remaining -= 1;
-            } else {
-                // When cycle restarts, reset the countdown timer
-                remaining = initialCountdown;
-            }
-            countdownElement.innerText = remaining;
-        }
-        setInterval(updateCountdown, 1000);
-    </script>
 </body>
 </html>
