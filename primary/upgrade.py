@@ -26,7 +26,7 @@ def get_current_upgrade_limit():
     importlib.reload(config)
     return config.HUNT_UPGRADE_EPISODES
 
-# Ensure RANDOM_UPGRADES is read correctly at the start of the cycle
+# Ensure RANDOM_UPGRADES is dynamically reloaded at the start of each cycle
 # Updated logic to reload settings before processing upgrades
 
 def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: False) -> bool:
@@ -45,6 +45,7 @@ def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: Fal
 
     # Get the current value directly at the start of processing
     HUNT_UPGRADE_EPISODES = get_current_upgrade_limit()
+    RANDOM_UPGRADES = settings_manager.get_setting("advanced", "random_upgrades", True)
 
     logger.info("=== Checking for Quality Upgrades (Cutoff Unmet) ===")
 

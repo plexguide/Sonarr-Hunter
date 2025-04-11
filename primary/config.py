@@ -113,66 +113,21 @@ HUNT_MODE = determine_hunt_mode()
 # Ensure all settings are saved and reloaded properly
 # Added logic to save and reload RANDOM_UPGRADES and other settings
 
+# Ensure RANDOM_UPGRADES is dynamically reloaded at the start of each cycle
+# Updated logic to reload settings before processing upgrades
+
 def refresh_settings():
     """Refresh configuration settings from the settings manager."""
-    global API_KEY, API_URL, APP_TYPE
-    global API_TIMEOUT, DEBUG_MODE, COMMAND_WAIT_DELAY, COMMAND_WAIT_ATTEMPTS
-    global MINIMUM_DOWNLOAD_QUEUE_SIZE, MONITORED_ONLY, SLEEP_DURATION
-    global STATE_RESET_INTERVAL_HOURS, RANDOM_MISSING, RANDOM_UPGRADES
-    global HUNT_MODE
-
-    # Import required modules
-    import logging
+    global RANDOM_UPGRADES
 
     # Force reload the settings_manager module to get fresh values from disk
     from primary import settings_manager
     importlib.reload(settings_manager)
 
-    # Reload APP_TYPE from settings
-    APP_TYPE = settings_manager.get_app_type()
+    # Reload RANDOM_UPGRADES from settings
+    RANDOM_UPGRADES = settings_manager.get_setting("advanced", "random_upgrades", True)
 
-    # Refresh API keys from settings_manager, ensuring we get the latest values directly from disk
-    API_URL = settings_manager.get_api_url()
-    API_KEY = settings_manager.get_api_key()
-
-    # Log the API settings we've loaded for debugging purposes
-    logger = logging.getLogger("huntarr")
-    logger.debug(f"Refreshed API settings - URL: {API_URL}, Key: {'*'*(len(API_KEY)//2 if API_KEY else 0)}")
-
-    # Force reload all settings
-    settings = settings_manager.get_all_settings()
-
-    # Common settings
-    # Advanced settings
-    advanced = settings.get("advanced", {})
-    API_TIMEOUT = advanced.get("api_timeout", API_TIMEOUT)
-    DEBUG_MODE = advanced.get("debug_mode", DEBUG_MODE)
-    COMMAND_WAIT_DELAY = advanced.get("command_wait_delay", COMMAND_WAIT_DELAY)
-    COMMAND_WAIT_ATTEMPTS = advanced.get("command_wait_attempts", COMMAND_WAIT_ATTEMPTS)
-    MINIMUM_DOWNLOAD_QUEUE_SIZE = advanced.get("minimum_download_queue_size", MINIMUM_DOWNLOAD_QUEUE_SIZE)
-    RANDOM_MISSING = advanced.get("random_missing", RANDOM_MISSING)
-    RANDOM_UPGRADES = advanced.get("random_upgrades", RANDOM_UPGRADES)
-
-    # Huntarr settings
-    huntarr = settings.get("huntarr", {})
-    MONITORED_ONLY = huntarr.get("monitored_only", MONITORED_ONLY)
-    SLEEP_DURATION = huntarr.get("sleep_duration", SLEEP_DURATION)
-    STATE_RESET_INTERVAL_HOURS = huntarr.get("state_reset_interval_hours", STATE_RESET_INTERVAL_HOURS)
-
-    # App-specific settings refresh
-    if APP_TYPE == "sonarr":
-        global HUNT_MISSING_SHOWS, HUNT_UPGRADE_EPISODES, SKIP_FUTURE_EPISODES, SKIP_SERIES_REFRESH
-        HUNT_MISSING_SHOWS = huntarr.get("hunt_missing_shows", HUNT_MISSING_SHOWS)
-        HUNT_UPGRADE_EPISODES = huntarr.get("hunt_upgrade_episodes", HUNT_UPGRADE_EPISODES)
-        SKIP_FUTURE_EPISODES = huntarr.get("skip_future_episodes", SKIP_FUTURE_EPISODES)
-        SKIP_SERIES_REFRESH = huntarr.get("skip_series_refresh", SKIP_SERIES_REFRESH)
-
-    # Update hunt mode based on current settings
-    HUNT_MODE = determine_hunt_mode()
-
-    # Log the refresh
-    logger.debug(f"Settings refreshed for app type: {APP_TYPE}")
-    logger.debug(f"Settings refreshed: HUNT_MODE={HUNT_MODE}, RANDOM_UPGRADES={RANDOM_UPGRADES}")
+    logger.debug(f"Settings refreshed: RANDOM_UPGRADES={RANDOM_UPGRADES}")
 
 def log_configuration(logger):
     """Log the current configuration settings"""
