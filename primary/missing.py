@@ -16,6 +16,7 @@ from primary.config import (
     SKIP_FUTURE_EPISODES,
     SKIP_SERIES_REFRESH
 )
+from primary import settings_manager
 from primary.api import (
     get_episodes_for_series, 
     refresh_series, 
