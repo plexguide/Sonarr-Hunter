@@ -14,12 +14,8 @@
     </div>
 
     <div class="settings-form">
-        <div id="settingsApp" class="settings-app-content">
-            <!-- App-specific settings will be loaded here -->
-        </div>
-        
         <!-- Sonarr Settings -->
-        <div id="sonarrSettings" class="app-settings">
+        <div id="sonarrSettings" class="app-settings active" style="display: block;">
             <h2>Sonarr Settings</h2>
             
             <!-- Add buttons here near the top -->
@@ -93,18 +89,24 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Settings-specific JavaScript
+        // Set default app if not already set
+        if (typeof window.currentApp === 'undefined') {
+            window.currentApp = 'sonarr';
+        }
         
-        // Setup app tab switching
+        // Settings-specific JavaScript
         const appTabs = document.querySelectorAll('.app-tab');
         const appSettings = document.querySelectorAll('.app-settings');
+        
+        // Ensure Sonarr settings are visible by default
+        document.getElementById('sonarrSettings').style.display = 'block';
         
         appTabs.forEach(tab => {
             tab.addEventListener('click', function() {
                 const app = this.dataset.app;
                 
                 // If it's already the active app, do nothing
-                if (app === currentApp) return;
+                if (app === window.currentApp) return;
                 
                 // Update active tab
                 appTabs.forEach(t => t.classList.remove('active'));
@@ -115,15 +117,19 @@
                 document.getElementById(`${app}Settings`).style.display = 'block';
                 
                 // Update current app
-                currentApp = app;
+                window.currentApp = app;
                 
                 // Load settings for this app
-                loadSettings(app);
+                if (typeof loadSettings === 'function') {
+                    loadSettings(app);
+                }
             });
         });
         
-        // Load settings for initial app
-        loadSettings(currentApp);
+        // Load settings for initial app (sonarr)
+        if (typeof loadSettings === 'function') {
+            loadSettings('sonarr');
+        }
     });
 </script>
 {% endblock %}

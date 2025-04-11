@@ -51,25 +51,21 @@
             const settingsButton = document.getElementById('settingsButton');
             const userButton = document.getElementById('userButton');
             
-            // Use History API for navigation
+            // Use direct navigation instead of History API to ensure proper page loading
             homeButton.addEventListener('click', function() {
-                history.pushState(null, "", '/');
-                window.dispatchEvent(new PopStateEvent('popstate'));
+                window.location.href = '/';
             });
             
             logsButton.addEventListener('click', function() {
-                history.pushState(null, "", '/logs');
-                window.dispatchEvent(new PopStateEvent('popstate'));
+                window.location.href = '/logs';
             });
             
             settingsButton.addEventListener('click', function() {
-                history.pushState(null, "", '/settings');
-                window.dispatchEvent(new PopStateEvent('popstate'));
+                window.location.href = '/settings';
             });
             
             userButton.addEventListener('click', function() {
-                history.pushState(null, "", '/user');
-                window.dispatchEvent(new PopStateEvent('popstate'));
+                window.location.href = '/user';
             });
             
             // Apply common styling

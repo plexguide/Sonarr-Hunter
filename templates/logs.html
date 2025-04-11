@@ -33,36 +33,46 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Logs-specific JavaScript
+        // Get elements
+        const appTabs = document.querySelectorAll('.app-tab');
+        const logsElement = document.getElementById('logs');
+        const statusElement = document.getElementById('status');
+        const clearLogsButton = document.getElementById('clearLogs');
+        const autoScrollCheckbox = document.getElementById('autoScroll');
         
-        // Update connection status for logs page
-        updateLogsConnectionStatus();
-        
-        // Connect to logs stream if app is configured
-        if (configuredApps[currentApp]) {
-            connectEventSource(currentApp);
+        // Set default app if not already set
+        if (typeof currentApp === 'undefined') {
+            window.currentApp = 'sonarr';
         }
         
-        // Set up auto-scroll behavior
-        const autoScrollCheckbox = document.getElementById('autoScroll');
-        const logsElement = document.getElementById('logs');
+        // Update connection status
+        function updateLogsConnectionStatus() {
+            if (statusElement) {
+                if (window.configuredApps && window.configuredApps[currentApp]) {
+                    statusElement.textContent = 'Connected';
+                    statusElement.className = 'status-connected';
+                } else {
+                    statusElement.textContent = 'Disconnected';
+                    statusElement.className = 'status-disconnected';
+                }
+            }
+        }
         
+        // Auto-scroll function
         function scrollToBottom() {
             if (autoScrollCheckbox && autoScrollCheckbox.checked && logsElement) {
                 logsElement.scrollTop = logsElement.scrollHeight;
             }
         }
         
-        // Set up clear logs functionality
-        const clearLogsButton = document.getElementById('clearLogs');
+        // Clear logs
         if (clearLogsButton) {
             clearLogsButton.addEventListener('click', function() {
                 if (logsElement) logsElement.innerHTML = '';
             });
         }
         
-        // Setup app tab switching
-        const appTabs = document.querySelectorAll('.app-tab');
+        // Tab switching
         appTabs.forEach(tab => {
             tab.addEventListener('click', function() {
                 const app = this.dataset.app;
@@ -75,18 +85,37 @@
                 this.classList.add('active');
                 
                 // Update current app
-                currentApp = app;
+                window.currentApp = app;
                 
                 // Clear the logs
                 if (logsElement) logsElement.innerHTML = '';
                 
-                // Update connection status and reconnect if configured
+                // Update connection status
                 updateLogsConnectionStatus();
-                if (configuredApps[app]) {
-                    connectEventSource(app);
+                
+                // Connect to event source if app is configured
+                if (window.connectEventSource && window.configuredApps && window.configuredApps[app]) {
+                    window.connectEventSource(app);
                 }
             });
         });
+        
+        // Initial connection status update
+        updateLogsConnectionStatus();
+        
+        // Connect to event source if app is configured
+        if (window.connectEventSource && window.configuredApps && window.configuredApps[currentApp]) {
+            window.connectEventSource(currentApp);
+        }
+        
+        // Re-enable auto-scroll when checkbox is checked
+        if (autoScrollCheckbox) {
+            autoScrollCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    scrollToBottom();
+                }
+            });
+        }
     });
 </script>
 {% endblock %}
