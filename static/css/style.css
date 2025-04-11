@@ -626,8 +626,8 @@ input:checked + .toggle-slider:before {
 /* Welcome page */
 .welcome-panel {
     padding: 20px;
-    background-color: transparent;
-    color: var(--header-text);
+    background-color: var(--info-box-bg);
+    color: var(--text-color);
     margin-bottom: 20px;
 }
 
@@ -671,6 +671,7 @@ input:checked + .toggle-slider:before {
 .connection-item {
     display: flex;
     align-items: center;
+    color: var(--text-color);
 }
 
 .connection-name {
