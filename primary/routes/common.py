@@ -18,7 +18,8 @@ def before_common():
 
 @common_bp.route('/')
 def index():
-    return render_template('index.html')
+    from primary.config import SLEEP_DURATION as sleep_duration
+    return render_template('index.html', sleep_duration=sleep_duration)
 
 @common_bp.route('/settings')
 def settings_page():

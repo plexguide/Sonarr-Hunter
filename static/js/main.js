@@ -831,7 +831,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 debug_mode: debugModeInput ? debugModeInput.checked : false,
                 command_wait_delay: commandWaitDelayInput ? parseInt(commandWaitDelayInput.value) || 1 : 1,
                 command_wait_attempts: commandWaitAttemptsInput ? parseInt(commandWaitAttemptsInput.value) || 600 : 600,
-                minimum_download_queue_size: minimumDownloadQueueSizeInput ? parseInt(minimumDownloadQueueSizeInput.value) || -1 : -1,
+                minimumDownloadQueueSize: minimumDownloadQueueSizeInput ? parseInt(minimumDownloadQueueSizeInput.value) || -1 : -1,
                 random_missing: randomMissingInput ? randomMissingInput.checked : true,
                 random_upgrades: randomUpgradesInput ? randomUpgradesInput.checked : true,
                 api_timeout: apiTimeoutInput ? parseInt(apiTimeoutInput.value) || 60 : 60
