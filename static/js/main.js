@@ -1267,4 +1267,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Call the function to apply consistent styling
     applyConsistentStyling();
+
+    // Add event listener for popstate to handle navigation
+    window.addEventListener('popstate', function(event) {
+        const path = window.location.pathname;
+        
+        if (path === '/') {
+            window.location.href = '/';
+        } else if (path === '/logs') {
+            window.location.href = '/logs';
+        } else if (path === '/settings') {
+            window.location.href = '/settings';
+        } else if (path === '/user') {
+            window.location.href = '/user';
+        }
+    });
 });

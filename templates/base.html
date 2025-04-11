@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Huntarr{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/favicon.ico">
+    <script>
+        // Apply theme immediately to prevent flash
+        const storedTheme = localStorage.getItem('huntarrTheme');
+        if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark-theme');
+            document.body.classList.add('dark-theme');
+        }
+    </script>
+    {% block head %}{% endblock %}
+</head>
+<body class="dark-theme">
+    <div class="container">
+        <div class="header">
+            <h1><a href="/" class="title-link"><img src="https://github.com/plexguide/Huntarr/blob/main/logo/40.png?raw=true" alt="Huntarr Logo" class="huntarr-logo">Huntarr</a></h1>
+            <div class="buttons">
+                <button id="homeButton" {% if active_page == 'home' %}class="active"{% endif %}>Home</button>
+                <button id="logsButton" {% if active_page == 'logs' %}class="active"{% endif %}>Logs</button>
+                <button id="settingsButton" {% if active_page == 'settings' %}class="active"{% endif %}>Settings</button>
+                <button id="userButton" {% if active_page == 'user' %}class="active"{% endif %}>User</button>
+            </div>
+            <div class="theme-toggle">
+                <label class="switch">
+                    <input type="checkbox" id="themeToggle" checked>
+                    <span class="slider round"></span>
+                </label>
+                <span id="themeLabel">Dark Mode</span>
+            </div>
+        </div>
+
+        {% block content %}{% endblock %}
+        
+        <div class="footer">
+            <p>💰 Donate @ <a href="https://donate.plex.one" target="_blank">donate.plex.one</a> for Daughter's College Fund! ⭐ Also Star <a href="https://github.com/plexguide/huntarr" target="_blank">Huntarr on GitHub</a> if you find it useful!</p>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Common navigation code for all pages
+            const homeButton = document.getElementById('homeButton');
+            const logsButton = document.getElementById('logsButton');
+            const settingsButton = document.getElementById('settingsButton');
+            const userButton = document.getElementById('userButton');
+            
+            // Use History API for navigation
+            homeButton.addEventListener('click', function() {
+                history.pushState(null, "", '/');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+            });
+            
+            logsButton.addEventListener('click', function() {
+                history.pushState(null, "", '/logs');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+            });
+            
+            settingsButton.addEventListener('click', function() {
+                history.pushState(null, "", '/settings');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+            });
+            
+            userButton.addEventListener('click', function() {
+                history.pushState(null, "", '/user');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+            });
+            
+            // Apply common styling
+            const style = document.createElement('style');
+            style.textContent = `
+                .content-section {
+                    background-color: var(--main-content-bg); 
+                    border: 1px solid var(--container-border);
+                    border-radius: 0 0 10px 10px;
+                }
+                .header {
+                    border-bottom: 1px solid var(--container-border);
+                }
+                .settings-group {
+                    background-color: var(--settings-bg);
+                    border: 1px solid var(--settings-border);
+                    border-radius: 5px;
+                    padding: 20px;
+                    margin-bottom: 20px;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
