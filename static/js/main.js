@@ -169,16 +169,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Theme management
     function loadTheme() {
+        // First try to use localStorage for immediate application
+        const storedTheme = localStorage.getItem('huntarrTheme');
+        if (storedTheme) {
+            setTheme(storedTheme === 'dark');
+            if (themeToggle) themeToggle.checked = storedTheme === 'dark';
+            if (themeLabel) themeLabel.textContent = storedTheme === 'dark' ? 'Dark Mode' : 'Light Mode';
+        }
+        
+        // Then check with the server for the latest setting
         fetch('/api/settings/theme')
             .then(response => response.json())
             .then(data => {
                 const isDarkMode = data.dark_mode || false;
                 setTheme(isDarkMode);
+                localStorage.setItem('huntarrTheme', isDarkMode ? 'dark' : 'light');
                 if (themeToggle) themeToggle.checked = isDarkMode;
                 if (themeLabel) themeLabel.textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
-                
-                // Store theme preference in localStorage
-                localStorage.setItem('huntarr-theme', isDarkMode ? 'dark' : 'light');
             })
             .catch(error => console.error('Error loading theme:', error));
     }
@@ -201,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTheme(isDarkMode);
             
             // Store theme preference in localStorage
-            localStorage.setItem('huntarr-theme', isDarkMode ? 'dark' : 'light');
+            localStorage.setItem('huntarrTheme', isDarkMode ? 'dark' : 'light');
             
             fetch('/api/settings/theme', {
                 method: 'POST',

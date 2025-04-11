@@ -104,15 +104,16 @@ body {
 
 /* Header styling */
 .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     background-color: var(--header-bg);
     color: var(--header-text);
     padding: 20px;
     border-radius: 10px 10px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 0;
-    flex-wrap: wrap;
+    position: relative; /* Add this to create a positioning context */
+    height: 60px; /* Fixed height to prevent jumping */
 }
 
 .header h1 {
@@ -126,6 +127,10 @@ body {
     text-decoration: none;
     display: flex;
     align-items: center;
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .title-link:hover {
@@ -142,6 +147,9 @@ body {
 .buttons {
     display: flex;
     gap: 10px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .buttons button {
@@ -154,12 +162,11 @@ body {
     font-size: 14px;
     font-weight: normal;
     transition: background-color 0.3s;
+    min-width: 70px; /* Fixed width to prevent jumping */
+    text-align: center;
 }
 
-.buttons button:hover {
-    background-color: var(--button-hover);
-}
-
+.buttons button:hover,
 .buttons button.active {
     background-color: var(--button-hover);
     font-weight: bold;
@@ -293,6 +300,10 @@ body {
     display: flex;
     align-items: center;
     margin-left: 15px;
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .switch {
@@ -358,6 +369,7 @@ input:checked + .slider:before {
     max-height: calc(100vh - 200px);
 }
 
+/* Consistent spacing for all sections */
 .settings-group {
     background-color: var(--settings-bg);
     border: 1px solid var(--settings-border);
@@ -839,7 +851,8 @@ input:checked + .toggle-slider:before {
 
 /* User settings page */
 .user-container {
-    background-color: var(--log-background);
+    background-color: var(--main-content-bg);
+    color: var(--header-text);
     border: 1px solid var(--container-border);
     border-radius: 0 0 10px 10px;
     overflow: hidden;
@@ -850,9 +863,15 @@ input:checked + .toggle-slider:before {
 }
 
 .user-settings {
-    padding: 20px;
+    padding: 0;
     overflow-y: auto;
     max-height: calc(100vh - 200px);
+}
+
+.user-settings h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: var(--header-text);
 }
 
 .logout-button {
@@ -863,9 +882,9 @@ input:checked + .toggle-slider:before {
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    float: right;
+    margin: 15px 20px 5px auto;
+    display: block;
+    width: fit-content;
 }
 
 .logout-button:hover {
@@ -873,7 +892,22 @@ input:checked + .toggle-slider:before {
 }
 
 .clear-float {
-    clear: both;
+    display: none; /* Remove this as we're using flexbox now */
+}
+
+/* Consistent layout for all pages */
+#homeContainer,
+#logsContainer,
+#settingsContainer,
+#userContainer {
+    background-color: var(--main-content-bg);
+    color: var(--header-text);
+    border: 1px solid var(--container-border);
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
 }
 
 .status-message {
