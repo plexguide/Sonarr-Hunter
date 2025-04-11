@@ -44,12 +44,13 @@ def test_connection():
         response.raise_for_status()
         keys_manager.save_api_keys("sonarr", api_url, api_key)
         
-        main_pid = get_main_process_pid()
-        if main_pid:
-            os.kill(main_pid, signal.SIGUSR1)
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            with open(LOG_FILE, 'a') as f:
-                f.write(f"{timestamp} - sonarr - INFO - Triggered cycle restart to apply new connection settings\n")
+        # Removed cycle restart functionality:
+        # main_pid = get_main_process_pid()
+        # if main_pid:
+        #     os.kill(main_pid, signal.SIGUSR1)
+        #     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        #     with open(LOG_FILE, 'a') as f:
+        #         f.write(f"{timestamp} - sonarr - INFO - Triggered cycle restart to apply new connection settings\n")
         
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(LOG_FILE, 'a') as f:
