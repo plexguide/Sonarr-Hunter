@@ -1069,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Add countdown logic for log refresh
+    // Add countdown logic for log refresh specific to the logs page
     function startLogCountdown(sleepDuration, refreshInterval) {
         const countdownElement = document.getElementById('logCountdown');
         if (!countdownElement || refreshInterval <= 0) return;
@@ -1087,8 +1087,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }, refreshInterval * 1000);
     }
 
-    // Call this function when the cycle starts
-    startLogCountdown(sleepDuration, logRefreshInterval);
+    // Call this function only when the logs page is active
+    if (logsContainer && logsContainer.style.display !== 'none') {
+        startLogCountdown(sleepDuration, logRefreshInterval);
+    }
     
     // Initialize
     loadTheme();
