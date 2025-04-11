@@ -151,9 +151,14 @@ def load_settings() -> Dict[str, Any]:
                 user_settings = json.load(f)
                 # Deep merge user settings
                 _deep_update(settings, user_settings)
-                settings_logger.info("Settings loaded from configuration file")
+                
+                # Log API settings for debugging
+                conn = user_settings.get("connections", {}).get(app_type, {})
+                api_url = conn.get("api_url", "")
+                has_api_key = bool(conn.get("api_key", ""))
+                settings_logger.debug(f"Loaded settings from {SETTINGS_FILE}. API URL={api_url}, Has API Key: {has_api_key}")
         else:
-            settings_logger.info("No settings file found, creating with default values")
+            settings_logger.info(f"No settings file found at {SETTINGS_FILE}, creating with default values")
             save_settings(settings)
         
         return settings

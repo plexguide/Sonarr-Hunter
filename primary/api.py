@@ -62,10 +62,18 @@ def check_connection() -> bool:
     Check if we can connect to the Arr API.
     Returns True if connection is successful, False otherwise.
     """
-    if not API_URL or not API_KEY:
-        logger.error("API URL or API Key not configured. Please set up your connection in Settings.")
+    # First explicitly check if API URL and Key are configured
+    if not API_URL:
+        logger.error("API URL is not configured in settings. Please set it up in the Settings page.")
         return False
-        
+    
+    if not API_KEY:
+        logger.error("API Key is not configured in settings. Please set it up in the Settings page.")
+        return False
+    
+    # Log what we're attempting to connect to
+    logger.debug(f"Attempting to connect to {APP_TYPE.title()} at {API_URL}")
+    
     # Try to access the system/status endpoint which should be available on all Arr applications
     try:
         endpoint = "system/status"
@@ -89,10 +97,11 @@ def check_connection() -> bool:
             "Content-Type": "application/json"
         }
         
+        logger.debug(f"Testing connection with URL: {url}")
         response = session.get(url, headers=headers, timeout=API_TIMEOUT)
         
         if response.status_code == 401:
-            logger.error(f"Connection test failed: 401 Client Error: Unauthorized - Invalid API key or URL")
+            logger.error(f"Connection test failed: 401 Client Error: Unauthorized - Invalid API key for {APP_TYPE.title()}")
             return False
             
         response.raise_for_status()

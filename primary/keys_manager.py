@@ -75,6 +75,7 @@ def get_api_keys(app_type: str) -> Tuple[str, str]:
     try:
         # Check if settings file exists
         if not SETTINGS_FILE.exists():
+            keys_logger.warning(f"Settings file not found at {SETTINGS_FILE}")
             return '', ''
             
         # Load settings file
@@ -85,8 +86,15 @@ def get_api_keys(app_type: str) -> Tuple[str, str]:
         connections = settings_data.get("connections", {})
         app_config = connections.get(app_type, {})
         
+        api_url = app_config.get('api_url', '')
+        api_key = app_config.get('api_key', '')
+        
+        # Log what we found (without revealing the full API key)
+        masked_key = "****" + api_key[-4:] if len(api_key) > 4 else "****" if api_key else ""
+        keys_logger.debug(f"Retrieved API info for {app_type}: URL={api_url}, Key={masked_key}")
+        
         # Return URL and key
-        return app_config.get('api_url', ''), app_config.get('api_key', '')
+        return api_url, api_key
     except Exception as e:
         keys_logger.error(f"Error getting API keys: {e}")
         return '', ''

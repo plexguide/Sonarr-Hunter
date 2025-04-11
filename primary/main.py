@@ -113,7 +113,20 @@ def main_loop() -> None:
         from primary.api import check_connection
         api_connected = False
         
+        connection_attempts = 0
         while not api_connected and not restart_cycle:
+            # Force reload settings from disk before each connection attempt
+            # This ensures we get the latest API settings even if they were just changed
+            from primary import settings_manager
+            importlib.reload(settings_manager)
+            
+            # Also reload config to get fresh API_URL and API_KEY values
+            from primary import config
+            importlib.reload(config)
+            
+            # Debug log the current API settings
+            logger.debug(f"Connection attempt {connection_attempts+1}: Using API_URL={config.API_URL}, API_KEY={'*'*(len(config.API_KEY)//2 if config.API_KEY else 0)}")
+            
             api_connected = check_connection()
             if not api_connected:
                 logger.error(f"Cannot connect to {APP_TYPE.title()}. Please check your API URL and API key.")
@@ -124,7 +137,9 @@ def main_loop() -> None:
                     time.sleep(1)
                     if restart_cycle:
                         break
-                        
+                
+                connection_attempts += 1
+                
                 # If settings were changed and restart was triggered, break out
                 if restart_cycle:
                     logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")

@@ -204,6 +204,21 @@ def test_connection():
         # If connection successful, save the keys
         keys_manager.save_api_keys(app_type, api_url, api_key)
         
+        # Trigger a cycle restart to pick up the new settings
+        main_pid = get_main_process_pid()
+        if main_pid:
+            try:
+                # Send a SIGUSR1 signal to restart the cycle with new settings
+                os.kill(main_pid, signal.SIGUSR1)
+                # Log that we've triggered a restart
+                timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                with open(LOG_FILE, 'a') as f:
+                    f.write(f"{timestamp} - huntarr-web - INFO - Triggered cycle restart to apply new connection settings\n")
+            except Exception as e:
+                timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                with open(LOG_FILE, 'a') as f:
+                    f.write(f"{timestamp} - huntarr-web - WARNING - Could not trigger cycle restart: {str(e)}\n")
+        
         # Log the successful connection test
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(LOG_FILE, 'a') as f:

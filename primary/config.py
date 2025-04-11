@@ -116,12 +116,20 @@ def refresh_settings():
     global STATE_RESET_INTERVAL_HOURS, RANDOM_MISSING, RANDOM_UPGRADES
     global HUNT_MODE
     
+    # Force reload the settings_manager module to get fresh values from disk
+    from primary import settings_manager
+    importlib.reload(settings_manager)
+    
     # Reload APP_TYPE from settings
     APP_TYPE = settings_manager.get_app_type()
     
-    # Refresh API keys from settings_manager
+    # Refresh API keys from settings_manager, ensuring we get the latest values directly from disk
     API_URL = settings_manager.get_api_url()
     API_KEY = settings_manager.get_api_key()
+    
+    # Log the API settings we've loaded for debugging purposes
+    logger = logging.getLogger("huntarr")
+    logger.debug(f"Refreshed API settings - URL: {API_URL}, Key: {'*'*(len(API_KEY)//2 if API_KEY else 0)}")
     
     # Force reload all settings
     settings = settings_manager.get_all_settings()
