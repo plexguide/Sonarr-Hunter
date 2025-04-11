@@ -43,20 +43,18 @@ def test_connection():
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         keys_manager.save_api_keys("sonarr", api_url, api_key)
-        
-        # Removed cycle restart functionality:
-        # main_pid = get_main_process_pid()
-        # if main_pid:
-        #     os.kill(main_pid, signal.SIGUSR1)
-        #     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        #     with open(LOG_FILE, 'a') as f:
-        #         f.write(f"{timestamp} - sonarr - INFO - Triggered cycle restart to apply new connection settings\n")
-        
+
+        # Ensure the response is valid JSON
+        try:
+            response_data = response.json()
+        except ValueError:
+            return jsonify({"success": False, "message": "Invalid JSON response from Sonarr API"}), 500
+
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(LOG_FILE, 'a') as f:
             f.write(f"{timestamp} - sonarr - INFO - Connection test successful: {api_url}\n")
-        return jsonify({"success": True})
-    except Exception as e:
+        return jsonify({"success": True, "data": response_data})
+    except requests.exceptions.RequestException as e:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with open(LOG_FILE, 'a') as f:
             f.write(f"{timestamp} - sonarr - ERROR - Connection test failed: {api_url} - {str(e)}\n")
