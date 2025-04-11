@@ -116,6 +116,9 @@ def refresh_settings():
     global STATE_RESET_INTERVAL_HOURS, RANDOM_MISSING, RANDOM_UPGRADES
     global HUNT_MODE
     
+    # Import required modules
+    import logging
+    
     # Force reload the settings_manager module to get fresh values from disk
     from primary import settings_manager
     importlib.reload(settings_manager)

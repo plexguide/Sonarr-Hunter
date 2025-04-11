@@ -10,7 +10,13 @@ import os
 import socket
 import signal
 import importlib
-from primary.utils.logger import logger
+import logging
+
+# Set up logging first to avoid circular imports
+from primary.utils.logger import setup_logger
+logger = setup_logger()
+
+# Now import the rest of the modules
 from primary.config import HUNT_MODE, SLEEP_DURATION, MINIMUM_DOWNLOAD_QUEUE_SIZE, APP_TYPE, log_configuration, refresh_settings
 from primary.state import check_state_reset, calculate_reset_time
 from primary.api import get_download_queue_size

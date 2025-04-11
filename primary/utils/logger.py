@@ -28,9 +28,16 @@ def setup_logger(debug_mode=None):
     global logger
     
     # Get DEBUG_MODE from config, but only if we haven't been given a value
+    # Use a safe approach to avoid circular imports
+    use_debug_mode = False
     if debug_mode is None:
-        from primary.config import DEBUG_MODE as CONFIG_DEBUG_MODE
-        use_debug_mode = CONFIG_DEBUG_MODE
+        try:
+            # Try to get DEBUG_MODE from config, but don't fail if it's not available
+            from primary.config import DEBUG_MODE as CONFIG_DEBUG_MODE
+            use_debug_mode = CONFIG_DEBUG_MODE
+        except (ImportError, AttributeError):
+            # Default to False if there's any issue
+            pass
     else:
         use_debug_mode = debug_mode
     
