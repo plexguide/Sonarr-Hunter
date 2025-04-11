@@ -179,7 +179,7 @@ body {
 /* Home page specific */
 #homeContainer {
     background-color: var(--main-content-bg);
-    color: var(--header-text);
+    color: var(--text-color);
     padding: 20px;
     border-left: 1px solid var(--container-border);
     border-right: 1px solid var(--container-border);
@@ -683,6 +683,7 @@ input:checked + .toggle-slider:before {
     border-radius: 8px;
     padding: 15px;
     margin-top: 25px;
+    color: var(--text-color);
 }
 
 .info-box h3, .thank-you-box h3 {
