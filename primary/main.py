@@ -105,6 +105,33 @@ def main_loop() -> None:
         
         logger.info(f"=== Starting Huntarr cycle ===")
         
+        # Check API connectivity before proceeding
+        from primary.api import check_connection
+        api_connected = False
+        
+        while not api_connected and not restart_cycle:
+            api_connected = check_connection()
+            if not api_connected:
+                logger.error(f"Cannot connect to {APP_TYPE.title()}. Please check your API URL and API key.")
+                logger.info(f"Will retry in 10 seconds...")
+                
+                # Sleep for 10 seconds before retrying
+                for _ in range(10):
+                    time.sleep(1)
+                    if restart_cycle:
+                        break
+                        
+                # If settings were changed and restart was triggered, break out
+                if restart_cycle:
+                    logger.warning("⚠️ Restarting cycle due to settings change... ⚠️")
+                    continue
+        
+        # Skip processing if we still can't connect after retries
+        if not api_connected:
+            logger.error("Connection failed, skipping this cycle.")
+            time.sleep(10)
+            continue
+        
         # Track if any processing was done in this cycle
         processing_done = False
 

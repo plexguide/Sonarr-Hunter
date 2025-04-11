@@ -52,6 +52,12 @@ def process_cutoff_upgrades(restart_cycle_flag: Callable[[], bool] = lambda: Fal
         return False
 
     total_pages = get_cutoff_unmet_total_pages()
+    
+    # If we got an error (-1) from the API request, return early
+    if total_pages < 0:
+        logger.error("Failed to get cutoff unmet data due to API error. Skipping this cycle.")
+        return False
+        
     if total_pages == 0:
         logger.info("No episodes found that need quality upgrades.")
         return False

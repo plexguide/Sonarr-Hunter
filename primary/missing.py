@@ -43,6 +43,11 @@ def process_missing_episodes() -> bool:
     # Get shows that have missing episodes directly - more efficient than checking all shows
     shows_with_missing = get_series_with_missing_episodes()
     
+    # If None is returned rather than an empty list, it indicates an API error
+    if shows_with_missing is None:
+        logger.error("Failed to get missing episodes data due to API error. Skipping this cycle.")
+        return False
+    
     # Add more detailed logging about the API response
     logger.debug(f"API Response for missing episodes: {shows_with_missing[:2] if shows_with_missing and len(shows_with_missing) > 2 else shows_with_missing}")
     
